@@ -51,3 +51,14 @@ test("keeps question data stable and fully grouped", async () => {
   }
   for (const id of ids) assert.match(groupsBlock, new RegExp(`"${id}"`), `term has no confusion group: ${id}`);
 });
+
+test("opens the weak-only mode from the same all-category pool used by its count", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const weakButtonStart = page.indexOf('<button className={mode === "weak"');
+  const weakButtonEnd = page.indexOf("</button>", weakButtonStart);
+  const weakButton = page.slice(weakButtonStart, weakButtonEnd);
+
+  assert.ok(weakButtonStart >= 0, "weak-only navigation button is missing");
+  assert.match(weakButton, /setCategory\("すべて"\)/);
+  assert.match(weakButton, /buildRound\("すべて", progress, weakIds, false, false, true\)/);
+});
