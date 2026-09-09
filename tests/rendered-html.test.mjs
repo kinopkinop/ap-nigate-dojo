@@ -62,3 +62,18 @@ test("opens the weak-only mode from the same all-category pool used by its count
   assert.match(weakButton, /setCategory\("すべて"\)/);
   assert.match(weakButton, /buildRound\("すべて", progress, weakIds, false, false, true\)/);
 });
+
+test("does not mask an abbreviation inside its English formal name", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const helperStart = page.indexOf("function maskAnswerTerm");
+  const helperEnd = page.indexOf("function getRetention", helperStart);
+  const helperSource = page.slice(helperStart, helperEnd)
+    .replace("function maskAnswerTerm(text: string, card: Term)", "function maskAnswerTerm(text, card)");
+  const maskAnswerTerm = Function(`${helperSource}\nreturn maskAnswerTerm;`)();
+
+  assert.equal(
+    maskAnswerTerm("Enterprise Resource Planning。会計・人事・生産・販売などを統合管理する仕組み。", { term: "ERP" }),
+    "会計・人事・生産・販売などを統合管理する仕組み。",
+  );
+  assert.equal(maskAnswerTerm("ERPは企業全体を統合管理する。", { term: "ERP" }), "この用語は企業全体を統合管理する。");
+});

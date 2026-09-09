@@ -390,7 +390,9 @@ function getChoices(card: Term, difficulty: Difficulty) {
 
 function maskAnswerTerm(text: string, card: Term) {
   const escaped = card.term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  let masked = text.replace(new RegExp(escaped, "gi"), "この用語");
+  const isAsciiTerm = /^[A-Za-z0-9+&/\-]+$/.test(card.term);
+  const termPattern = isAsciiTerm ? `(^|[^A-Za-z0-9])${escaped}(?=$|[^A-Za-z0-9])` : escaped;
+  let masked = text.replace(new RegExp(termPattern, "gi"), isAsciiTerm ? "$1この用語" : "この用語");
   const sentences = masked.split("。");
   const formalNamePattern = /^[A-Za-z][A-Za-z0-9+&/\- ]*(?:（[^）]*）)?(?:、[A-Za-z][A-Za-z0-9+&/\- ]*(?:（[^）]*）)?)*$/;
   if (sentences.length > 1 && formalNamePattern.test(sentences[0].trim())) masked = sentences.slice(1).join("。").trim();
