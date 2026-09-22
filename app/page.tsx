@@ -222,6 +222,20 @@ const terms: Term[] = [
   { id: "immersion-cooling", term: "液浸冷却", category: "テクノロジ", hint: "サーバの熱を空気ではなく液体へ逃がす。", hardPrompt: "サーバなどの電子機器を絶縁性の液体に浸して熱を取り除く冷却方式は？", answer: "サーバなどを電気を通しにくい冷却液へ浸し、機器の熱を液体へ移して冷却する方式。空冷と異なり液体で直接熱を回収する。", level: 1, collection: "special" },
   { id: "iot", term: "IoT", category: "ストラテジ", hint: "身近な機器や設備がネットにつながり、データをやり取りする。", hardPrompt: "センサを備えた機器などをネットワークにつなぎ、状態の収集や遠隔制御に利用する仕組みは？", answer: "Internet of Things（モノのインターネット）。機器や設備をネットワークにつなぎ、データの収集・分析や遠隔制御などに活用する。", level: 1, collection: "special" },
   { id: "soa", term: "SOA", category: "テクノロジ", hint: "業務機能を独立したサービスとして組み合わせる設計。", hardPrompt: "業務機能を再利用可能なサービスとして分け、連携させてシステムを構築する考え方は？", answer: "Service-Oriented Architecture（サービス指向アーキテクチャ）。業務機能を独立したサービスとして公開・連携し、再利用しやすくする設計思想。", level: 1, collection: "special" },
+  { id: "mm1-queue", term: "M/M/1待ち行列", category: "テクノロジ", hint: "一つの窓口に、仕事がランダムに到着して順番を待つモデル。", hardPrompt: "到着と処理の間隔をそれぞれ指数分布で表し、窓口が一つだけの待ち行列モデルは？", answer: "到着がポアソン過程、処理時間が指数分布に従い、窓口が一つの待ち行列モデル。到着率λより処理率μが大きいとき安定し、利用率が上がると待ち時間が急増する。", level: 1, collection: "special" },
+  { id: "mm1-utilization", term: "利用率（M/M/1）", category: "テクノロジ", hint: "到着の速さを、処理できる速さと比べる。", hardPrompt: "到着率が毎時8件、処理率が毎時10件なら0.8となる、窓口の忙しさを表す指標は？", answer: "到着率λを処理率μで割ったρ＝λ/μ。例えば8件/時が到着し10件/時を処理できるなら0.8（80%）。μに近づくほど待ち時間が長くなる。", level: 1, collection: "special", confusion: "平均系内時間は待ち時間と処理時間の合計で、利用率とは単位も意味も異なる" },
+  { id: "mm1-system-time", term: "平均系内時間（M/M/1）", category: "テクノロジ", hint: "列に並んでいる時間だけでなく、実際に処理される時間も含む。", hardPrompt: "到着率が毎時8件、処理率が毎時10件なら30分となる、到着から処理完了までの平均時間は？", answer: "待ち時間と処理時間を合わせた平均時間。M/M/1でλ＜μなら1/（μ−λ）。λ＝8件/時、μ＝10件/時なら1/2時間＝30分。待ち時間だけの値ではない。", level: 1, collection: "special", confusion: "平均処理時間は1/μで、列に並ぶ時間を含まない" },
+  { id: "mm1-service-time", term: "平均処理時間（サービス率μ）", category: "テクノロジ", hint: "一時間に何件処理できるかを、一件当たりの時間に直す。", hardPrompt: "1時間に10件処理できる窓口で、1件当たり6分となる時間は？", answer: "処理率μの逆数で、1件を処理する平均時間は1/μ。μ＝10件/時なら1/10時間＝6分。待ち時間は含まず、平均系内時間とは異なる。", level: 1, collection: "special" },
+  { id: "linear-search", term: "線形探索", category: "テクノロジ", hint: "並び順に頼らず、先頭から一件ずつ確かめる。", hardPrompt: "未整列のn件を先頭から順に比較し、探す回数が件数に比例する探索法は？", answer: "先頭から順番に一件ずつ比較する探索法。整列は不要だが、最悪の場合n件を調べるため計算量はO(n)。", level: 1, collection: "special" },
+  { id: "binary-search", term: "二分探索", category: "テクノロジ", hint: "整列済みの範囲を、比較のたびに半分に絞る。", hardPrompt: "整列済みの1024件なら約10回の比較で候補を絞れる、O(log n)の探索法は？", answer: "整列済みのデータの中央と比較し、探索範囲を半分ずつ減らす。計算量はO(log₂n)。log₂1024＝10は、1024を2で10回割ると1になるイメージ。", level: 1, collection: "special", confusion: "線形探索は先頭から順に調べるためO(n)、二分探索には整列済みのデータが必要" },
+  { id: "hash-search", term: "ハッシュ探索", category: "テクノロジ", hint: "キーから保存場所の目安を計算して探す。", hardPrompt: "キーから位置を計算する表を使い、衝突が少なければ平均O(1)で探せる方法は？", answer: "キーのハッシュ値から格納先を求めて探す方法。探索は平均O(1)だが、衝突が多いと遅くなり、常にO(1)とは限らない。", level: 1, collection: "special", confusion: "二分探索は整列済みデータを半分ずつ絞り、O(log n)で探す" },
+  { id: "parity-check", term: "パリティチェック", category: "テクノロジ", hint: "1の個数の偶数・奇数を検査する。", hardPrompt: "検査ビットを一つ加え、奇数個のビット反転を検出できるが、通常は位置の特定・訂正をしない方式は？", answer: "1の個数が偶数または奇数になるよう検査ビットを付け、受信側で誤りを検出する。奇数個のビット誤りは検出できるが、偶数個の誤りは見逃し得る。誤りの訂正はできない。", level: 1, collection: "special", confusion: "ハミング符号は誤り位置を特定して1ビットを訂正できる" },
+  { id: "crc-error-check", term: "CRC", category: "テクノロジ", hint: "連続したビットの化けを検出するのに向く。", hardPrompt: "ビット列を生成多項式で割った余りを付け、バースト誤りの検出に強い方式は？", answer: "Cyclic Redundancy Check（巡回冗長検査）。送信データを生成多項式で割った余りを検査値として付け、受信側で照合する。連続するビットの誤りの検出に強いが、訂正はしない。", level: 1, collection: "special", confusion: "パリティは単純な奇偶検査、ハミング符号は1ビット誤りの訂正ができる" },
+  { id: "hamming-code", term: "ハミング符号", category: "テクノロジ", hint: "複数の検査ビットから、誤った位置を特定する。", hardPrompt: "検査ビットの組合せで誤り位置を見つけ、1ビットの誤りを訂正できる符号は？", answer: "複数の検査ビットを加え、検査結果から誤ったビットの位置を特定する誤り訂正符号。基本的なハミング符号は1ビット誤りを訂正できる。", level: 1, collection: "special", confusion: "パリティとCRCは主に誤りを検出する方式で、通常は訂正しない" },
+  { id: "logic-not", term: "NOT", category: "テクノロジ", hint: "入力の0と1をひっくり返す。", hardPrompt: "一つの入力が0なら1、1なら0を出力する論理演算は？", answer: "一つの入力を反転する否定演算。0を1に、1を0に変える。", level: 1, collection: "special" },
+  { id: "logic-xor", term: "XOR", category: "テクノロジ", hint: "二つの入力が食い違う場合だけ1になる。", hardPrompt: "入力が0と1なら1、1と1なら0になる排他的な論理演算は？", answer: "排他的論理和。二つの入力が異なるときだけ1で、同じなら0。00→0、01→1、10→1、11→0。", level: 1, collection: "special", confusion: "NANDはANDの反転、NORはORの反転" },
+  { id: "logic-nand", term: "NAND", category: "テクノロジ", hint: "二つとも1のときだけ0、それ以外は1。", hardPrompt: "二つの入力がともに1の場合だけ0となる、論理積を反転した演算は？", answer: "AND（論理積）の結果を反転する否定論理積。00→1、01→1、10→1、11→0。", level: 1, collection: "special", confusion: "NORはORの反転で、両方0のときだけ1" },
+  { id: "logic-nor", term: "NOR", category: "テクノロジ", hint: "二つとも0のときだけ1、それ以外は0。", hardPrompt: "二つの入力がともに0の場合だけ1となる、論理和を反転した演算は？", answer: "OR（論理和）の結果を反転する否定論理和。00→1、01→0、10→0、11→0。", level: 1, collection: "special", confusion: "NANDはANDの反転で、両方1のときだけ0" },
 ];
 
 type Progress = Record<string, { correct: number; wrong: number; unsure?: number; confident?: number; retention?: number; quizCount?: number }>;
@@ -363,6 +377,10 @@ const confusionGroups = [
   ["marketing-4p-4c", "segmentation", "targeting", "positioning"],
   ["immersion-cooling", "warm-standby", "hot-standby", "availability-management"],
   ["soa", "erp", "scm", "crm"],
+  ["mm1-queue", "mm1-utilization", "mm1-system-time", "mm1-service-time"],
+  ["linear-search", "binary-search", "hash-search", "bplus-tree-index"],
+  ["parity-check", "crc-error-check", "hamming-code", "integrity"],
+  ["logic-not", "logic-xor", "logic-nand", "logic-nor"],
 ];
 
 function textBigrams(text: string) {
