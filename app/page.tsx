@@ -235,7 +235,8 @@ type SessionAnswer = { id: string; result: "correct" | "wrong" };
 const categoryNames = ["すべて", "セキュリティ", "データベース", "ネットワーク", "マネジメント", "ストラテジ", "テクノロジ"] as const;
 const retentionResetKey = "ap-study-retention-reset-2026-08-27";
 const collectionStorageKey = "ap-study-collections-v1";
-const backupKeys = ["ap-study-progress", "ap-study-round", "ap-study-priority-round", "ap-study-mode-stats", "ap-study-question-stats-v1", collectionStorageKey, retentionResetKey] as const;
+const disabledStorageKey = "ap-study-disabled-ids-v1";
+const backupKeys = ["ap-study-progress", "ap-study-round", "ap-study-priority-round", "ap-study-mode-stats", "ap-study-question-stats-v1", collectionStorageKey, disabledStorageKey, retentionResetKey] as const;
 
 function getCollection(item: Term, overrides: CollectionOverrides): Collection {
   return overrides[item.id] ?? (item.collection === "special" ? "special" : "regular");
@@ -251,10 +252,11 @@ function isWeak(item: Term, savedProgress: Progress) {
   return getRetention(item, savedProgress) < 60;
 }
 
-function buildRound(selectedCategory: "すべて" | Category, savedProgress: Progress, previousRound: string[] = [], onlyPriority = false, onlyUnseen = false, onlyWeak = false, overrides: CollectionOverrides = {}, collection: Collection = "regular") {
+function buildRound(selectedCategory: "すべて" | Category, savedProgress: Progress, previousRound: string[] = [], onlyPriority = false, onlyUnseen = false, onlyWeak = false, overrides: CollectionOverrides = {}, collection: Collection = "regular", disabledIds: string[] = []) {
   const pool = terms.filter((item) => {
     return (selectedCategory === "すべて" || item.category === selectedCategory)
       && getCollection(item, overrides) === collection
+      && !disabledIds.includes(item.id)
       && (!onlyPriority || getRetention(item, savedProgress) < 40)
       && (!onlyUnseen || isUnseen(item, savedProgress))
       && (!onlyWeak || isWeak(item, savedProgress));
@@ -274,8 +276,8 @@ function buildRound(selectedCategory: "すべて" | Category, savedProgress: Pro
   return [...fresh, ...previous].slice(0, 5).map((item) => item.id);
 }
 
-function buildLowQuizRound(selectedCategory: "すべて" | Category, savedProgress: Progress, previousRound: string[] = [], overrides: CollectionOverrides = {}) {
-  const pool = shuffle(terms.filter((item) => getCollection(item, overrides) === "regular" && (selectedCategory === "すべて" || item.category === selectedCategory)));
+function buildLowQuizRound(selectedCategory: "すべて" | Category, savedProgress: Progress, previousRound: string[] = [], overrides: CollectionOverrides = {}, disabledIds: string[] = []) {
+  const pool = shuffle(terms.filter((item) => !disabledIds.includes(item.id) && getCollection(item, overrides) === "regular" && (selectedCategory === "すべて" || item.category === selectedCategory)));
   return pool.sort((a, b) => {
     const countDifference = (savedProgress[a.id]?.quizCount ?? 0) - (savedProgress[b.id]?.quizCount ?? 0);
     if (countDifference !== 0) return countDifference;
@@ -380,9 +382,9 @@ function textSimilarity(left: string, right: string) {
 
 type Difficulty = "easy" | "normal" | "hard";
 
-function getChoices(card: Term, difficulty: Difficulty) {
+function getChoices(card: Term, difficulty: Difficulty, disabledIds: string[] = []) {
   const group = confusionGroups.find((ids) => ids.includes(card.id)) ?? [];
-  const candidates = terms.filter((item) => item.id !== card.id).map((item) => {
+  const candidates = terms.filter((item) => item.id !== card.id && !disabledIds.includes(item.id)).map((item) => {
     const sameConfusionGroup = group.includes(item.id);
     const score = (sameConfusionGroup ? 100 : 0)
       + (item.category === card.category ? 4 : 0)
@@ -449,8 +451,9 @@ function getRetentionStatus(score: number) {
 export default function Home() {
   const [mode, setMode] = useState<ModeKey | "list">("study");
   const [category, setCategory] = useState<"すべて" | Category>("すべて");
-  const [collectionFilter, setCollectionFilter] = useState<"all" | Collection>("all");
+  const [collectionFilter, setCollectionFilter] = useState<"all" | Collection | "disabled">("all");
   const [collectionOverrides, setCollectionOverrides] = useState<CollectionOverrides>({});
+  const [disabledIds, setDisabledIds] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"default" | "retention-asc" | "retention-desc">("default");
   const [progress, setProgress] = useState<Progress>({});
@@ -496,6 +499,12 @@ export default function Home() {
       }
     } catch { /* 古いデータや破損した設定は初期の区分を使う */ }
     setCollectionOverrides(savedCollections);
+    let savedDisabledIds: string[] = [];
+    try {
+      const parsed = JSON.parse(localStorage.getItem(disabledStorageKey) ?? "[]");
+      if (Array.isArray(parsed)) savedDisabledIds = [...new Set(parsed.filter((id): id is string => typeof id === "string" && terms.some((item) => item.id === id)))];
+    } catch { /* 破損した設定は出題中として扱う */ }
+    setDisabledIds(savedDisabledIds);
     const saved = localStorage.getItem("ap-study-progress");
     let savedProgress = saved ? JSON.parse(saved) as Progress : {};
     if (localStorage.getItem(retentionResetKey) !== "done") {
@@ -523,7 +532,7 @@ export default function Home() {
       const validIds = savedIds.length > 0
         && savedIds.length <= 5
         && new Set(savedIds).size === savedIds.length
-        && savedIds.every((id) => typeof id === "string" && terms.some((item) => item.id === id && getCollection(item, savedCollections) === "regular"));
+        && savedIds.every((id) => typeof id === "string" && !savedDisabledIds.includes(id) && terms.some((item) => item.id === id && getCollection(item, savedCollections) === "regular"));
       const validPosition = typeof savedRound?.position === "number"
         && Number.isInteger(savedRound.position)
         && savedRound.position >= 0
@@ -534,29 +543,29 @@ export default function Home() {
         setRoundIds(savedIds as string[]);
         setRoundPosition(savedRound.position as number);
       } else {
-        setRoundIds(buildRound("すべて", savedProgress, [], false, false, false, savedCollections));
+        setRoundIds(buildRound("すべて", savedProgress, [], false, false, false, savedCollections, "regular", savedDisabledIds));
       }
     } catch {
-      setRoundIds(buildRound("すべて", savedProgress, [], false, false, false, savedCollections));
+      setRoundIds(buildRound("すべて", savedProgress, [], false, false, false, savedCollections, "regular", savedDisabledIds));
     }
     const savedPriorityText = localStorage.getItem("ap-study-priority-round");
     try {
       const savedPriority = savedPriorityText ? JSON.parse(savedPriorityText) as { ids?: string[]; position?: number } : null;
-      const validIds = Array.isArray(savedPriority?.ids) && savedPriority.ids.length > 0 && savedPriority.ids.length <= 5 && new Set(savedPriority.ids).size === savedPriority.ids.length && savedPriority.ids.every((id) => terms.some((item) => item.id === id && getCollection(item, savedCollections) === "regular" && getRetention(item, savedProgress) < 40));
+      const validIds = Array.isArray(savedPriority?.ids) && savedPriority.ids.length > 0 && savedPriority.ids.length <= 5 && new Set(savedPriority.ids).size === savedPriority.ids.length && savedPriority.ids.every((id) => !savedDisabledIds.includes(id) && terms.some((item) => item.id === id && getCollection(item, savedCollections) === "regular" && getRetention(item, savedProgress) < 40));
       const validPosition = validIds && typeof savedPriority?.position === "number" && savedPriority.position >= 0 && savedPriority.position < savedPriority.ids!.length;
       if (validIds && validPosition) {
         setPriorityIds(savedPriority!.ids!);
         setPriorityPosition(savedPriority!.position!);
       } else {
-        setPriorityIds(buildRound("すべて", savedProgress, [], true, false, false, savedCollections));
+        setPriorityIds(buildRound("すべて", savedProgress, [], true, false, false, savedCollections, "regular", savedDisabledIds));
       }
     } catch {
-      setPriorityIds(buildRound("すべて", savedProgress, [], true, false, false, savedCollections));
+      setPriorityIds(buildRound("すべて", savedProgress, [], true, false, false, savedCollections, "regular", savedDisabledIds));
     }
-    setUnseenIds(buildRound("すべて", savedProgress, [], false, true, false, savedCollections));
-    setWeakIds(buildRound("すべて", savedProgress, [], false, false, true, savedCollections));
-    setLowQuizIds(buildLowQuizRound("すべて", savedProgress, [], savedCollections));
-    setSpecialIds(buildRound("すべて", savedProgress, [], false, false, false, savedCollections, "special"));
+    setUnseenIds(buildRound("すべて", savedProgress, [], false, true, false, savedCollections, "regular", savedDisabledIds));
+    setWeakIds(buildRound("すべて", savedProgress, [], false, false, true, savedCollections, "regular", savedDisabledIds));
+    setLowQuizIds(buildLowQuizRound("すべて", savedProgress, [], savedCollections, savedDisabledIds));
+    setSpecialIds(buildRound("すべて", savedProgress, [], false, false, false, savedCollections, "special", savedDisabledIds));
     setHydrated(true);
   }, []);
 
@@ -572,15 +581,15 @@ export default function Home() {
 
   const filtered = useMemo(() => {
     const matched = terms.filter((item) => {
-    const categoryMatch = category === "すべて" || item.category === category;
-    const collectionMatch = collectionFilter === "all" || getCollection(item, collectionOverrides) === collectionFilter;
-    const textMatch = `${item.term} ${item.answer}`.toLowerCase().includes(query.toLowerCase());
-    return categoryMatch && collectionMatch && textMatch;
+      const categoryMatch = category === "すべて" || item.category === category;
+      const collectionMatch = collectionFilter === "all" || (collectionFilter === "disabled" ? disabledIds.includes(item.id) : getCollection(item, collectionOverrides) === collectionFilter);
+      const textMatch = `${item.term} ${item.answer}`.toLowerCase().includes(query.toLowerCase());
+      return categoryMatch && collectionMatch && textMatch;
     });
     if (sortOrder === "retention-asc") return [...matched].sort((a, b) => getRetention(a, progress) - getRetention(b, progress));
     if (sortOrder === "retention-desc") return [...matched].sort((a, b) => getRetention(b, progress) - getRetention(a, progress));
     return matched;
-  }, [category, collectionFilter, collectionOverrides, query, sortOrder, progress]);
+  }, [category, collectionFilter, collectionOverrides, disabledIds, query, sortOrder, progress]);
 
   const activeIds = mode === "priority" ? priorityIds : mode === "weak" ? weakIds : mode === "unseen" ? unseenIds : mode === "lowquiz" ? lowQuizIds : mode === "special" ? specialIds : roundIds;
   const activePosition = mode === "priority" ? priorityPosition : mode === "weak" ? weakPosition : mode === "unseen" ? unseenPosition : mode === "lowquiz" ? lowQuizPosition : mode === "special" ? specialPosition : roundPosition;
@@ -590,7 +599,7 @@ export default function Home() {
   const difficulty: Difficulty = retention < 40 ? "easy" : retention >= 75 ? "hard" : "normal";
   const questionDifficulty = useMemo(() => difficulty, [card?.id, activePosition, mode]);
   const cardRecord = card ? progress[card.id] : undefined;
-  const choices = useMemo(() => card ? getChoices(card, questionDifficulty) : [], [card?.id, activePosition, mode]);
+  const choices = useMemo(() => card ? getChoices(card, questionDifficulty, disabledIds) : [], [card?.id, activePosition, mode, disabledIds]);
   const questionCopy = useMemo(() => {
     if (!card) return { studyLabel: "この用語を説明できますか？", quizLabel: "この説明に当てはまる用語は？", quizText: "", difficultyLabel: "標準" };
     const studyLabels = ["この用語を説明できますか？", "意味と役割を思い出せますか？", "この用語の要点を言えますか？"];
@@ -608,15 +617,18 @@ export default function Home() {
   const currentResults = currentModeKey ? sessionResults[currentModeKey] : [];
   const sessionCorrect = currentResults.filter((item) => item.result === "correct").length;
   const sessionWrong = currentResults.length - sessionCorrect;
-  const regularTerms = terms.filter((item) => getCollection(item, collectionOverrides) === "regular");
-  const specialCount = terms.length - regularTerms.length;
+  const regularTerms = terms.filter((item) => getCollection(item, collectionOverrides) === "regular" && !disabledIds.includes(item.id));
+  const regularTotalCount = terms.filter((item) => getCollection(item, collectionOverrides) === "regular").length;
+  const specialTotalCount = terms.length - regularTotalCount;
+  const specialCount = terms.filter((item) => getCollection(item, collectionOverrides) === "special" && !disabledIds.includes(item.id)).length;
+  const activeTermCount = regularTerms.length + specialCount;
   const mastered = regularTerms.filter((item) => !isUnseen(item, progress) && getRetention(item, progress) >= 75).length;
   const unseenCount = regularTerms.filter((item) => isUnseen(item, progress)).length;
   const weakCount = regularTerms.filter((item) => isWeak(item, progress)).length;
   const answeredCount = regularTerms.length - unseenCount;
   const priorityCount = regularTerms.filter((item) => getRetention(item, progress) < 40).length;
   const sessionGoal = mode === "special"
-    ? Math.min(5, terms.filter((item) => getCollection(item, collectionOverrides) === "special" && (category === "すべて" || item.category === category)).length)
+    ? Math.min(5, terms.filter((item) => getCollection(item, collectionOverrides) === "special" && !disabledIds.includes(item.id) && (category === "すべて" || item.category === category)).length)
     : 5;
 
   function recordModeResult(key: ModeKey, questionId: string, result: "correct" | "wrong") {
@@ -674,7 +686,7 @@ export default function Home() {
     }
     if (mode === "priority") {
       if (priorityPosition >= priorityIds.length - 1) {
-        setPriorityIds(buildRound("すべて", next, priorityIds, true, false, false, collectionOverrides));
+        setPriorityIds(buildRound("すべて", next, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds));
         setPriorityPosition(0);
       } else {
         setPriorityPosition((old) => old + 1);
@@ -682,13 +694,13 @@ export default function Home() {
       setSession([]);
     } else if (mode === "weak") {
       if (weakPosition >= weakIds.length - 1) {
-        setWeakIds(buildRound(category, next, weakIds, false, false, true, collectionOverrides));
+        setWeakIds(buildRound(category, next, weakIds, false, false, true, collectionOverrides, "regular", disabledIds));
         setWeakPosition(0);
       } else setWeakPosition((old) => old + 1);
       setSession((old) => [...old, card.id]);
     } else if (mode === "unseen") {
       if (unseenPosition >= unseenIds.length - 1) {
-        setUnseenIds(buildRound(category, next, unseenIds, false, true, false, collectionOverrides));
+        setUnseenIds(buildRound(category, next, unseenIds, false, true, false, collectionOverrides, "regular", disabledIds));
         setUnseenPosition(0);
       } else {
         setUnseenPosition((old) => old + 1);
@@ -696,12 +708,12 @@ export default function Home() {
       setSession((old) => [...old, card.id]);
     } else if (mode === "special") {
       if (specialPosition >= specialIds.length - 1) {
-        setSpecialIds(buildRound(category, next, specialIds, false, false, false, collectionOverrides, "special"));
+        setSpecialIds(buildRound(category, next, specialIds, false, false, false, collectionOverrides, "special", disabledIds));
         setSpecialPosition(0);
       } else setSpecialPosition((old) => old + 1);
       setSession((old) => [...old, card.id]);
     } else if (roundPosition >= roundIds.length - 1) {
-      setRoundIds(buildRound(category, next, roundIds, false, false, false, collectionOverrides));
+      setRoundIds(buildRound(category, next, roundIds, false, false, false, collectionOverrides, "regular", disabledIds));
       setRoundPosition(0);
       setSession([]);
     } else {
@@ -718,15 +730,15 @@ export default function Home() {
     localStorage.removeItem("ap-study-mode-stats");
     localStorage.removeItem("ap-study-question-stats-v1");
     setProgress({});
-    setRoundIds(buildRound(category, {}, [], false, false, false, collectionOverrides));
+    setRoundIds(buildRound(category, {}, [], false, false, false, collectionOverrides, "regular", disabledIds));
     setRoundPosition(0);
-    setPriorityIds(buildRound("すべて", {}, [], true, false, false, collectionOverrides));
+    setPriorityIds(buildRound("すべて", {}, [], true, false, false, collectionOverrides, "regular", disabledIds));
     setPriorityPosition(0);
-    setUnseenIds(buildRound("すべて", {}, [], false, true, false, collectionOverrides));
+    setUnseenIds(buildRound("すべて", {}, [], false, true, false, collectionOverrides, "regular", disabledIds));
     setUnseenPosition(0);
-    setLowQuizIds(buildLowQuizRound("すべて", {}, [], collectionOverrides));
+    setLowQuizIds(buildLowQuizRound("すべて", {}, [], collectionOverrides, disabledIds));
     setLowQuizPosition(0);
-    setSpecialIds(buildRound("すべて", {}, [], false, false, false, collectionOverrides, "special"));
+    setSpecialIds(buildRound("すべて", {}, [], false, false, false, collectionOverrides, "special", disabledIds));
     setSpecialPosition(0);
     setSession([]);
     setQuizChoice(null);
@@ -769,11 +781,11 @@ export default function Home() {
       const data = backup.data as Record<string, unknown>;
       const entries = backupKeys.flatMap((key) => typeof data[key] === "string" ? [[key, data[key] as string] as const] : []);
       if (!entries.some(([key]) => key === "ap-study-progress")) throw new Error("成績データがありません");
-      entries.forEach(([, value]) => JSON.parse(value));
-      if (!window.confirm("現在の成績と問題の区分をバックアップの内容で上書きしますか？")) return;
+      entries.forEach(([key, value]) => { if (key !== retentionResetKey) JSON.parse(value); });
+      if (!window.confirm("現在の成績・問題の区分・出題設定をバックアップの内容で上書きしますか？")) return;
       backupKeys.forEach((key) => localStorage.removeItem(key));
       entries.forEach(([key, value]) => localStorage.setItem(key, value));
-      window.alert("成績と問題の区分を復元しました。画面を更新します。");
+      window.alert("成績と問題の設定を復元しました。画面を更新します。");
       window.location.reload();
     } catch {
       window.alert("このファイルは復元できません。AP苦手だけ道場で作成したJSONバックアップを選んでください。");
@@ -886,31 +898,31 @@ export default function Home() {
     }
     if (mode === "priority") {
       if (priorityPosition >= priorityIds.length - 1) {
-        setPriorityIds(buildRound("すべて", progress, priorityIds, true, false, false, collectionOverrides));
+        setPriorityIds(buildRound("すべて", progress, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds));
         setPriorityPosition(0);
       } else setPriorityPosition((old) => old + 1);
     } else if (mode === "weak") {
       if (weakPosition >= weakIds.length - 1) {
-        setWeakIds(buildRound(category, progress, weakIds, false, false, true, collectionOverrides));
+        setWeakIds(buildRound(category, progress, weakIds, false, false, true, collectionOverrides, "regular", disabledIds));
         setWeakPosition(0);
       } else setWeakPosition((old) => old + 1);
     } else if (mode === "unseen") {
       if (unseenPosition >= unseenIds.length - 1) {
-        setUnseenIds(buildRound(category, progress, unseenIds, false, true, false, collectionOverrides));
+        setUnseenIds(buildRound(category, progress, unseenIds, false, true, false, collectionOverrides, "regular", disabledIds));
         setUnseenPosition(0);
       } else setUnseenPosition((old) => old + 1);
     } else if (mode === "lowquiz") {
       if (lowQuizPosition >= lowQuizIds.length - 1) {
-        setLowQuizIds(buildLowQuizRound(category, progress, lowQuizIds, collectionOverrides));
+        setLowQuizIds(buildLowQuizRound(category, progress, lowQuizIds, collectionOverrides, disabledIds));
         setLowQuizPosition(0);
       } else setLowQuizPosition((old) => old + 1);
     } else if (mode === "special") {
       if (specialPosition >= specialIds.length - 1) {
-        setSpecialIds(buildRound(category, progress, specialIds, false, false, false, collectionOverrides, "special"));
+        setSpecialIds(buildRound(category, progress, specialIds, false, false, false, collectionOverrides, "special", disabledIds));
         setSpecialPosition(0);
       } else setSpecialPosition((old) => old + 1);
     } else if (roundPosition >= roundIds.length - 1) {
-      setRoundIds(buildRound(category, progress, roundIds, false, false, false, collectionOverrides));
+      setRoundIds(buildRound(category, progress, roundIds, false, false, false, collectionOverrides, "regular", disabledIds));
       setRoundPosition(0);
       setSession([]);
     } else {
@@ -940,17 +952,30 @@ export default function Home() {
     if (nextCollection === (item.collection === "special" ? "special" : "regular")) delete nextOverrides[item.id];
     setCollectionOverrides(nextOverrides);
     localStorage.setItem(collectionStorageKey, JSON.stringify(nextOverrides));
-    setRoundIds(buildRound(category, progress, [], false, false, false, nextOverrides));
+    refreshRounds(nextOverrides, disabledIds);
+  }
+
+  function toggleDisabled(item: Term) {
+    const nextDisabledIds = disabledIds.includes(item.id)
+      ? disabledIds.filter((id) => id !== item.id)
+      : [...disabledIds, item.id];
+    setDisabledIds(nextDisabledIds);
+    localStorage.setItem(disabledStorageKey, JSON.stringify(nextDisabledIds));
+    refreshRounds(collectionOverrides, nextDisabledIds);
+  }
+
+  function refreshRounds(nextOverrides: CollectionOverrides, nextDisabledIds: string[]) {
+    setRoundIds(buildRound(category, progress, [], false, false, false, nextOverrides, "regular", nextDisabledIds));
     setRoundPosition(0);
-    setPriorityIds(buildRound("すべて", progress, [], true, false, false, nextOverrides));
+    setPriorityIds(buildRound("すべて", progress, [], true, false, false, nextOverrides, "regular", nextDisabledIds));
     setPriorityPosition(0);
-    setWeakIds(buildRound("すべて", progress, [], false, false, true, nextOverrides));
+    setWeakIds(buildRound("すべて", progress, [], false, false, true, nextOverrides, "regular", nextDisabledIds));
     setWeakPosition(0);
-    setUnseenIds(buildRound(category, progress, [], false, true, false, nextOverrides));
+    setUnseenIds(buildRound(category, progress, [], false, true, false, nextOverrides, "regular", nextDisabledIds));
     setUnseenPosition(0);
-    setLowQuizIds(buildLowQuizRound(category, progress, [], nextOverrides));
+    setLowQuizIds(buildLowQuizRound(category, progress, [], nextOverrides, nextDisabledIds));
     setLowQuizPosition(0);
-    setSpecialIds(buildRound("すべて", progress, [], false, false, false, nextOverrides, "special"));
+    setSpecialIds(buildRound("すべて", progress, [], false, false, false, nextOverrides, "special", nextDisabledIds));
     setSpecialPosition(0);
     setSessionResults({ study: [], quiz: [], priority: [], weak: [], unseen: [], lowquiz: [], special: [] });
     setCompleted({ study: false, quiz: false, priority: false, weak: false, unseen: false, lowquiz: false, special: false });
@@ -958,22 +983,22 @@ export default function Home() {
 
   function startNextSession(key: ModeKey) {
     if (key === "priority") {
-      setPriorityIds(buildRound("すべて", progress, priorityIds, true, false, false, collectionOverrides));
+      setPriorityIds(buildRound("すべて", progress, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds));
       setPriorityPosition(0);
     } else if (key === "weak") {
-      setWeakIds(buildRound(category, progress, weakIds, false, false, true, collectionOverrides));
+      setWeakIds(buildRound(category, progress, weakIds, false, false, true, collectionOverrides, "regular", disabledIds));
       setWeakPosition(0);
     } else if (key === "unseen") {
-      setUnseenIds(buildRound(category, progress, unseenIds, false, true, false, collectionOverrides));
+      setUnseenIds(buildRound(category, progress, unseenIds, false, true, false, collectionOverrides, "regular", disabledIds));
       setUnseenPosition(0);
     } else if (key === "lowquiz") {
-      setLowQuizIds(buildLowQuizRound(category, progress, lowQuizIds, collectionOverrides));
+      setLowQuizIds(buildLowQuizRound(category, progress, lowQuizIds, collectionOverrides, disabledIds));
       setLowQuizPosition(0);
     } else if (key === "special") {
-      setSpecialIds(buildRound(category, progress, specialIds, false, false, false, collectionOverrides, "special"));
+      setSpecialIds(buildRound(category, progress, specialIds, false, false, false, collectionOverrides, "special", disabledIds));
       setSpecialPosition(0);
     } else {
-      setRoundIds(buildRound(category, progress, roundIds, false, false, false, collectionOverrides));
+      setRoundIds(buildRound(category, progress, roundIds, false, false, false, collectionOverrides, "regular", disabledIds));
       setRoundPosition(0);
     }
     setSessionResults((old) => ({ ...old, [key]: [] }));
@@ -996,11 +1021,11 @@ export default function Home() {
         <nav aria-label="メインメニュー">
           <button className={mode === "study" ? "active" : ""} onClick={() => { setMode("study"); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>用語チェック</button>
           <button className={mode === "quiz" ? "active" : ""} onClick={() => { setMode("quiz"); setRevealed(false); }}>4択クイズ</button>
-          <button className={mode === "priority" ? "active" : ""} onClick={() => { setMode("priority"); setPriorityIds(buildRound("すべて", progress, priorityIds, true, false, false, collectionOverrides)); setPriorityPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>最優先だけ <span className="navCount">{priorityCount}</span></button>
-          <button className={mode === "weak" ? "active" : ""} onClick={() => { setMode("weak"); setCategory("すべて"); setWeakIds(buildRound("すべて", progress, weakIds, false, false, true, collectionOverrides)); setWeakPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>苦手だけ <span className="navCount">{weakCount}</span></button>
-          <button className={mode === "unseen" ? "active" : ""} onClick={() => { setMode("unseen"); setUnseenIds(buildRound(category, progress, unseenIds, false, true, false, collectionOverrides)); setUnseenPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>未出題だけ <span className="navCount">{unseenCount}</span></button>
-          <button className={mode === "lowquiz" ? "active" : ""} onClick={() => { setMode("lowquiz"); setLowQuizIds(buildLowQuizRound(category, progress, lowQuizIds, collectionOverrides)); setLowQuizPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>出題少なめ</button>
-          <button className={mode === "special" ? "active" : ""} onClick={() => { setMode("special"); setCategory("すべて"); setSpecialIds(buildRound("すべて", progress, specialIds, false, false, false, collectionOverrides, "special")); setSpecialPosition(0); setSessionResults((old) => ({ ...old, special: [] })); setCompleted((old) => ({ ...old, special: false })); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>特別問題 <span className="navCount">{specialCount}</span></button>
+          <button className={mode === "priority" ? "active" : ""} onClick={() => { setMode("priority"); setPriorityIds(buildRound("すべて", progress, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds)); setPriorityPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>最優先だけ <span className="navCount">{priorityCount}</span></button>
+          <button className={mode === "weak" ? "active" : ""} onClick={() => { setMode("weak"); setCategory("すべて"); setWeakIds(buildRound("すべて", progress, weakIds, false, false, true, collectionOverrides, "regular", disabledIds)); setWeakPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>苦手だけ <span className="navCount">{weakCount}</span></button>
+          <button className={mode === "unseen" ? "active" : ""} onClick={() => { setMode("unseen"); setUnseenIds(buildRound(category, progress, unseenIds, false, true, false, collectionOverrides, "regular", disabledIds)); setUnseenPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>未出題だけ <span className="navCount">{unseenCount}</span></button>
+          <button className={mode === "lowquiz" ? "active" : ""} onClick={() => { setMode("lowquiz"); setLowQuizIds(buildLowQuizRound(category, progress, lowQuizIds, collectionOverrides, disabledIds)); setLowQuizPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>出題少なめ</button>
+          <button className={mode === "special" ? "active" : ""} onClick={() => { setMode("special"); setCategory("すべて"); setSpecialIds(buildRound("すべて", progress, specialIds, false, false, false, collectionOverrides, "special", disabledIds)); setSpecialPosition(0); setSessionResults((old) => ({ ...old, special: [] })); setCompleted((old) => ({ ...old, special: false })); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>特別問題 <span className="navCount">{specialCount}</span></button>
           <button className={mode === "list" ? "active" : ""} onClick={() => setMode("list")}>用語一覧 <span className="navCount">{terms.length}</span></button>
         </nav>
         <div className="headerCount"><span>{mastered}</span> 問 定着済み</div>
@@ -1014,7 +1039,7 @@ export default function Home() {
         </div>
         <div className="stats" aria-label="学習状況">
           <div><strong>{mastered}<small>語</small></strong><span>定着度75以上</span></div>
-          <div><strong>{regularTerms.length}<small>語</small></strong><span>通常問題数</span></div>
+          <div><strong>{regularTerms.length}<small>語</small></strong><span>出題中の通常問題</span></div>
           <div><strong>{answeredCount}<small>語</small></strong><span>回答済み</span></div>
           <div><strong>{weakCount}<small>語</small></strong><span>苦手問題</span></div>
           <div><strong>{unseenCount}<small>語</small></strong><span>未出題</span></div>
@@ -1030,7 +1055,7 @@ export default function Home() {
           </div>
           {mode !== "priority" && <div className="filters" role="group" aria-label="分野を絞り込む">
             {categoryNames.map((name) => (
-              <button key={name} className={category === name ? "selected" : ""} onClick={() => { setCategory(name); if (mode === "weak") { setWeakIds(buildRound(name, progress, weakIds, false, false, true, collectionOverrides)); setWeakPosition(0); } else if (mode === "unseen") { setUnseenIds(buildRound(name, progress, unseenIds, false, true, false, collectionOverrides)); setUnseenPosition(0); } else if (mode === "lowquiz") { setLowQuizIds(buildLowQuizRound(name, progress, lowQuizIds, collectionOverrides)); setLowQuizPosition(0); } else if (mode === "special") { setSpecialIds(buildRound(name, progress, specialIds, false, false, false, collectionOverrides, "special")); setSpecialPosition(0); } else { setRoundIds(buildRound(name, progress, [], false, false, false, collectionOverrides)); setRoundPosition(0); } setSession([]); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); if (currentModeKey) { setSessionResults((old) => ({ ...old, [currentModeKey]: [] })); setCompleted((old) => ({ ...old, [currentModeKey]: false })); } }}>{name}</button>
+              <button key={name} className={category === name ? "selected" : ""} onClick={() => { setCategory(name); if (mode === "weak") { setWeakIds(buildRound(name, progress, weakIds, false, false, true, collectionOverrides, "regular", disabledIds)); setWeakPosition(0); } else if (mode === "unseen") { setUnseenIds(buildRound(name, progress, unseenIds, false, true, false, collectionOverrides, "regular", disabledIds)); setUnseenPosition(0); } else if (mode === "lowquiz") { setLowQuizIds(buildLowQuizRound(name, progress, lowQuizIds, collectionOverrides, disabledIds)); setLowQuizPosition(0); } else if (mode === "special") { setSpecialIds(buildRound(name, progress, specialIds, false, false, false, collectionOverrides, "special", disabledIds)); setSpecialPosition(0); } else { setRoundIds(buildRound(name, progress, [], false, false, false, collectionOverrides, "regular", disabledIds)); setRoundPosition(0); } setSession([]); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); if (currentModeKey) { setSessionResults((old) => ({ ...old, [currentModeKey]: [] })); setCompleted((old) => ({ ...old, [currentModeKey]: false })); } }}>{name}</button>
             ))}
           </div>}
           {(mode === "priority" || mode === "weak" || mode === "unseen" || mode === "special") && <div className="formatSwitch" role="group" aria-label="問題形式を選ぶ">
@@ -1076,6 +1101,10 @@ export default function Home() {
                 })}
               </div>
               <button className="nextSessionButton" onClick={() => startNextSession(currentModeKey)}>次の{sessionGoal}問へ <span>→</span></button>
+            </article> : isQuizView && activeTermCount < 4 ? <article className="resultCard">
+              <h3>4択には出題中の用語が4語必要です。</h3>
+              <p>用語一覧から出題を再開してください。</p>
+              <button className="nextSessionButton" onClick={() => { setCategory("すべて"); setCollectionFilter("disabled"); setMode("list"); }}>用語一覧へ →</button>
             </article> : !isQuizView ? <article className={`flashcard level${retentionStatus.level} ${revealed ? "revealed" : ""}`}>
               <div className="cardMeta">
                 <div className="cardMetaLeft">
@@ -1168,18 +1197,19 @@ export default function Home() {
             <div className="searchRow">
               <label className="searchInput"><span>用語を検索</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="例：セッション、DDL、IPsec" /></label>
               <div className="listSummary">
-                <strong>全 {terms.length} 語</strong><span>通常 {regularTerms.length} 語・特別 {specialCount} 語</span><span>現在の表示 {filtered.length} 語</span>
+                <strong>全 {terms.length} 語</strong><span>通常 {regularTotalCount} 語・特別 {specialTotalCount} 語</span><span>出題停止 {disabledIds.length} 語</span><span>現在の表示 {filtered.length} 語</span>
                 <div className="backupActions">
-                  <button className="backupButton" onClick={downloadBackup}>成績・区分をバックアップ</button>
-                  <label className="restoreButton">成績・区分を復元<input className="visuallyHidden" type="file" accept="application/json,.json" onChange={restoreBackup} /></label>
+                  <button className="backupButton" onClick={downloadBackup}>成績・設定をバックアップ</button>
+                  <label className="restoreButton">成績・設定を復元<input className="visuallyHidden" type="file" accept="application/json,.json" onChange={restoreBackup} /></label>
                   <button className="reset" onClick={resetProgress}>学習記録をリセット</button>
                 </div>
               </div>
             </div>
             <div className="collectionFilters" role="group" aria-label="問題の区分で絞り込む">
               <button className={collectionFilter === "all" ? "selected" : ""} onClick={() => setCollectionFilter("all")}>すべて</button>
-              <button className={collectionFilter === "regular" ? "selected" : ""} onClick={() => setCollectionFilter("regular")}>通常問題 {regularTerms.length}</button>
-              <button className={collectionFilter === "special" ? "selected" : ""} onClick={() => setCollectionFilter("special")}>特別問題 {specialCount}</button>
+              <button className={collectionFilter === "regular" ? "selected" : ""} onClick={() => setCollectionFilter("regular")}>通常問題 {regularTotalCount}</button>
+              <button className={collectionFilter === "special" ? "selected" : ""} onClick={() => setCollectionFilter("special")}>特別問題 {specialTotalCount}</button>
+              <button className={collectionFilter === "disabled" ? "selected" : ""} onClick={() => setCollectionFilter("disabled")}>出題しない {disabledIds.length}</button>
             </div>
             <div className="termTable">
               <div className="tableHeader"><span>優先度</span><span>用語</span><span>覚えるポイント</span><button className="retentionSort" onClick={() => setSortOrder((old) => old === "retention-asc" ? "retention-desc" : "retention-asc")} aria-label={`定着度を${sortOrder === "retention-asc" ? "高い順" : "低い順"}に並べ替える`}>定着度 <b>{sortOrder === "retention-asc" ? "↑" : sortOrder === "retention-desc" ? "↓" : "↕"}</b></button></div>
@@ -1187,8 +1217,10 @@ export default function Home() {
                 const itemProgress = progress[item.id];
                 const itemStatus = getRetentionStatus(getRetention(item, progress));
                 const itemCollection = getCollection(item, collectionOverrides);
+                const isDisabled = disabledIds.includes(item.id);
                 const openItem = () => {
-                  const nextRound = [item.id, ...buildRound(item.category, progress, [item.id], false, false, false, collectionOverrides, itemCollection).filter((id) => id !== item.id)].slice(0, 5);
+                  if (isDisabled) return;
+                  const nextRound = [item.id, ...buildRound(item.category, progress, [item.id], false, false, false, collectionOverrides, itemCollection, disabledIds).filter((id) => id !== item.id)].slice(0, 5);
                   const nextMode: ModeKey = itemCollection === "special" ? "special" : "study";
                   setCategory(item.category);
                   if (nextMode === "special") { setSpecialIds(nextRound); setSpecialPosition(0); }
@@ -1200,9 +1232,9 @@ export default function Home() {
                   setFocusFormat("term");
                   setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false);
                 };
-                return <div className="termRow" key={item.id} role="button" tabIndex={0} onClick={openItem} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") openItem(); }}>
+                return <div className={`termRow ${isDisabled ? "isDisabled" : ""}`} key={item.id} role={isDisabled ? undefined : "button"} tabIndex={isDisabled ? undefined : 0} onClick={isDisabled ? undefined : openItem} onKeyDown={(event) => { if (!isDisabled && (event.key === "Enter" || event.key === " ")) openItem(); }}>
                   <span><b className={`priority ${itemStatus.className}`}>{itemStatus.label}</b></span>
-                  <span className="termName"><small>{item.category}</small>{item.term}<button type="button" className={`collectionToggle ${itemCollection}`} onClick={(event) => { event.stopPropagation(); toggleCollection(item); }} onKeyDown={(event) => event.stopPropagation()} aria-label={`${item.term}を${itemCollection === "special" ? "通常問題に戻す" : "特別問題に移す"}`}>{itemCollection === "special" ? "特別問題 → 通常に戻す" : "通常問題 → 特別に移す"}</button></span>
+                  <span className="termName"><small>{item.category}</small>{item.term}{isDisabled && <small className="disabledBadge">出題しない</small>}<span className="termActions"><button type="button" className={`collectionToggle ${itemCollection}`} onClick={(event) => { event.stopPropagation(); toggleCollection(item); }} onKeyDown={(event) => event.stopPropagation()} aria-label={`${item.term}を${itemCollection === "special" ? "通常問題に戻す" : "特別問題に移す"}`}>{itemCollection === "special" ? "通常へ変更" : "特別へ変更"}</button><button type="button" className={`questionToggle ${isDisabled ? "disabled" : ""}`} onClick={(event) => { event.stopPropagation(); toggleDisabled(item); }} onKeyDown={(event) => event.stopPropagation()} aria-label={`${item.term}の出題を${isDisabled ? "再開" : "停止"}`}>{isDisabled ? "出題を再開" : "出題を停止"}</button></span></span>
                   <span className="termAnswer">{item.answer}</span>
                   <span className="record retentionEdit" onClick={(event) => event.stopPropagation()}>
                     <label><input type="number" min="0" max="100" value={getRetention(item, progress)} onKeyDown={(event) => event.stopPropagation()} onChange={(event) => setManualRetention(item, Number(event.target.value))} aria-label={`${item.term}の定着度`} /><small>/100</small></label>
@@ -1215,9 +1247,9 @@ export default function Home() {
           </div>
         ) : (
           <div className="emptyRound">
-            <strong>{mode === "special" ? "この分野に特別問題はありません。" : mode === "weak" ? "この分野に苦手問題はありません。" : mode === "unseen" ? "この分野の未出題問題はありません。" : "この分野に通常問題はありません。"}</strong>
-            <p>{mode === "special" ? "用語一覧から問題ごとに特別問題へ移せます。" : mode === "weak" ? "定着度60未満の問題が対象です。" : "別の分野を選ぶか、用語一覧で区分を変更できます。"}</p>
-            <button onClick={() => setMode(mode === "special" ? "list" : "study")}>{mode === "special" ? "用語一覧へ" : "用語チェックへ"}</button>
+            <strong>{mode === "special" ? "この分野に出題中の特別問題はありません。" : mode === "weak" ? "この分野に苦手問題はありません。" : mode === "unseen" ? "この分野の未出題問題はありません。" : "この分野に出題中の通常問題はありません。"}</strong>
+            <p>{disabledIds.length > 0 ? "出題を停止した問題は、用語一覧から再開できます。" : mode === "special" ? "用語一覧から問題ごとに特別問題へ移せます。" : mode === "weak" ? "定着度60未満の問題が対象です。" : "別の分野を選ぶか、用語一覧で区分を変更できます。"}</p>
+            <button onClick={() => { setCategory("すべて"); setCollectionFilter(disabledIds.length > 0 ? "disabled" : "all"); setMode("list"); }}>用語一覧へ</button>
           </div>
         )}
       </section>

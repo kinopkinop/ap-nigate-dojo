@@ -60,7 +60,7 @@ test("opens the weak-only mode from the same all-category pool used by its count
 
   assert.ok(weakButtonStart >= 0, "weak-only navigation button is missing");
   assert.match(weakButton, /setCategory\("すべて"\)/);
-  assert.match(weakButton, /buildRound\("すべて", progress, weakIds, false, false, true, collectionOverrides\)/);
+  assert.match(weakButton, /buildRound\("すべて", progress, weakIds, false, false, true, collectionOverrides, "regular", disabledIds\)/);
 });
 
 test("new terms start in the special collection and can be moved individually", async () => {
@@ -70,6 +70,19 @@ test("new terms start in the special collection and can be moved individually", 
   assert.match(page, /const collectionStorageKey = "ap-study-collections-v1"/);
   assert.match(page, /function toggleCollection\(item: Term\)/);
   assert.match(page, /getCollection\(item, overrides\) === collection/);
+});
+
+test("paused questions stay out of rounds and choices, with settings in backups", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /const disabledStorageKey = "ap-study-disabled-ids-v1"/);
+  assert.match(page, /const backupKeys = \[[^\n]+disabledStorageKey/);
+  assert.match(page, /function toggleDisabled\(item: Term\)/);
+  assert.match(page, /!disabledIds\.includes\(item\.id\)/);
+  assert.match(page, /getChoices\(card, questionDifficulty, disabledIds\)/);
+  assert.match(page, /collectionFilter === "disabled"/);
+  for (const line of page.split("\n").filter((line) => line.includes("buildRound(") && !line.includes("function buildRound("))) {
+    assert.match(line, /(?:disabledIds|savedDisabledIds|nextDisabledIds)/, `round ignores paused questions: ${line}`);
+  }
 });
 
 test("does not mask an abbreviation inside its English formal name", async () => {
