@@ -43,7 +43,7 @@ test("keeps question data stable and fully grouped", async () => {
   const ids = [...termsBlock.matchAll(/id: "([^"]+)"/g)].map((match) => match[1]);
   const groupsBlock = page.slice(page.indexOf("const confusionGroups"), page.indexOf("function textBigrams"));
 
-  assert.equal(ids.length, 195);
+  assert.equal(ids.length, 206);
   assert.equal(new Set(ids).size, ids.length);
   assert.ok((termsBlock.match(/hardPrompt:/g) ?? []).length >= 30);
   for (const id of ["conceptual-schema", "internal-schema", "false-positive", "hot-standby", "cold-standby", "initiating-process-group", "executing-process-group", "closing-process-group"]) {
@@ -60,7 +60,16 @@ test("opens the weak-only mode from the same all-category pool used by its count
 
   assert.ok(weakButtonStart >= 0, "weak-only navigation button is missing");
   assert.match(weakButton, /setCategory\("すべて"\)/);
-  assert.match(weakButton, /buildRound\("すべて", progress, weakIds, false, false, true\)/);
+  assert.match(weakButton, /buildRound\("すべて", progress, weakIds, false, false, true, collectionOverrides\)/);
+});
+
+test("new terms start in the special collection and can be moved individually", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const specialIds = ["tuckman-model", "mes", "scala-language", "delphi-method", "brainstorming", "feasibility-study", "reverse-proxy", "marketing-4p-4c", "immersion-cooling", "iot", "soa"];
+  for (const id of specialIds) assert.match(page, new RegExp(`id: "${id}"[^\\n]+collection: "special"`));
+  assert.match(page, /const collectionStorageKey = "ap-study-collections-v1"/);
+  assert.match(page, /function toggleCollection\(item: Term\)/);
+  assert.match(page, /getCollection\(item, overrides\) === collection/);
 });
 
 test("does not mask an abbreviation inside its English formal name", async () => {

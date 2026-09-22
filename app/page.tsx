@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 
-type Category = "セキュリティ" | "データベース" | "ネットワーク" | "マネジメント" | "ストラテジ";
+type Category = "セキュリティ" | "データベース" | "ネットワーク" | "マネジメント" | "ストラテジ" | "テクノロジ";
 type Term = {
   id: string;
   term: string;
@@ -12,6 +12,7 @@ type Term = {
   answer: string;
   level: 1 | 2 | 3;
   confusion?: string;
+  collection?: "special";
 };
 
 const terms: Term[] = [
@@ -210,17 +211,35 @@ const terms: Term[] = [
   { id: "controlling-process-group", term: "監視・コントロールのプロセス群", category: "マネジメント", hint: "計画と実績のずれを確認し、必要なら進め方を修正する。", hardPrompt: "進捗と実績を計画値と比較し、差異を分析して是正処置や変更を行うプロセス群は？", answer: "プロジェクトの実績を測定して計画と比較し、差異を分析して是正処置や変更を行うプロセス群。", level: 1 },
   { id: "closing-process-group", term: "終結のプロセス群", category: "マネジメント", hint: "成果物の受入れを確認し、契約や記録を閉じて正式に完了させる。", hardPrompt: "成果物の正式な受入れ、契約の完了、教訓の記録などを行うプロセス群は？", answer: "プロジェクトまたはフェーズの成果物を正式に受け入れ、契約・文書・教訓などを整理して完了させるプロセス群。", level: 1 },
   { id: "metadata", term: "メタデータ", category: "データベース", hint: "図書館の本に対する、タイトル・著者・分類番号のような情報。", answer: "表名、列名、データ型、制約など、データの構造や性質を説明する情報。", level: 3 },
+  { id: "tuckman-model", term: "タックマンモデル", category: "マネジメント", hint: "チームができてから機能するまでの段階を考える。", hardPrompt: "新しいチームが形成・混乱・統一・機能を経て成熟する過程を説明するモデルは？", answer: "チームの発達を形成期・混乱期・統一期・機能期などの段階で捉えるモデル。意見の対立を経て役割や規範が定まり、協働できるようになる。", level: 1, collection: "special" },
+  { id: "mes", term: "MES", category: "ストラテジ", hint: "企業全体の計画と、工場の現場作業の間をつなぐ。", hardPrompt: "工場の製造現場で作業指示・進捗・品質・設備稼働などを管理するシステムは？", answer: "Manufacturing Execution System（製造実行システム）。製造現場の作業指示や進捗、品質、設備稼働などを管理し、ERPの計画と現場をつなぐ。", level: 1, collection: "special", confusion: "ERPは企業全体の経営資源、MESは製造現場の実行を管理する" },
+  { id: "scala-language", term: "Scala", category: "テクノロジ", hint: "オブジェクト指向と関数型の両方を使える言語。", hardPrompt: "オブジェクト指向と関数型プログラミングを統合し、JVM上でも動く静的型付け言語は？", answer: "オブジェクト指向と関数型の特徴を併せ持つ静的型付けプログラミング言語。JVM上で動作し、Javaの資産も利用できる。", level: 1, collection: "special" },
+  { id: "delphi-method", term: "デルファイ法", category: "ストラテジ", hint: "専門家の予測を一度で決めず、回答を集めて繰り返し見直す。", hardPrompt: "専門家へ匿名で質問を繰り返し、集計結果を示しながら意見を収束させる予測手法は？", answer: "複数の専門家へ匿名のアンケートを反復し、前回の集計結果を知らせながら将来予測などの意見を収束させる手法。", level: 1, collection: "special", confusion: "ブレーンストーミングは対面などで自由にアイデアを出す手法" },
+  { id: "brainstorming", term: "ブレーンストーミング", category: "ストラテジ", hint: "まず量を出す。人の案をその場で批判しない。", hardPrompt: "批判を控え、自由な発想や他人の案との結合を促してアイデアを広げる手法は？", answer: "参加者が批判を避けて自由に多数のアイデアを出し、他人の案の発展や組合せも歓迎する発想法。", level: 1, collection: "special", confusion: "デルファイ法は専門家への反復アンケートで意見を収束させる" },
+  { id: "feasibility-study", term: "フィージビリティスタディ", category: "ストラテジ", hint: "本格着手の前に、実現できるかを調べる。", hardPrompt: "新規事業やシステム化の着手前に、技術・費用・期間などから実現可能性を評価する調査は？", answer: "計画に本格着手する前に、技術面・費用・期間・効果などを調べ、実現可能性を評価すること。FSともいう。", level: 1, collection: "special" },
+  { id: "reverse-proxy", term: "リバースプロキシ", category: "ネットワーク", hint: "利用者ではなく、Webサーバの手前に置く代理窓口。", hardPrompt: "外部利用者からの要求を受け、背後のサーバへ振り分ける中継サーバは？", answer: "クライアントからの要求をサーバの手前で受け、背後のWebサーバへ転送する仕組み。負荷分散、キャッシュ、TLS終端などに使う。", level: 1, collection: "special", confusion: "通常のフォワードプロキシは利用者側の代理として外部へアクセスする" },
+  { id: "marketing-4p-4c", term: "マーケティングの4P・4C", category: "ストラテジ", hint: "売り手の施策と、買い手から見た価値を対応させる。", hardPrompt: "Product・Price・Place・Promotionと、顧客価値・顧客コスト・利便性・コミュニケーションを対応させる考え方は？", answer: "4Pは売り手視点の製品・価格・流通・販促。4Cは買い手視点の顧客価値・顧客コスト・利便性・コミュニケーション。両者を対応させて施策を考える。", level: 1, collection: "special" },
+  { id: "immersion-cooling", term: "液浸冷却", category: "テクノロジ", hint: "サーバの熱を空気ではなく液体へ逃がす。", hardPrompt: "サーバなどの電子機器を絶縁性の液体に浸して熱を取り除く冷却方式は？", answer: "サーバなどを電気を通しにくい冷却液へ浸し、機器の熱を液体へ移して冷却する方式。空冷と異なり液体で直接熱を回収する。", level: 1, collection: "special" },
+  { id: "iot", term: "IoT", category: "ストラテジ", hint: "身近な機器や設備がネットにつながり、データをやり取りする。", hardPrompt: "センサを備えた機器などをネットワークにつなぎ、状態の収集や遠隔制御に利用する仕組みは？", answer: "Internet of Things（モノのインターネット）。機器や設備をネットワークにつなぎ、データの収集・分析や遠隔制御などに活用する。", level: 1, collection: "special" },
+  { id: "soa", term: "SOA", category: "テクノロジ", hint: "業務機能を独立したサービスとして組み合わせる設計。", hardPrompt: "業務機能を再利用可能なサービスとして分け、連携させてシステムを構築する考え方は？", answer: "Service-Oriented Architecture（サービス指向アーキテクチャ）。業務機能を独立したサービスとして公開・連携し、再利用しやすくする設計思想。", level: 1, collection: "special" },
 ];
 
 type Progress = Record<string, { correct: number; wrong: number; unsure?: number; confident?: number; retention?: number; quizCount?: number }>;
-type ModeKey = "study" | "quiz" | "priority" | "weak" | "unseen" | "lowquiz";
+type ModeKey = "study" | "quiz" | "priority" | "weak" | "unseen" | "lowquiz" | "special";
+type Collection = "regular" | "special";
+type CollectionOverrides = Record<string, Collection>;
 type ModeStats = Record<ModeKey, { correct: number; wrong: number }>;
 type QuestionStats = Record<string, Partial<Record<ModeKey, { correct: number; wrong: number }>>>;
 type SessionAnswer = { id: string; result: "correct" | "wrong" };
 
-const categoryNames = ["すべて", "セキュリティ", "データベース", "ネットワーク", "マネジメント", "ストラテジ"] as const;
+const categoryNames = ["すべて", "セキュリティ", "データベース", "ネットワーク", "マネジメント", "ストラテジ", "テクノロジ"] as const;
 const retentionResetKey = "ap-study-retention-reset-2026-08-27";
-const backupKeys = ["ap-study-progress", "ap-study-round", "ap-study-priority-round", "ap-study-mode-stats", "ap-study-question-stats-v1", retentionResetKey] as const;
+const collectionStorageKey = "ap-study-collections-v1";
+const backupKeys = ["ap-study-progress", "ap-study-round", "ap-study-priority-round", "ap-study-mode-stats", "ap-study-question-stats-v1", collectionStorageKey, retentionResetKey] as const;
+
+function getCollection(item: Term, overrides: CollectionOverrides): Collection {
+  return overrides[item.id] ?? (item.collection === "special" ? "special" : "regular");
+}
 
 function isUnseen(item: Term, savedProgress: Progress) {
   const record = savedProgress[item.id];
@@ -232,9 +251,10 @@ function isWeak(item: Term, savedProgress: Progress) {
   return getRetention(item, savedProgress) < 60;
 }
 
-function buildRound(selectedCategory: "すべて" | Category, savedProgress: Progress, previousRound: string[] = [], onlyPriority = false, onlyUnseen = false, onlyWeak = false) {
+function buildRound(selectedCategory: "すべて" | Category, savedProgress: Progress, previousRound: string[] = [], onlyPriority = false, onlyUnseen = false, onlyWeak = false, overrides: CollectionOverrides = {}, collection: Collection = "regular") {
   const pool = terms.filter((item) => {
     return (selectedCategory === "すべて" || item.category === selectedCategory)
+      && getCollection(item, overrides) === collection
       && (!onlyPriority || getRetention(item, savedProgress) < 40)
       && (!onlyUnseen || isUnseen(item, savedProgress))
       && (!onlyWeak || isWeak(item, savedProgress));
@@ -254,8 +274,8 @@ function buildRound(selectedCategory: "すべて" | Category, savedProgress: Pro
   return [...fresh, ...previous].slice(0, 5).map((item) => item.id);
 }
 
-function buildLowQuizRound(selectedCategory: "すべて" | Category, savedProgress: Progress, previousRound: string[] = []) {
-  const pool = shuffle(terms.filter((item) => selectedCategory === "すべて" || item.category === selectedCategory));
+function buildLowQuizRound(selectedCategory: "すべて" | Category, savedProgress: Progress, previousRound: string[] = [], overrides: CollectionOverrides = {}) {
+  const pool = shuffle(terms.filter((item) => getCollection(item, overrides) === "regular" && (selectedCategory === "すべて" || item.category === selectedCategory)));
   return pool.sort((a, b) => {
     const countDifference = (savedProgress[a.id]?.quizCount ?? 0) - (savedProgress[b.id]?.quizCount ?? 0);
     if (countDifference !== 0) return countDifference;
@@ -333,6 +353,14 @@ const confusionGroups = [
   ["rto", "rpo", "it-service-continuity-management", "checkpoint"],
   ["externalization", "combination", "socialization", "internalization"],
   ["initiating-process-group", "planning-process-group", "executing-process-group", "controlling-process-group", "closing-process-group"],
+  ["tuckman-model", "planning-process-group", "controlling-process-group", "incident-management"],
+  ["mes", "erp", "scm", "iot"],
+  ["scala-language", "soa", "iot", "mes"],
+  ["delphi-method", "brainstorming", "feasibility-study", "analogy-estimation"],
+  ["reverse-proxy", "napt", "packet", "dmz"],
+  ["marketing-4p-4c", "segmentation", "targeting", "positioning"],
+  ["immersion-cooling", "warm-standby", "hot-standby", "availability-management"],
+  ["soa", "erp", "scm", "crm"],
 ];
 
 function textBigrams(text: string) {
@@ -419,8 +447,10 @@ function getRetentionStatus(score: number) {
 }
 
 export default function Home() {
-  const [mode, setMode] = useState<"study" | "quiz" | "priority" | "weak" | "unseen" | "lowquiz" | "list">("study");
+  const [mode, setMode] = useState<ModeKey | "list">("study");
   const [category, setCategory] = useState<"すべて" | Category>("すべて");
+  const [collectionFilter, setCollectionFilter] = useState<"all" | Collection>("all");
+  const [collectionOverrides, setCollectionOverrides] = useState<CollectionOverrides>({});
   const [query, setQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"default" | "retention-asc" | "retention-desc">("default");
   const [progress, setProgress] = useState<Progress>({});
@@ -442,6 +472,8 @@ export default function Home() {
   const [unseenPosition, setUnseenPosition] = useState(0);
   const [lowQuizIds, setLowQuizIds] = useState<string[]>([]);
   const [lowQuizPosition, setLowQuizPosition] = useState(0);
+  const [specialIds, setSpecialIds] = useState<string[]>([]);
+  const [specialPosition, setSpecialPosition] = useState(0);
   const [modeStats, setModeStats] = useState<ModeStats>({
     study: { correct: 0, wrong: 0 },
     quiz: { correct: 0, wrong: 0 },
@@ -449,12 +481,21 @@ export default function Home() {
     weak: { correct: 0, wrong: 0 },
     unseen: { correct: 0, wrong: 0 },
     lowquiz: { correct: 0, wrong: 0 },
+    special: { correct: 0, wrong: 0 },
   });
   const [questionStats, setQuestionStats] = useState<QuestionStats>({});
-  const [sessionResults, setSessionResults] = useState<Record<ModeKey, SessionAnswer[]>>({ study: [], quiz: [], priority: [], weak: [], unseen: [], lowquiz: [] });
-  const [completed, setCompleted] = useState<Record<ModeKey, boolean>>({ study: false, quiz: false, priority: false, weak: false, unseen: false, lowquiz: false });
+  const [sessionResults, setSessionResults] = useState<Record<ModeKey, SessionAnswer[]>>({ study: [], quiz: [], priority: [], weak: [], unseen: [], lowquiz: [], special: [] });
+  const [completed, setCompleted] = useState<Record<ModeKey, boolean>>({ study: false, quiz: false, priority: false, weak: false, unseen: false, lowquiz: false, special: false });
 
   useEffect(() => {
+    let savedCollections: CollectionOverrides = {};
+    try {
+      const parsed = JSON.parse(localStorage.getItem(collectionStorageKey) ?? "{}");
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        savedCollections = Object.fromEntries(Object.entries(parsed).filter(([id, value]) => terms.some((item) => item.id === id) && (value === "regular" || value === "special"))) as CollectionOverrides;
+      }
+    } catch { /* 古いデータや破損した設定は初期の区分を使う */ }
+    setCollectionOverrides(savedCollections);
     const saved = localStorage.getItem("ap-study-progress");
     let savedProgress = saved ? JSON.parse(saved) as Progress : {};
     if (localStorage.getItem(retentionResetKey) !== "done") {
@@ -478,43 +519,44 @@ export default function Home() {
       const savedRound = savedRoundText ? JSON.parse(savedRoundText) as { ids?: unknown; position?: unknown; category?: unknown } : null;
       const savedCategory = savedRound?.category;
       const validCategory = categoryNames.includes(savedCategory as typeof categoryNames[number]);
-      const validIds = Array.isArray(savedRound?.ids)
-        && savedRound.ids.length > 0
-        && savedRound.ids.length <= 5
-        && new Set(savedRound.ids).size === savedRound.ids.length
-        && savedRound.ids.every((id) => typeof id === "string" && terms.some((item) => item.id === id));
+      const savedIds = Array.isArray(savedRound?.ids) ? savedRound.ids as unknown[] : [];
+      const validIds = savedIds.length > 0
+        && savedIds.length <= 5
+        && new Set(savedIds).size === savedIds.length
+        && savedIds.every((id) => typeof id === "string" && terms.some((item) => item.id === id && getCollection(item, savedCollections) === "regular"));
       const validPosition = typeof savedRound?.position === "number"
         && Number.isInteger(savedRound.position)
         && savedRound.position >= 0
         && validIds
-        && savedRound.position < savedRound.ids.length;
+        && savedRound.position < savedIds.length;
       if (validCategory && validIds && validPosition) {
-        setCategory(savedCategory);
-        setRoundIds(savedRound.ids as string[]);
+        setCategory(savedCategory as typeof categoryNames[number]);
+        setRoundIds(savedIds as string[]);
         setRoundPosition(savedRound.position as number);
       } else {
-        setRoundIds(buildRound("すべて", savedProgress));
+        setRoundIds(buildRound("すべて", savedProgress, [], false, false, false, savedCollections));
       }
     } catch {
-      setRoundIds(buildRound("すべて", savedProgress));
+      setRoundIds(buildRound("すべて", savedProgress, [], false, false, false, savedCollections));
     }
     const savedPriorityText = localStorage.getItem("ap-study-priority-round");
     try {
       const savedPriority = savedPriorityText ? JSON.parse(savedPriorityText) as { ids?: string[]; position?: number } : null;
-      const validIds = Array.isArray(savedPriority?.ids) && savedPriority.ids.length > 0 && savedPriority.ids.length <= 5 && new Set(savedPriority.ids).size === savedPriority.ids.length && savedPriority.ids.every((id) => terms.some((item) => item.id === id && getRetention(item, savedProgress) < 40));
+      const validIds = Array.isArray(savedPriority?.ids) && savedPriority.ids.length > 0 && savedPriority.ids.length <= 5 && new Set(savedPriority.ids).size === savedPriority.ids.length && savedPriority.ids.every((id) => terms.some((item) => item.id === id && getCollection(item, savedCollections) === "regular" && getRetention(item, savedProgress) < 40));
       const validPosition = validIds && typeof savedPriority?.position === "number" && savedPriority.position >= 0 && savedPriority.position < savedPriority.ids!.length;
       if (validIds && validPosition) {
         setPriorityIds(savedPriority!.ids!);
         setPriorityPosition(savedPriority!.position!);
       } else {
-        setPriorityIds(buildRound("すべて", savedProgress, [], true));
+        setPriorityIds(buildRound("すべて", savedProgress, [], true, false, false, savedCollections));
       }
     } catch {
-      setPriorityIds(buildRound("すべて", savedProgress, [], true));
+      setPriorityIds(buildRound("すべて", savedProgress, [], true, false, false, savedCollections));
     }
-    setUnseenIds(buildRound("すべて", savedProgress, [], false, true));
-    setWeakIds(buildRound("すべて", savedProgress, [], false, false, true));
-    setLowQuizIds(buildLowQuizRound("すべて", savedProgress));
+    setUnseenIds(buildRound("すべて", savedProgress, [], false, true, false, savedCollections));
+    setWeakIds(buildRound("すべて", savedProgress, [], false, false, true, savedCollections));
+    setLowQuizIds(buildLowQuizRound("すべて", savedProgress, [], savedCollections));
+    setSpecialIds(buildRound("すべて", savedProgress, [], false, false, false, savedCollections, "special"));
     setHydrated(true);
   }, []);
 
@@ -531,16 +573,17 @@ export default function Home() {
   const filtered = useMemo(() => {
     const matched = terms.filter((item) => {
     const categoryMatch = category === "すべて" || item.category === category;
+    const collectionMatch = collectionFilter === "all" || getCollection(item, collectionOverrides) === collectionFilter;
     const textMatch = `${item.term} ${item.answer}`.toLowerCase().includes(query.toLowerCase());
-    return categoryMatch && textMatch;
+    return categoryMatch && collectionMatch && textMatch;
     });
     if (sortOrder === "retention-asc") return [...matched].sort((a, b) => getRetention(a, progress) - getRetention(b, progress));
     if (sortOrder === "retention-desc") return [...matched].sort((a, b) => getRetention(b, progress) - getRetention(a, progress));
     return matched;
-  }, [category, query, sortOrder, progress]);
+  }, [category, collectionFilter, collectionOverrides, query, sortOrder, progress]);
 
-  const activeIds = mode === "priority" ? priorityIds : mode === "weak" ? weakIds : mode === "unseen" ? unseenIds : mode === "lowquiz" ? lowQuizIds : roundIds;
-  const activePosition = mode === "priority" ? priorityPosition : mode === "weak" ? weakPosition : mode === "unseen" ? unseenPosition : mode === "lowquiz" ? lowQuizPosition : roundPosition;
+  const activeIds = mode === "priority" ? priorityIds : mode === "weak" ? weakIds : mode === "unseen" ? unseenIds : mode === "lowquiz" ? lowQuizIds : mode === "special" ? specialIds : roundIds;
+  const activePosition = mode === "priority" ? priorityPosition : mode === "weak" ? weakPosition : mode === "unseen" ? unseenPosition : mode === "lowquiz" ? lowQuizPosition : mode === "special" ? specialPosition : roundPosition;
   const card = terms.find((item) => item.id === activeIds[activePosition]);
   const retention = card ? getRetention(card, progress) : 0;
   const retentionStatus = getRetentionStatus(retention);
@@ -561,15 +604,20 @@ export default function Home() {
     };
   }, [card?.id, activePosition, mode]);
   const currentModeKey: ModeKey | null = mode === "list" ? null : mode;
-  const isQuizView = mode === "quiz" || mode === "lowquiz" || ((mode === "priority" || mode === "weak" || mode === "unseen") && focusFormat === "quiz");
+  const isQuizView = mode === "quiz" || mode === "lowquiz" || ((mode === "priority" || mode === "weak" || mode === "unseen" || mode === "special") && focusFormat === "quiz");
   const currentResults = currentModeKey ? sessionResults[currentModeKey] : [];
   const sessionCorrect = currentResults.filter((item) => item.result === "correct").length;
   const sessionWrong = currentResults.length - sessionCorrect;
-  const mastered = terms.filter((item) => !isUnseen(item, progress) && getRetention(item, progress) >= 75).length;
-  const unseenCount = terms.filter((item) => isUnseen(item, progress)).length;
-  const weakCount = terms.filter((item) => isWeak(item, progress)).length;
-  const answeredCount = terms.length - unseenCount;
-  const priorityCount = terms.filter((item) => getRetention(item, progress) < 40).length;
+  const regularTerms = terms.filter((item) => getCollection(item, collectionOverrides) === "regular");
+  const specialCount = terms.length - regularTerms.length;
+  const mastered = regularTerms.filter((item) => !isUnseen(item, progress) && getRetention(item, progress) >= 75).length;
+  const unseenCount = regularTerms.filter((item) => isUnseen(item, progress)).length;
+  const weakCount = regularTerms.filter((item) => isWeak(item, progress)).length;
+  const answeredCount = regularTerms.length - unseenCount;
+  const priorityCount = regularTerms.filter((item) => getRetention(item, progress) < 40).length;
+  const sessionGoal = mode === "special"
+    ? Math.min(5, terms.filter((item) => getCollection(item, collectionOverrides) === "special" && (category === "すべて" || item.category === category)).length)
+    : 5;
 
   function recordModeResult(key: ModeKey, questionId: string, result: "correct" | "wrong") {
     const nextStats = {
@@ -615,18 +663,18 @@ export default function Home() {
     };
     setProgress(next);
     localStorage.setItem("ap-study-progress", JSON.stringify(next));
-    const modeKey: ModeKey = mode === "priority" ? "priority" : mode === "weak" ? "weak" : mode === "unseen" ? "unseen" : "study";
+    const modeKey: ModeKey = mode === "priority" ? "priority" : mode === "weak" ? "weak" : mode === "unseen" ? "unseen" : mode === "special" ? "special" : "study";
     const scoredResult = result === "correct" ? "correct" : "wrong";
     recordModeResult(modeKey, card.id, scoredResult);
     const nextResults = addSessionResult(modeKey, card.id, scoredResult);
     setRevealed(false);
-    if (nextResults.length >= 5) {
+    if (nextResults.length >= sessionGoal) {
       setCompleted((old) => ({ ...old, [modeKey]: true }));
       return;
     }
     if (mode === "priority") {
       if (priorityPosition >= priorityIds.length - 1) {
-        setPriorityIds(buildRound("すべて", next, priorityIds, true));
+        setPriorityIds(buildRound("すべて", next, priorityIds, true, false, false, collectionOverrides));
         setPriorityPosition(0);
       } else {
         setPriorityPosition((old) => old + 1);
@@ -634,20 +682,26 @@ export default function Home() {
       setSession([]);
     } else if (mode === "weak") {
       if (weakPosition >= weakIds.length - 1) {
-        setWeakIds(buildRound(category, next, weakIds, false, false, true));
+        setWeakIds(buildRound(category, next, weakIds, false, false, true, collectionOverrides));
         setWeakPosition(0);
       } else setWeakPosition((old) => old + 1);
       setSession((old) => [...old, card.id]);
     } else if (mode === "unseen") {
       if (unseenPosition >= unseenIds.length - 1) {
-        setUnseenIds(buildRound(category, next, unseenIds, false, true));
+        setUnseenIds(buildRound(category, next, unseenIds, false, true, false, collectionOverrides));
         setUnseenPosition(0);
       } else {
         setUnseenPosition((old) => old + 1);
       }
       setSession((old) => [...old, card.id]);
+    } else if (mode === "special") {
+      if (specialPosition >= specialIds.length - 1) {
+        setSpecialIds(buildRound(category, next, specialIds, false, false, false, collectionOverrides, "special"));
+        setSpecialPosition(0);
+      } else setSpecialPosition((old) => old + 1);
+      setSession((old) => [...old, card.id]);
     } else if (roundPosition >= roundIds.length - 1) {
-      setRoundIds(buildRound(category, next, roundIds));
+      setRoundIds(buildRound(category, next, roundIds, false, false, false, collectionOverrides));
       setRoundPosition(0);
       setSession([]);
     } else {
@@ -664,25 +718,27 @@ export default function Home() {
     localStorage.removeItem("ap-study-mode-stats");
     localStorage.removeItem("ap-study-question-stats-v1");
     setProgress({});
-    setRoundIds(buildRound(category, {}));
+    setRoundIds(buildRound(category, {}, [], false, false, false, collectionOverrides));
     setRoundPosition(0);
-    setPriorityIds(buildRound("すべて", {}, [], true));
+    setPriorityIds(buildRound("すべて", {}, [], true, false, false, collectionOverrides));
     setPriorityPosition(0);
-    setUnseenIds(buildRound("すべて", {}, [], false, true));
+    setUnseenIds(buildRound("すべて", {}, [], false, true, false, collectionOverrides));
     setUnseenPosition(0);
-    setLowQuizIds(buildLowQuizRound("すべて", {}));
+    setLowQuizIds(buildLowQuizRound("すべて", {}, [], collectionOverrides));
     setLowQuizPosition(0);
+    setSpecialIds(buildRound("すべて", {}, [], false, false, false, collectionOverrides, "special"));
+    setSpecialPosition(0);
     setSession([]);
     setQuizChoice(null);
     setQuizResult(null);
     setQuizUnsure(false);
     setQuizConfident(false);
-    setModeStats({ study: { correct: 0, wrong: 0 }, quiz: { correct: 0, wrong: 0 }, priority: { correct: 0, wrong: 0 }, weak: { correct: 0, wrong: 0 }, unseen: { correct: 0, wrong: 0 }, lowquiz: { correct: 0, wrong: 0 } });
+    setModeStats({ study: { correct: 0, wrong: 0 }, quiz: { correct: 0, wrong: 0 }, priority: { correct: 0, wrong: 0 }, weak: { correct: 0, wrong: 0 }, unseen: { correct: 0, wrong: 0 }, lowquiz: { correct: 0, wrong: 0 }, special: { correct: 0, wrong: 0 } });
     setQuestionStats({});
     setWeakIds([]);
     setWeakPosition(0);
-    setSessionResults({ study: [], quiz: [], priority: [], weak: [], unseen: [], lowquiz: [] });
-    setCompleted({ study: false, quiz: false, priority: false, weak: false, unseen: false, lowquiz: false });
+    setSessionResults({ study: [], quiz: [], priority: [], weak: [], unseen: [], lowquiz: [], special: [] });
+    setCompleted({ study: false, quiz: false, priority: false, weak: false, unseen: false, lowquiz: false, special: false });
   }
 
   function downloadBackup() {
@@ -714,10 +770,10 @@ export default function Home() {
       const entries = backupKeys.flatMap((key) => typeof data[key] === "string" ? [[key, data[key] as string] as const] : []);
       if (!entries.some(([key]) => key === "ap-study-progress")) throw new Error("成績データがありません");
       entries.forEach(([, value]) => JSON.parse(value));
-      if (!window.confirm("現在の成績をバックアップの内容で上書きしますか？")) return;
+      if (!window.confirm("現在の成績と問題の区分をバックアップの内容で上書きしますか？")) return;
       backupKeys.forEach((key) => localStorage.removeItem(key));
       entries.forEach(([key, value]) => localStorage.setItem(key, value));
-      window.alert("成績を復元しました。画面を更新します。");
+      window.alert("成績と問題の区分を復元しました。画面を更新します。");
       window.location.reload();
     } catch {
       window.alert("このファイルは復元できません。AP苦手だけ道場で作成したJSONバックアップを選んでください。");
@@ -730,6 +786,7 @@ export default function Home() {
     else if (mode === "weak") setWeakPosition((old) => old - 1);
     else if (mode === "unseen") setUnseenPosition((old) => old - 1);
     else if (mode === "lowquiz") setLowQuizPosition((old) => old - 1);
+    else if (mode === "special") setSpecialPosition((old) => old - 1);
     else setRoundPosition((old) => old - 1);
     setSession((old) => old.slice(0, -1));
     setRevealed(false);
@@ -745,6 +802,7 @@ export default function Home() {
     else if (mode === "weak") setWeakPosition((old) => old + 1);
     else if (mode === "unseen") setUnseenPosition((old) => old + 1);
     else if (mode === "lowquiz") setLowQuizPosition((old) => old + 1);
+    else if (mode === "special") setSpecialPosition((old) => old + 1);
     else setRoundPosition((old) => old + 1);
     setRevealed(false);
     setQuizChoice(null);
@@ -776,7 +834,7 @@ export default function Home() {
     };
     setProgress(next);
     localStorage.setItem("ap-study-progress", JSON.stringify(next));
-    const modeKey: ModeKey = mode === "priority" ? "priority" : mode === "weak" ? "weak" : mode === "unseen" ? "unseen" : mode === "lowquiz" ? "lowquiz" : "quiz";
+    const modeKey: ModeKey = mode === "priority" ? "priority" : mode === "weak" ? "weak" : mode === "unseen" ? "unseen" : mode === "lowquiz" ? "lowquiz" : mode === "special" ? "special" : "quiz";
     recordModeResult(modeKey, card.id, result);
     addSessionResult(modeKey, card.id, result);
     setQuizChoice(choiceId);
@@ -821,33 +879,38 @@ export default function Home() {
     setQuizResult(null);
     setQuizUnsure(false);
     setQuizConfident(false);
-    const modeKey: ModeKey = mode === "priority" ? "priority" : mode === "weak" ? "weak" : mode === "unseen" ? "unseen" : mode === "lowquiz" ? "lowquiz" : "quiz";
-    if (sessionResults[modeKey].length >= 5) {
+    const modeKey: ModeKey = mode === "priority" ? "priority" : mode === "weak" ? "weak" : mode === "unseen" ? "unseen" : mode === "lowquiz" ? "lowquiz" : mode === "special" ? "special" : "quiz";
+    if (sessionResults[modeKey].length >= sessionGoal) {
       setCompleted((old) => ({ ...old, [modeKey]: true }));
       return;
     }
     if (mode === "priority") {
       if (priorityPosition >= priorityIds.length - 1) {
-        setPriorityIds(buildRound("すべて", progress, priorityIds, true));
+        setPriorityIds(buildRound("すべて", progress, priorityIds, true, false, false, collectionOverrides));
         setPriorityPosition(0);
       } else setPriorityPosition((old) => old + 1);
     } else if (mode === "weak") {
       if (weakPosition >= weakIds.length - 1) {
-        setWeakIds(buildRound(category, progress, weakIds, false, false, true));
+        setWeakIds(buildRound(category, progress, weakIds, false, false, true, collectionOverrides));
         setWeakPosition(0);
       } else setWeakPosition((old) => old + 1);
     } else if (mode === "unseen") {
       if (unseenPosition >= unseenIds.length - 1) {
-        setUnseenIds(buildRound(category, progress, unseenIds, false, true));
+        setUnseenIds(buildRound(category, progress, unseenIds, false, true, false, collectionOverrides));
         setUnseenPosition(0);
       } else setUnseenPosition((old) => old + 1);
     } else if (mode === "lowquiz") {
       if (lowQuizPosition >= lowQuizIds.length - 1) {
-        setLowQuizIds(buildLowQuizRound(category, progress, lowQuizIds));
+        setLowQuizIds(buildLowQuizRound(category, progress, lowQuizIds, collectionOverrides));
         setLowQuizPosition(0);
       } else setLowQuizPosition((old) => old + 1);
+    } else if (mode === "special") {
+      if (specialPosition >= specialIds.length - 1) {
+        setSpecialIds(buildRound(category, progress, specialIds, false, false, false, collectionOverrides, "special"));
+        setSpecialPosition(0);
+      } else setSpecialPosition((old) => old + 1);
     } else if (roundPosition >= roundIds.length - 1) {
-      setRoundIds(buildRound(category, progress, roundIds));
+      setRoundIds(buildRound(category, progress, roundIds, false, false, false, collectionOverrides));
       setRoundPosition(0);
       setSession([]);
     } else {
@@ -871,21 +934,46 @@ export default function Home() {
     localStorage.setItem("ap-study-progress", JSON.stringify(next));
   }
 
+  function toggleCollection(item: Term) {
+    const nextCollection: Collection = getCollection(item, collectionOverrides) === "special" ? "regular" : "special";
+    const nextOverrides = { ...collectionOverrides, [item.id]: nextCollection };
+    if (nextCollection === (item.collection === "special" ? "special" : "regular")) delete nextOverrides[item.id];
+    setCollectionOverrides(nextOverrides);
+    localStorage.setItem(collectionStorageKey, JSON.stringify(nextOverrides));
+    setRoundIds(buildRound(category, progress, [], false, false, false, nextOverrides));
+    setRoundPosition(0);
+    setPriorityIds(buildRound("すべて", progress, [], true, false, false, nextOverrides));
+    setPriorityPosition(0);
+    setWeakIds(buildRound("すべて", progress, [], false, false, true, nextOverrides));
+    setWeakPosition(0);
+    setUnseenIds(buildRound(category, progress, [], false, true, false, nextOverrides));
+    setUnseenPosition(0);
+    setLowQuizIds(buildLowQuizRound(category, progress, [], nextOverrides));
+    setLowQuizPosition(0);
+    setSpecialIds(buildRound("すべて", progress, [], false, false, false, nextOverrides, "special"));
+    setSpecialPosition(0);
+    setSessionResults({ study: [], quiz: [], priority: [], weak: [], unseen: [], lowquiz: [], special: [] });
+    setCompleted({ study: false, quiz: false, priority: false, weak: false, unseen: false, lowquiz: false, special: false });
+  }
+
   function startNextSession(key: ModeKey) {
     if (key === "priority") {
-      setPriorityIds(buildRound("すべて", progress, priorityIds, true));
+      setPriorityIds(buildRound("すべて", progress, priorityIds, true, false, false, collectionOverrides));
       setPriorityPosition(0);
     } else if (key === "weak") {
-      setWeakIds(buildRound(category, progress, weakIds, false, false, true));
+      setWeakIds(buildRound(category, progress, weakIds, false, false, true, collectionOverrides));
       setWeakPosition(0);
     } else if (key === "unseen") {
-      setUnseenIds(buildRound(category, progress, unseenIds, false, true));
+      setUnseenIds(buildRound(category, progress, unseenIds, false, true, false, collectionOverrides));
       setUnseenPosition(0);
     } else if (key === "lowquiz") {
-      setLowQuizIds(buildLowQuizRound(category, progress, lowQuizIds));
+      setLowQuizIds(buildLowQuizRound(category, progress, lowQuizIds, collectionOverrides));
       setLowQuizPosition(0);
+    } else if (key === "special") {
+      setSpecialIds(buildRound(category, progress, specialIds, false, false, false, collectionOverrides, "special"));
+      setSpecialPosition(0);
     } else {
-      setRoundIds(buildRound(category, progress, roundIds));
+      setRoundIds(buildRound(category, progress, roundIds, false, false, false, collectionOverrides));
       setRoundPosition(0);
     }
     setSessionResults((old) => ({ ...old, [key]: [] }));
@@ -908,10 +996,11 @@ export default function Home() {
         <nav aria-label="メインメニュー">
           <button className={mode === "study" ? "active" : ""} onClick={() => { setMode("study"); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>用語チェック</button>
           <button className={mode === "quiz" ? "active" : ""} onClick={() => { setMode("quiz"); setRevealed(false); }}>4択クイズ</button>
-          <button className={mode === "priority" ? "active" : ""} onClick={() => { setMode("priority"); setPriorityIds(buildRound("すべて", progress, priorityIds, true)); setPriorityPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>最優先だけ <span className="navCount">{priorityCount}</span></button>
-          <button className={mode === "weak" ? "active" : ""} onClick={() => { setMode("weak"); setCategory("すべて"); setWeakIds(buildRound("すべて", progress, weakIds, false, false, true)); setWeakPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>苦手だけ <span className="navCount">{weakCount}</span></button>
-          <button className={mode === "unseen" ? "active" : ""} onClick={() => { setMode("unseen"); setUnseenIds(buildRound(category, progress, unseenIds, false, true)); setUnseenPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>未出題だけ <span className="navCount">{unseenCount}</span></button>
-          <button className={mode === "lowquiz" ? "active" : ""} onClick={() => { setMode("lowquiz"); setLowQuizIds(buildLowQuizRound(category, progress, lowQuizIds)); setLowQuizPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>出題少なめ</button>
+          <button className={mode === "priority" ? "active" : ""} onClick={() => { setMode("priority"); setPriorityIds(buildRound("すべて", progress, priorityIds, true, false, false, collectionOverrides)); setPriorityPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>最優先だけ <span className="navCount">{priorityCount}</span></button>
+          <button className={mode === "weak" ? "active" : ""} onClick={() => { setMode("weak"); setCategory("すべて"); setWeakIds(buildRound("すべて", progress, weakIds, false, false, true, collectionOverrides)); setWeakPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>苦手だけ <span className="navCount">{weakCount}</span></button>
+          <button className={mode === "unseen" ? "active" : ""} onClick={() => { setMode("unseen"); setUnseenIds(buildRound(category, progress, unseenIds, false, true, false, collectionOverrides)); setUnseenPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>未出題だけ <span className="navCount">{unseenCount}</span></button>
+          <button className={mode === "lowquiz" ? "active" : ""} onClick={() => { setMode("lowquiz"); setLowQuizIds(buildLowQuizRound(category, progress, lowQuizIds, collectionOverrides)); setLowQuizPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>出題少なめ</button>
+          <button className={mode === "special" ? "active" : ""} onClick={() => { setMode("special"); setCategory("すべて"); setSpecialIds(buildRound("すべて", progress, specialIds, false, false, false, collectionOverrides, "special")); setSpecialPosition(0); setSessionResults((old) => ({ ...old, special: [] })); setCompleted((old) => ({ ...old, special: false })); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>特別問題 <span className="navCount">{specialCount}</span></button>
           <button className={mode === "list" ? "active" : ""} onClick={() => setMode("list")}>用語一覧 <span className="navCount">{terms.length}</span></button>
         </nav>
         <div className="headerCount"><span>{mastered}</span> 問 定着済み</div>
@@ -925,7 +1014,7 @@ export default function Home() {
         </div>
         <div className="stats" aria-label="学習状況">
           <div><strong>{mastered}<small>語</small></strong><span>定着度75以上</span></div>
-          <div><strong>{terms.length}<small>語</small></strong><span>全問題数</span></div>
+          <div><strong>{regularTerms.length}<small>語</small></strong><span>通常問題数</span></div>
           <div><strong>{answeredCount}<small>語</small></strong><span>回答済み</span></div>
           <div><strong>{weakCount}<small>語</small></strong><span>苦手問題</span></div>
           <div><strong>{unseenCount}<small>語</small></strong><span>未出題</span></div>
@@ -937,26 +1026,26 @@ export default function Home() {
         <div className="sectionHead">
           <div>
             <span className="sectionNumber">01</span>
-            <h2>{mode === "study" ? "用語を説明できるか確認" : mode === "quiz" ? "説明から用語を当てる" : mode === "priority" ? "最優先だけを集中復習" : mode === "weak" ? "苦手問題だけをまとめて復習" : mode === "unseen" ? "まだ解いていない用語に挑戦" : mode === "lowquiz" ? "4択の出題回数が少ない問題" : "苦手用語一覧"}</h2>
+            <h2>{mode === "study" ? "用語を説明できるか確認" : mode === "quiz" ? "説明から用語を当てる" : mode === "priority" ? "最優先だけを集中復習" : mode === "weak" ? "苦手問題だけをまとめて復習" : mode === "unseen" ? "まだ解いていない用語に挑戦" : mode === "lowquiz" ? "4択の出題回数が少ない問題" : mode === "special" ? "特別問題を集中復習" : "用語一覧"}</h2>
           </div>
           {mode !== "priority" && <div className="filters" role="group" aria-label="分野を絞り込む">
             {categoryNames.map((name) => (
-              <button key={name} className={category === name ? "selected" : ""} onClick={() => { setCategory(name); if (mode === "weak") { setWeakIds(buildRound(name, progress, weakIds, false, false, true)); setWeakPosition(0); } else if (mode === "unseen") { setUnseenIds(buildRound(name, progress, unseenIds, false, true)); setUnseenPosition(0); } else if (mode === "lowquiz") { setLowQuizIds(buildLowQuizRound(name, progress, lowQuizIds)); setLowQuizPosition(0); } else { setRoundIds(buildRound(name, progress)); setRoundPosition(0); } setSession([]); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); if (currentModeKey) { setSessionResults((old) => ({ ...old, [currentModeKey]: [] })); setCompleted((old) => ({ ...old, [currentModeKey]: false })); } }}>{name}</button>
+              <button key={name} className={category === name ? "selected" : ""} onClick={() => { setCategory(name); if (mode === "weak") { setWeakIds(buildRound(name, progress, weakIds, false, false, true, collectionOverrides)); setWeakPosition(0); } else if (mode === "unseen") { setUnseenIds(buildRound(name, progress, unseenIds, false, true, false, collectionOverrides)); setUnseenPosition(0); } else if (mode === "lowquiz") { setLowQuizIds(buildLowQuizRound(name, progress, lowQuizIds, collectionOverrides)); setLowQuizPosition(0); } else if (mode === "special") { setSpecialIds(buildRound(name, progress, specialIds, false, false, false, collectionOverrides, "special")); setSpecialPosition(0); } else { setRoundIds(buildRound(name, progress, [], false, false, false, collectionOverrides)); setRoundPosition(0); } setSession([]); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); if (currentModeKey) { setSessionResults((old) => ({ ...old, [currentModeKey]: [] })); setCompleted((old) => ({ ...old, [currentModeKey]: false })); } }}>{name}</button>
             ))}
           </div>}
-          {(mode === "priority" || mode === "weak" || mode === "unseen") && <div className="formatSwitch" role="group" aria-label="問題形式を選ぶ">
+          {(mode === "priority" || mode === "weak" || mode === "unseen" || mode === "special") && <div className="formatSwitch" role="group" aria-label="問題形式を選ぶ">
             <button className={focusFormat === "term" ? "selected" : ""} onClick={() => { setFocusFormat("term"); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>用語チェック</button>
             <button className={focusFormat === "quiz" ? "selected" : ""} onClick={() => { setFocusFormat("quiz"); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>4択問題</button>
           </div>}
         </div>
 
-        {(mode === "study" || mode === "quiz" || mode === "priority" || mode === "weak" || mode === "unseen" || mode === "lowquiz") && card ? (
+        {(mode === "study" || mode === "quiz" || mode === "priority" || mode === "weak" || mode === "unseen" || mode === "lowquiz" || mode === "special") && card ? (
           <div className="studyGrid">
             <aside className="priorityPanel">
               <p className="panelLabel">TODAY&apos;S FOCUS</p>
-              <h3>{mode === "priority" ? <>最優先だけを<br />5問集中。</> : mode === "weak" ? <>苦手問題だけを<br />5問復習。</> : mode === "unseen" ? <>未出題だけを<br />5問挑戦。</> : mode === "lowquiz" ? <>出題が少ない順に<br />4択を5問。</> : <>苦手と未出題を<br />5問だけ。</>}</h3>
-              <div className="meter"><i style={{ width: `${currentResults.length * 20}%` }} /></div>
-              <p className="meterText"><strong>{currentResults.length}</strong> / 5 問</p>
+              <h3>{mode === "priority" ? <>最優先だけを<br />5問集中。</> : mode === "weak" ? <>苦手問題だけを<br />5問復習。</> : mode === "unseen" ? <>未出題だけを<br />5問挑戦。</> : mode === "lowquiz" ? <>出題が少ない順に<br />4択を5問。</> : mode === "special" ? <>特別問題を<br />{sessionGoal}問集中。</> : <>苦手と未出題を<br />5問だけ。</>}</h3>
+              <div className="meter"><i style={{ width: `${sessionGoal ? currentResults.length / sessionGoal * 100 : 0}%` }} /></div>
+              <p className="meterText"><strong>{currentResults.length}</strong> / {sessionGoal} 問</p>
               <div className="legend">
                 <span><i className="dot red" />最優先</span>
                 <span><i className="dot yellow" />苦手</span>
@@ -967,7 +1056,7 @@ export default function Home() {
 
             {currentModeKey && completed[currentModeKey] ? <article className="resultCard">
               <p className="resultEyebrow">SESSION COMPLETE</p>
-              <h3>5問、おつかれさまでした。</h3>
+              <h3>{sessionGoal}問、おつかれさまでした。</h3>
               <div className="resultScore">
                 <div><strong>{currentResults.length ? Math.round(sessionCorrect / currentResults.length * 100) : 0}<small>%</small></strong><span>今回の正答率</span></div>
                 <div><strong>{sessionCorrect}</strong><span>正解</span></div>
@@ -986,7 +1075,7 @@ export default function Home() {
                   </div>;
                 })}
               </div>
-              <button className="nextSessionButton" onClick={() => startNextSession(currentModeKey)}>次の5問へ <span>→</span></button>
+              <button className="nextSessionButton" onClick={() => startNextSession(currentModeKey)}>次の{sessionGoal}問へ <span>→</span></button>
             </article> : !isQuizView ? <article className={`flashcard level${retentionStatus.level} ${revealed ? "revealed" : ""}`}>
               <div className="cardMeta">
                 <div className="cardMetaLeft">
@@ -1069,7 +1158,7 @@ export default function Home() {
                     </p>)}
                   </div>
                 </div>
-                <button onClick={nextQuiz}>{currentModeKey && sessionResults[currentModeKey].length >= 5 ? "結果を見る" : "次の問題へ"} →</button>
+                <button onClick={nextQuiz}>{currentModeKey && sessionResults[currentModeKey].length >= sessionGoal ? "結果を見る" : "次の問題へ"} →</button>
               </div>}
               <p className="cardCount">{activePosition + 1} / {activeIds.length}</p>
             </article>}
@@ -1079,23 +1168,41 @@ export default function Home() {
             <div className="searchRow">
               <label className="searchInput"><span>用語を検索</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="例：セッション、DDL、IPsec" /></label>
               <div className="listSummary">
-                <strong>全 {terms.length} 語</strong><span>現在の表示 {filtered.length} 語</span>
+                <strong>全 {terms.length} 語</strong><span>通常 {regularTerms.length} 語・特別 {specialCount} 語</span><span>現在の表示 {filtered.length} 語</span>
                 <div className="backupActions">
-                  <button className="backupButton" onClick={downloadBackup}>成績をバックアップ</button>
-                  <label className="restoreButton">成績を復元<input className="visuallyHidden" type="file" accept="application/json,.json" onChange={restoreBackup} /></label>
+                  <button className="backupButton" onClick={downloadBackup}>成績・区分をバックアップ</button>
+                  <label className="restoreButton">成績・区分を復元<input className="visuallyHidden" type="file" accept="application/json,.json" onChange={restoreBackup} /></label>
                   <button className="reset" onClick={resetProgress}>学習記録をリセット</button>
                 </div>
               </div>
+            </div>
+            <div className="collectionFilters" role="group" aria-label="問題の区分で絞り込む">
+              <button className={collectionFilter === "all" ? "selected" : ""} onClick={() => setCollectionFilter("all")}>すべて</button>
+              <button className={collectionFilter === "regular" ? "selected" : ""} onClick={() => setCollectionFilter("regular")}>通常問題 {regularTerms.length}</button>
+              <button className={collectionFilter === "special" ? "selected" : ""} onClick={() => setCollectionFilter("special")}>特別問題 {specialCount}</button>
             </div>
             <div className="termTable">
               <div className="tableHeader"><span>優先度</span><span>用語</span><span>覚えるポイント</span><button className="retentionSort" onClick={() => setSortOrder((old) => old === "retention-asc" ? "retention-desc" : "retention-asc")} aria-label={`定着度を${sortOrder === "retention-asc" ? "高い順" : "低い順"}に並べ替える`}>定着度 <b>{sortOrder === "retention-asc" ? "↑" : sortOrder === "retention-desc" ? "↓" : "↕"}</b></button></div>
               {filtered.map((item) => {
                 const itemProgress = progress[item.id];
                 const itemStatus = getRetentionStatus(getRetention(item, progress));
-                const openItem = () => { const nextRound = [item.id, ...buildRound(item.category, progress, [item.id]).filter((id) => id !== item.id)].slice(0, 5); setCategory(item.category); setRoundIds(nextRound); setRoundPosition(0); setSession([]); setSessionResults((old) => ({ ...old, study: [] })); setCompleted((old) => ({ ...old, study: false })); setMode("study"); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); };
+                const itemCollection = getCollection(item, collectionOverrides);
+                const openItem = () => {
+                  const nextRound = [item.id, ...buildRound(item.category, progress, [item.id], false, false, false, collectionOverrides, itemCollection).filter((id) => id !== item.id)].slice(0, 5);
+                  const nextMode: ModeKey = itemCollection === "special" ? "special" : "study";
+                  setCategory(item.category);
+                  if (nextMode === "special") { setSpecialIds(nextRound); setSpecialPosition(0); }
+                  else { setRoundIds(nextRound); setRoundPosition(0); }
+                  setSession([]);
+                  setSessionResults((old) => ({ ...old, [nextMode]: [] }));
+                  setCompleted((old) => ({ ...old, [nextMode]: false }));
+                  setMode(nextMode);
+                  setFocusFormat("term");
+                  setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false);
+                };
                 return <div className="termRow" key={item.id} role="button" tabIndex={0} onClick={openItem} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") openItem(); }}>
                   <span><b className={`priority ${itemStatus.className}`}>{itemStatus.label}</b></span>
-                  <span className="termName"><small>{item.category}</small>{item.term}</span>
+                  <span className="termName"><small>{item.category}</small>{item.term}<button type="button" className={`collectionToggle ${itemCollection}`} onClick={(event) => { event.stopPropagation(); toggleCollection(item); }} onKeyDown={(event) => event.stopPropagation()} aria-label={`${item.term}を${itemCollection === "special" ? "通常問題に戻す" : "特別問題に移す"}`}>{itemCollection === "special" ? "特別問題 → 通常に戻す" : "通常問題 → 特別に移す"}</button></span>
                   <span className="termAnswer">{item.answer}</span>
                   <span className="record retentionEdit" onClick={(event) => event.stopPropagation()}>
                     <label><input type="number" min="0" max="100" value={getRetention(item, progress)} onKeyDown={(event) => event.stopPropagation()} onChange={(event) => setManualRetention(item, Number(event.target.value))} aria-label={`${item.term}の定着度`} /><small>/100</small></label>
@@ -1108,9 +1215,9 @@ export default function Home() {
           </div>
         ) : (
           <div className="emptyRound">
-            <strong>{mode === "weak" ? "この分野に苦手問題はありません。" : "この分野の未出題問題はありません。"}</strong>
-            <p>{mode === "weak" ? "定着度60未満の問題が対象です。" : "別の分野を選ぶか、通常の用語チェックで復習できます。"}</p>
-            <button onClick={() => setMode("study")}>用語チェックへ</button>
+            <strong>{mode === "special" ? "この分野に特別問題はありません。" : mode === "weak" ? "この分野に苦手問題はありません。" : mode === "unseen" ? "この分野の未出題問題はありません。" : "この分野に通常問題はありません。"}</strong>
+            <p>{mode === "special" ? "用語一覧から問題ごとに特別問題へ移せます。" : mode === "weak" ? "定着度60未満の問題が対象です。" : "別の分野を選ぶか、用語一覧で区分を変更できます。"}</p>
+            <button onClick={() => setMode(mode === "special" ? "list" : "study")}>{mode === "special" ? "用語一覧へ" : "用語チェックへ"}</button>
           </div>
         )}
       </section>
