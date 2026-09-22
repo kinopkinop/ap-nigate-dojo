@@ -8,6 +8,7 @@ type Term = {
   term: string;
   category: Category;
   hint: string;
+  studyPrompt?: string;
   hardPrompt?: string;
   answer: string;
   level: 1 | 2 | 3;
@@ -236,6 +237,13 @@ const terms: Term[] = [
   { id: "logic-xor", term: "XOR", category: "テクノロジ", hint: "二つの入力が食い違う場合だけ1になる。", hardPrompt: "入力が0と1なら1、1と1なら0になる排他的な論理演算は？", answer: "排他的論理和。二つの入力が異なるときだけ1で、同じなら0。00→0、01→1、10→1、11→0。", level: 1, collection: "special", confusion: "NANDはANDの反転、NORはORの反転" },
   { id: "logic-nand", term: "NAND", category: "テクノロジ", hint: "二つとも1のときだけ0、それ以外は1。", hardPrompt: "二つの入力がともに1の場合だけ0となる、論理積を反転した演算は？", answer: "AND（論理積）の結果を反転する否定論理積。00→1、01→1、10→1、11→0。", level: 1, collection: "special", confusion: "NORはORの反転で、両方0のときだけ1" },
   { id: "logic-nor", term: "NOR", category: "テクノロジ", hint: "二つとも0のときだけ1、それ以外は0。", hardPrompt: "二つの入力がともに0の場合だけ1となる、論理和を反転した演算は？", answer: "OR（論理和）の結果を反転する否定論理和。00→1、01→0、10→0、11→0。", level: 1, collection: "special", confusion: "NANDはANDの反転で、両方1のときだけ0" },
+  { id: "roc-curve", term: "ROC曲線", category: "テクノロジ", hint: "二値分類の判定しきい値を動かし、検出と誤検出の関係を比べる。", studyPrompt: "横軸・縦軸と、何を比べる曲線か言えますか？", hardPrompt: "横軸を偽陽性率、縦軸を真陽性率として、判定しきい値ごとの性能を描く曲線は？", answer: "二値分類器の判定しきい値を変えたときの真陽性率（縦軸）と偽陽性率（横軸）の関係を表す曲線。左上に近いほど良く、曲線下の面積をAUCという。", level: 1, collection: "special" },
+  { id: "sampling-theorem", term: "標本化定理", category: "テクノロジ", hint: "元の波に含まれる最も速い振動を、十分な回数で測る。", studyPrompt: "最高周波数が3kHzなら、最低何kHzで標本化する？", hardPrompt: "最高周波数が3kHzの信号を標本化するには、理論上少なくとも6kHzが必要とする定理は？", answer: "最高周波数をfとすると、標本化周波数は理論上少なくとも2fが必要。これより低いと折返し雑音（エイリアシング）が生じる。実際は余裕を持って高めに設定する。", level: 1, collection: "special" },
+  { id: "signal-frequency", term: "周波数", category: "テクノロジ", hint: "波が1秒間に何回繰り返すかを表す。", studyPrompt: "周期0.02秒の波は何Hz？式も言えますか？", hardPrompt: "周期が0.02秒の波では50Hzとなる、1秒当たりの繰返し回数は？", answer: "1秒間の繰返し回数で、単位はHz。周期をT秒とすると周波数f＝1/T。周期0.02秒なら1÷0.02＝50Hz。100Hzなら1秒間に100回繰り返す。", level: 1, collection: "special", confusion: "周期は1回の繰返しにかかる時間で、単位は秒" },
+  { id: "signal-period", term: "周期", category: "テクノロジ", hint: "波が1回繰り返すのにかかる時間。", studyPrompt: "周波数100Hzの波は1回何秒？式も言えますか？", hardPrompt: "周波数が100Hzの波では0.01秒となる、1回分の長さは？", answer: "波が1回繰り返すのにかかる時間で、単位は秒。周波数をf Hzとすると周期T＝1/f。100Hzなら1÷100＝0.01秒。逆に周期0.02秒なら50Hz。", level: 1, collection: "special", confusion: "周波数は1秒当たりの繰返し回数で、単位はHz" },
+  { id: "memory-first-fit", term: "First Fit", category: "テクノロジ", hint: "探索する順序が、どの領域を使うかに影響する。", studyPrompt: "空き250・200・400KB、要求180KBならどこへ入れる？", hardPrompt: "空き領域が250・200・400KBの順で、180KBを要求したとき、最初の250KBを選ぶ方式は？", answer: "空き領域を順に調べ、要求サイズが入る最初の領域へ割り当てる方式。250・200・400KBの順なら180KBは最初の250KBへ入れる。", level: 1, collection: "special", confusion: "Best Fitは入る中で最小、Worst Fitは入る中で最大の空き領域を選ぶ" },
+  { id: "memory-best-fit", term: "Best Fit", category: "テクノロジ", hint: "割り当てた後にどれだけ余るかを考える。", studyPrompt: "空き250・200・400KB、要求180KBならどこへ入れる？", hardPrompt: "空き領域が250・200・400KBの順で、180KBを要求したとき、200KBを選ぶ方式は？", answer: "要求サイズが入る空き領域のうち、最も小さい領域へ割り当てる方式。250・200・400KBなら180KBには200KBを選ぶ。", level: 1, collection: "special", confusion: "First Fitは最初に入る領域、Worst Fitは最大の領域を選ぶ" },
+  { id: "memory-worst-fit", term: "Worst Fit", category: "テクノロジ", hint: "割り当て後にも、まとまった空きを残そうとする。", studyPrompt: "空き250・200・400KB、要求180KBならどこへ入れる？", hardPrompt: "空き領域が250・200・400KBの順で、180KBを要求したとき、400KBを選ぶ方式は？", answer: "要求サイズが入る空き領域のうち、最も大きい領域へ割り当てる方式。250・200・400KBなら180KBには400KBを選ぶ。", level: 1, collection: "special", confusion: "Best Fitは入る中で最小の領域、First Fitは最初に入る領域を選ぶ" },
 ];
 
 type Progress = Record<string, { correct: number; wrong: number; unsure?: number; confident?: number; retention?: number; quizCount?: number }>;
@@ -381,6 +389,9 @@ const confusionGroups = [
   ["linear-search", "binary-search", "hash-search", "bplus-tree-index"],
   ["parity-check", "crc-error-check", "hamming-code", "integrity"],
   ["logic-not", "logic-xor", "logic-nand", "logic-nor"],
+  ["roc-curve", "false-positive", "false-negative", "heuristic"],
+  ["sampling-theorem", "signal-frequency", "signal-period", "mm1-service-time"],
+  ["memory-first-fit", "memory-best-fit", "memory-worst-fit"],
 ];
 
 function textBigrams(text: string) {
@@ -624,7 +635,7 @@ export default function Home() {
     const useFeatureQuestion = questionDifficulty === "hard" || (questionDifficulty === "normal" && Math.random() < 0.5);
     const hardQuestion = maskAnswerTerm(card.hardPrompt ?? card.answer, card);
     return {
-      studyLabel: studyLabels[Math.floor(Math.random() * studyLabels.length)],
+      studyLabel: card.studyPrompt ?? studyLabels[Math.floor(Math.random() * studyLabels.length)],
       quizLabel: questionDifficulty === "hard" ? "難問：状況と違いから判断してください" : useFeatureQuestion ? "次の特徴に当てはまる用語は？" : "この説明に当てはまる用語は？",
       quizText: questionDifficulty === "hard" ? hardQuestion : maskAnswerTerm(useFeatureQuestion ? card.hint : card.answer, card),
       difficultyLabel: questionDifficulty === "easy" ? "やさしめ" : questionDifficulty === "hard" ? "定着チャレンジ" : "標準",
