@@ -109,7 +109,8 @@ test("keeps the revealed answer actions reachable on a phone", async () => {
   const mobileCss = css.slice(mobileStart, css.indexOf("@media (prefers-reduced-motion", mobileStart));
 
   assert.ok(mobileStart >= 0, "phone breakpoint is missing");
-  assert.match(mobileCss, /\.flashcard\.revealed \.answerSide \{[^}]*animation: none;/);
+  assert.match(mobileCss, /\.hint \{ padding: 8px 14px;/);
+  assert.match(mobileCss, /\.flashcard\.revealed \.answerSide \{[^}]*padding-top: 12px;[^}]*animation: none;/);
   assert.match(mobileCss, /\.flashcard\.revealed \.answerButtons \{[^}]*position: fixed;/);
   assert.match(mobileCss, /bottom: 0;/);
   assert.match(mobileCss, /env\(safe-area-inset-bottom\)/);
