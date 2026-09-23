@@ -1,3 +1,4 @@
+/opt/homebrew/Library/Homebrew/cmd/shellenv.sh: line 18: /bin/ps: Operation not permitted
 @import "tailwindcss";
 
 :root {
@@ -199,7 +200,11 @@ footer span { font-weight: 800; } footer p { margin: 0; color: #aeb4c5; }
   .cardMetaLeft > span { display: none; }.cardCount { top: 70px; right: 18px; }
   .retentionBox { grid-template-columns: 1fr; gap: 8px; margin-top: 18px; padding: 11px 13px; }.retentionBox > div:first-child { grid-row: auto; }.retentionBox p { font-size: 10px; line-height: 1.55; }
   .questionSide { padding-top: 29px; }.questionSide h3 { margin: 10px 0 20px; font-size: 36px; overflow-wrap: anywhere; }.hint { padding: 14px; font-size: 14px; line-height: 1.75; }.hint span { display: block; margin: 0 0 4px; }
-  .revealButton { min-height: 58px; margin-top: 28px; }.answerText { font-size: 18px; line-height: 1.8; }.confusion { font-size: 13px; }.answerButtons { grid-template-columns: 1fr; gap: 9px; }.answerButtons button { min-height: 54px; }
+  .revealButton { min-height: 58px; margin-top: 28px; }.answerText { font-size: 18px; line-height: 1.8; }.confusion { font-size: 13px; }
+  .flashcard.revealed { padding-bottom: calc(105px + env(safe-area-inset-bottom)); }
+  .flashcard.revealed .answerButtons { position: fixed; z-index: 30; right: 0; bottom: 0; left: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin: 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: rgba(244, 241, 233, .97); border-top: 1px solid var(--line); box-shadow: 0 -10px 28px rgba(23, 32, 58, .16); backdrop-filter: blur(12px); }
+  .flashcard.revealed .answerButtons button { min-width: 0; min-height: 54px; padding: 7px 3px; font-size: 12px; line-height: 1.25; }
+  .flashcard.revealed .answerButtons span { display: block; margin: 0 0 2px; font-size: 16px; }
   .quizCard { min-height: 610px; }.quizQuestion { padding-top: 27px; }.quizQuestion h3 { margin-bottom: 18px; font-size: 17px; line-height: 1.75; }.quizConfidence { width: 100%; }.quizUnsureButton, .quizConfidentButton { flex: 1; min-height: 44px; padding: 0 8px; }
   .choiceGrid { gap: 9px; }.choiceGrid button { min-height: 58px; padding: 13px 14px; font-size: 14px; line-height: 1.45; }
   .quizFeedback { margin: 14px -2px 0; padding: 16px 14px; }.quizFeedback strong { font-size: 18px; }.correctDetail { font-size: 15px; line-height: 1.8; }.quizConfusion { font-size: 13px; }.quizFeedback button { width: 100%; min-height: 50px; }.differenceList p { grid-template-columns: 1fr; gap: 3px; font-size: 13px; }

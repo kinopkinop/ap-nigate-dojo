@@ -1,3 +1,4 @@
+/opt/homebrew/Library/Homebrew/cmd/shellenv.sh: line 18: /bin/ps: Operation not permitted
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
@@ -101,4 +102,16 @@ test("does not mask an abbreviation inside its English formal name", async () =>
     "会計・人事・生産・販売などを統合管理する仕組み。",
   );
   assert.equal(maskAnswerTerm("ERPは企業全体を統合管理する。", { term: "ERP" }), "この用語は企業全体を統合管理する。");
+});
+
+test("keeps the revealed answer actions reachable on a phone", async () => {
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  const mobileStart = css.indexOf("@media (max-width: 520px)");
+  const mobileCss = css.slice(mobileStart, css.indexOf("@media (prefers-reduced-motion", mobileStart));
+
+  assert.ok(mobileStart >= 0, "phone breakpoint is missing");
+  assert.match(mobileCss, /\.flashcard\.revealed \.answerButtons \{[^}]*position: fixed;/);
+  assert.match(mobileCss, /bottom: 0;/);
+  assert.match(mobileCss, /env\(safe-area-inset-bottom\)/);
+  assert.match(mobileCss, /grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
 });
