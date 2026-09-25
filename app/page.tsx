@@ -84,9 +84,8 @@ const terms: Term[] = [
   { id: "inner-join", term: "INNER JOIN", category: "データベース", hint: "二つの名簿を重ね、両方に載っている人だけを残す。", answer: "結合条件が両方のテーブルで一致する行だけを結果に残す内部結合。", level: 1 },
   { id: "dmz", term: "DMZ", category: "セキュリティ", hint: "インターネットと社内LANの間に、公開用の緩衝地帯を置く。", answer: "Webサーバなどの公開サーバを配置し、インターネットと社内LANの両方から隔離する領域。", level: 1 },
   { id: "fp-method", term: "FP法", category: "マネジメント", hint: "プログラムの行数ではなく、利用者から見える入出力や機能を数える。", answer: "利用者から見た機能の種類と数を基に、ソフトウェアの規模をファンクションポイントで見積もる方法。", level: 1 },
-  { id: "swot-external", term: "SWOTの外部環境", category: "ストラテジ", hint: "自社の中では制御しにくい、追い風と向かい風の二つ。", answer: "Opportunity（機会）とThreat（脅威）。StrengthとWeaknessは内部環境。", level: 1 },
-  { id: "ppm", term: "PPM", category: "ストラテジ", hint: "事業を二つの軸で四象限に置く。縦は市場の伸び、横は自社の強さ。", answer: "市場成長率と相対的市場シェアで事業を分類し、経営資源の配分を検討する手法。", level: 1 },
-  { id: "ppm-problem-child", term: "PPM：問題児", category: "ストラテジ", hint: "市場は伸びているが、自社はまだ強くない事業。", answer: "市場成長率が高く、相対的市場シェアが低い事業。育成には大きな投資が必要。", level: 1 },
+  { id: "swot-external", term: "SWOT分析", category: "ストラテジ", hint: "内部環境と外部環境に分け、プラス要因とマイナス要因を一つずつ置く。", studyPrompt: "S・W・O・Tを、内部環境と外部環境に分けて言えますか？", hardPrompt: "内部環境の強み・弱みと、外部環境の機会・脅威を整理する分析手法は？", answer: "内部環境はStrength（強み）・Weakness（弱み）、外部環境はOpportunity（機会）・Threat（脅威）。四つを組み合わせて戦略を検討する。", level: 1 },
+  { id: "ppm", term: "PPM", category: "ストラテジ", hint: "市場成長率と相対的市場シェアの高低で、四つの事業タイプを作る。", studyPrompt: "PPMの二つの軸と、四つの象限をすべて言えますか？", hardPrompt: "市場成長率と相対的市場シェアで事業を四象限に分類し、経営資源の配分を考える手法は？", answer: "縦軸が市場成長率、横軸が相対的市場シェア。高・高＝花形、高・低＝問題児、低・高＝金のなる木、低・低＝負け犬。問題児には育成投資、金のなる木からは資金回収を考える。", level: 1 },
   { id: "balance-sheet", term: "貸借対照表", category: "ストラテジ", hint: "ある時点の会社の財産と、その調達元を左右で見る。", answer: "B/S。一定時点の資産・負債・純資産を示し、財政状態を表す財務諸表。", level: 1 },
   { id: "income-statement", term: "損益計算書", category: "ストラテジ", hint: "一定期間に、いくら稼ぎ、いくら使い、いくら残ったか。", answer: "P/L。一定期間の売上・費用・利益を示し、経営成績を表す財務諸表。", level: 1 },
   { id: "incident-management", term: "インシデント管理", category: "マネジメント", hint: "まず通常サービスへ早く戻す。原因究明は別の管理プロセス。", answer: "サービス中断や品質低下から、可能な限り早く通常サービスを復旧するための管理。", level: 1, confusion: "問題管理は根本原因と再発防止を扱う" },
@@ -103,8 +102,7 @@ const terms: Term[] = [
   { id: "itil", term: "ITIL", category: "マネジメント", hint: "ITサービス管理をうまく行うための、実践知をまとめた体系。", answer: "ITサービスマネジメントのベストプラクティスを体系化したフレームワーク。組織がサービス価値を継続的に生み出すための考え方を示す。", level: 1, confusion: "ISO/IEC 20000は認証にも用いられる国際規格" },
   { id: "iso-iec-20000", term: "ISO/IEC 20000", category: "マネジメント", hint: "ITサービスマネジメントの仕組みに対する国際的な要求事項。", answer: "ITサービスマネジメントシステムに関する国際規格。組織がサービスを計画・提供・評価・改善するための要求事項を定める。", level: 1, confusion: "ITILはベストプラクティスをまとめたフレームワーク" },
   { id: "kpi", term: "KPI", category: "マネジメント", hint: "目標に近づいているかを途中で測る重要なものさし。", answer: "Key Performance Indicator。組織や業務が目標達成へどの程度進んでいるかを測定する重要業績評価指標。", level: 1 },
-  { id: "evm-cost", term: "EVMのコスト評価", category: "マネジメント", hint: "出来高に対して、実際にいくら使ったかを比べる。", answer: "EV（出来高）とAC（実コスト）を比較する。CV＝EV－AC、CPI＝EV÷ACで評価する。", level: 1 },
-  { id: "earliest-finish", term: "最早終了時刻", category: "マネジメント", hint: "作業を最も早く始められる時刻に、その作業時間を足す。", answer: "最早開始時刻＋所要時間で求める、その作業を最も早く終了できる時刻。", level: 1 },
+  { id: "evm-cost", term: "EVM（PV・EV・AC）", category: "マネジメント", hint: "計画、出来高、実コストの三つを比べ、費用と進捗を別々に評価する。", studyPrompt: "PV・EV・ACの意味と、CPI・SPIの式を言えますか？", hardPrompt: "PV・EV・ACを使い、CPI＝EV÷AC、SPI＝EV÷PVで費用効率と進捗効率を評価する手法は？", answer: "PV＝計画価値、EV＝出来高、AC＝実コスト。CPI＝EV÷ACで費用効率、SPI＝EV÷PVで進捗効率を測る。1未満ならそれぞれ予算超過・進捗遅れ。CV＝EV－AC、SV＝EV－PV。", level: 1 },
   { id: "dhcp", term: "DHCP", category: "ネットワーク", hint: "端末がネットワークへ参加するとき、住所などを自動でもらう。", answer: "IPアドレス、サブネットマスク、デフォルトゲートウェイなどを端末へ自動的に割り当てるプロトコル。", level: 1 },
   { id: "oauth", term: "OAuth", category: "セキュリティ", hint: "パスワードを渡さず、別サービスへ限定的な操作権を渡す。", answer: "利用者の認証情報を共有せず、他サービスが利用者の代わりに資源へアクセスする権限を認可する仕組み。", level: 1, confusion: "OAuthは認可。認証そのものではない" },
   { id: "crl", term: "CRL", category: "セキュリティ", hint: "有効期限前でも、もう信用してはいけない証明書の一覧。", answer: "Certificate Revocation List。CAが発行する、失効したデジタル証明書の一覧。", level: 1 },
@@ -136,21 +134,12 @@ const terms: Term[] = [
   { id: "bplus-tree-index", term: "B+木インデックス", category: "データベース", hint: "キーを順序どおり木に並べ、葉をたどって連続した範囲も探せる。", answer: "平衡木構造を使うインデックス。完全一致に加え、大小比較・範囲検索・並べ替えに強い。", level: 1 },
   { id: "hash-index", term: "ハッシュインデックス", category: "データベース", hint: "値から保管場所を直接求めるので、等しいかどうかを探すのが得意。", answer: "ハッシュ値で格納位置を求めるインデックス。完全一致検索に強いが、範囲検索や順序検索には向かない。", level: 1, confusion: "範囲検索に強いのはB+木インデックス" },
   { id: "composite-index", term: "複合インデックス", category: "データベース", hint: "一つではなく、複数の列を決められた順番で組み合わせる。", answer: "複数列を組み合わせて作るインデックス。検索条件が先頭列から一致するかなど、列の順序が効き方に影響する。", level: 1 },
-  { id: "replication", term: "レプリケーション", category: "データベース", hint: "同じデータの写しを別のDBにも持たせる。", answer: "同じデータを複数のデータベースへ複製し、可用性向上や読み取り負荷の分散に利用する仕組み。", level: 1 },
+  { id: "replication", term: "レプリケーション：構成", category: "データベース", hint: "同じデータの写しを持つ構成で、更新を受ける側と複製を持つ側の役割を比べる。", studyPrompt: "プライマリとレプリカの役割を説明できますか？", hardPrompt: "更新を受けるプライマリと、その複製を持つレプリカで可用性や読取り性能を高める仕組みは？", answer: "同じデータを複数DBへ複製する仕組み。プライマリが主に更新を受け、レプリカが複製を保持する。読取り負荷の分散や障害時の切替えに使う。シャーディングは同じデータの複製ではなく、データを分割して持つ。", level: 1 },
   { id: "sharding", term: "シャーディング", category: "データベース", hint: "コピーを作るのではなく、データの担当範囲を分けて別々に持つ。", answer: "データをキーなどで水平分割し、複数のデータベースへ分散して保持する方式。容量や処理負荷を分散する。", level: 1, confusion: "レプリケーションは同じデータを複製する" },
-  { id: "primary-db", term: "プライマリDB", category: "データベース", hint: "複製構成で、変更を最初に受け付ける中心側。", answer: "レプリケーション構成で主に更新処理を受け付け、変更内容をレプリカDBへ送る側のデータベース。", level: 1 },
-  { id: "replica-db", term: "レプリカDB", category: "データベース", hint: "中心側から送られたデータの写しを保持する側。", answer: "プライマリDBのデータの複製を保持する側。読み取り分散や障害時の切替先などに利用する。", level: 1 },
-  { id: "sync-replication", term: "同期レプリケーション", category: "データベース", hint: "複製先にも届いたことを確認してから、更新完了とする。", answer: "レプリカへの反映完了を待ってからプライマリの更新を完了する方式。整合性に強いが、遅延が増えやすい。", level: 1 },
-  { id: "async-replication", term: "非同期レプリケーション", category: "データベース", hint: "複製先への到着を待たず、中心側は先に更新完了を返す。", answer: "レプリカへの反映完了を待たずにプライマリの更新を完了する方式。高速だが、反映遅延や障害時のデータ欠損リスクがある。", level: 1, confusion: "同期方式はレプリカ反映を待ってから完了する" },
-  { id: "database-design", term: "DB設計", category: "データベース", hint: "業務で必要な情報を、だんだん実装に近い形へ落とし込む。", answer: "業務要件を基にデータの構造や関係を決める作業。概念設計、論理設計、物理設計の順に具体化する。", level: 1 },
-  { id: "conceptual-design", term: "概念設計", category: "データベース", hint: "最初に、業務上どんなものと関係があるかを整理する段階。", answer: "業務の対象となる実体（エンティティ）とその関係を整理する設計。DBMSや表の実装方法には依存しない。", level: 1, confusion: "論理設計は表・主キー・外部キーなどへ落とし込む" },
-  { id: "logical-design", term: "論理設計", category: "データベース", hint: "業務上の実体を、表やキーとして整理する段階。", answer: "概念設計を基に、テーブル、列、主キー、外部キー、正規化などの論理的な構造を決める設計。", level: 1, confusion: "物理設計はインデックスや格納方法などを決める" },
-  { id: "physical-design", term: "物理設計", category: "データベース", hint: "性能や容量を考え、実際のDBMS上での置き方を決める段階。", answer: "使用するDBMSに合わせ、インデックス、格納領域、パーティション、データ型などの物理的な実装を決める設計。", level: 1, confusion: "概念設計は業務上の実体と関係を整理する" },
-  { id: "transaction-isolation-level", term: "トランザクション分離レベル", category: "データベース", hint: "同時実行中の別処理から、どこまで影響を受けないようにするか。", answer: "複数のトランザクションを同時実行するときの隔離の強さ。一般にREAD UNCOMMITTED、READ COMMITTED、REPEATABLE READ、SERIALIZABLEの順に強くなる。", level: 1 },
-  { id: "read-uncommitted", term: "READ UNCOMMITTED", category: "データベース", hint: "分離レベルは最低。まだ確定していない変更も見えてしまう。", hardPrompt: "別トランザクションがまだ確定していない更新値まで読める、最も低い分離レベルは？", answer: "最も低い分離レベル。未コミットのデータを読めるため、ダーティリード、ノンリピータブルリード、ファントムリードが発生し得る。", level: 1, confusion: "READ COMMITTEDはダーティリードを防ぐ" },
-  { id: "read-committed", term: "READ COMMITTED", category: "データベース", hint: "確定した値だけを読むが、同じ行を後で読むと変わることはある。", hardPrompt: "ダーティリードは防ぐが、同じ行を再読したときの値までは保証しない分離レベルは？", answer: "コミット済みのデータだけを読む分離レベル。ダーティリードは防ぐが、ノンリピータブルリードとファントムリードは発生し得る。", level: 1, confusion: "REPEATABLE READは同じ行の再読結果を保つ" },
-  { id: "repeatable-read", term: "REPEATABLE READ", category: "データベース", hint: "一度読んだ同じ行は、処理中にもう一度読んでも同じ値。", hardPrompt: "ダーティリードとノンリピータブルリードを防ぐが、標準上は行の増減が起こり得る分離レベルは？", answer: "同じトランザクション内で一度読んだ行を再読しても同じ値を保証する分離レベル。ダーティリードとノンリピータブルリードを防ぐが、標準上はファントムリードが発生し得る。", level: 1, confusion: "SERIALIZABLEはファントムリードも防ぐ" },
-  { id: "serializable-isolation", term: "SERIALIZABLE", category: "データベース", hint: "分離レベルは最高。同時実行でも一つずつ順番に処理した結果になる。", hardPrompt: "三つのリード異常をすべて防ぐ代わりに、並行性が最も低くなりやすい分離レベルは？", answer: "最も高い分離レベル。直列実行と同等の結果を保証し、ダーティリード、ノンリピータブルリード、ファントムリードを防ぐ。", level: 1, confusion: "分離性は高いが、並行性や性能は低下しやすい" },
+  { id: "sync-replication", term: "レプリケーション：同期・非同期", category: "データベース", hint: "更新完了を返す前に、レプリカへの反映を待つか待たないかを比べる。", studyPrompt: "同期方式と非同期方式の長所・短所を説明できますか？", hardPrompt: "レプリカへの反映を待つ方式と、待たずに完了を返す方式の違いを問うレプリケーションの分類は？", answer: "同期方式はレプリカへの反映を待つため整合性に強いが遅延が増えやすい。非同期方式は待たないため高速だが、反映遅延があり、障害時に未反映データを失う可能性がある。", level: 1 },
+  { id: "conceptual-design", term: "DB設計3段階", category: "データベース", hint: "業務の世界を整理し、表へ落とし込み、最後にDBMS上の実装を決める。", studyPrompt: "概念設計・論理設計・物理設計で決めるものを順番に言えますか？", hardPrompt: "エンティティと関係、表・キー・正規化、索引・格納方法の順に具体化する設計工程は？", answer: "概念設計＝業務上のエンティティと関係を整理する。論理設計＝テーブル・列・主キー・外部キー・正規化を決める。物理設計＝DBMSに合わせてデータ型・インデックス・格納領域・パーティションを決める。", level: 1 },
+  { id: "read-uncommitted", term: "分離レベル：READ UNCOMMITTED / READ COMMITTED", category: "データベース", hint: "低い二段階。未コミット値を読めるかどうかが境目。", studyPrompt: "READ UNCOMMITTEDとREAD COMMITTEDで、防げる異常を比較できますか？", hardPrompt: "未コミット値も読める最低レベルと、コミット済みだけを読むレベルをまとめて比較するカードは？", answer: "READ UNCOMMITTEDはダーティリード・ノンリピータブルリード・ファントムリードがすべて起こり得る。READ COMMITTEDはダーティリードを防ぐが、残り二つは起こり得る。", level: 1, confusion: "上位二段階では、同じ行の再読や検索結果の行数まで保護範囲が広がる" },
+  { id: "repeatable-read", term: "分離レベル：REPEATABLE READ / SERIALIZABLE", category: "データベース", hint: "高い二段階。同じ行の値まで守るか、検索結果の行の増減まで守るか。", studyPrompt: "REPEATABLE READとSERIALIZABLEで、防げる異常を比較できますか？", hardPrompt: "同じ行の再読結果を保つレベルと、三つのリード異常をすべて防ぐ最高レベルをまとめて比較するカードは？", answer: "REPEATABLE READはダーティリードとノンリピータブルリードを防ぐが、標準上はファントムリードが起こり得る。SERIALIZABLEは三つすべてを防ぎ、直列実行と同等にするが、並行性は下がりやすい。", level: 1, confusion: "READ COMMITTEDは同じ行の再読結果までは保証しない" },
   { id: "primary-key", term: "主キー", category: "データベース", hint: "各行を一つに特定する代表者。重複も空欄も許さない。", answer: "テーブルの各行を一意に識別するキー。重複を許さず、NULLにもできない。候補キーから一つ選ぶ。", level: 1 },
   { id: "candidate-key", term: "候補キー", category: "データベース", hint: "行を一意に特定できる、主キーの候補。", answer: "行を一意に識別でき、余分な属性を含まない最小のキー。候補キーの一つが主キーとして選ばれる。", level: 1, confusion: "外部キーは別テーブルのキーを参照する" },
   { id: "one-to-many", term: "1対多", category: "データベース", hint: "一人の顧客が複数の注文を持つような関係。", answer: "一方の1行に対して、もう一方の複数行が対応する関係。通常は「多」側に外部キーを置く。", level: 1 },
@@ -172,9 +161,7 @@ const terms: Term[] = [
   { id: "rollback", term: "ROLLBACK", category: "データベース", hint: "未確定の更新を取り消し、開始前などへ戻す。", answer: "トランザクション内の未コミットの更新を取り消すTCL。SAVEPOINTを指定して途中まで戻すこともできる。", level: 1, confusion: "ロールフォワードはログから更新を再反映する障害復旧" },
   { id: "acid", term: "ACID特性", category: "データベース", hint: "トランザクションが守る四つの性質。", answer: "原子性（Atomicity）、一貫性（Consistency）、独立性・分離性（Isolation）、永続性（Durability）の四つの性質。", level: 1 },
   { id: "exclusive-lock", term: "専有ロック（排他ロック）", category: "データベース", hint: "更新用。ほかの読み書きを待たせる強いロック。", answer: "データを更新するときに取得するロック。専有ロック中は、ほかのトランザクションの共有ロックや専有ロックと共存できない。", level: 1, confusion: "共有ロック同士は共存できる" },
-  { id: "full-backup", term: "フルバックアップ", category: "データベース", hint: "毎回、対象データを全部保存する。", answer: "対象データ全体を毎回バックアップする方式。復元は単純だが、取得時間と保存容量が大きい。", level: 1 },
-  { id: "differential-backup", term: "差分バックアップ", category: "データベース", hint: "最後のフル以降に変わった分を、毎回まとめて保存する。", answer: "直近のフルバックアップ以降に変更された全データを保存する方式。復元にはフルと最新の差分が必要。", level: 1 },
-  { id: "incremental-backup", term: "増分バックアップ", category: "データベース", hint: "直前のバックアップ以降に変わった分だけ保存する。", answer: "直前のフルまたは増分バックアップ以降の変更分だけを保存する方式。取得は速いが、復元には一連のバックアップが必要。", level: 1, confusion: "差分は直近のフル以降の変更を毎回保存する" },
+  { id: "full-backup", term: "バックアップ方式", category: "データベース", hint: "何を基準に変更分を保存するかと、復元時に何本必要かを比べる。", studyPrompt: "フル・差分・増分の取得範囲と復元方法を比較できますか？", hardPrompt: "全体、直近のフル以降、直前のバックアップ以降という三つの取得範囲を比較するものは？", answer: "フル＝毎回全体を保存し、復元は単純だが時間・容量が大きい。差分＝直近のフル以降の変更を毎回保存し、復元はフル＋最新差分。増分＝直前のバックアップ以降の変更だけを保存し、取得は軽いが復元にはフル＋すべての増分が必要。", level: 1 },
   { id: "database-index", term: "インデックス", category: "データベース", hint: "本の索引のように、目的の行を速く探すための別構造。", answer: "検索対象の列の値と行の位置を管理し、検索を高速化するデータ構造。B+木やハッシュなどがある。", level: 1 },
   { id: "index-tradeoff", term: "インデックスのトレードオフ", category: "データベース", hint: "読むのは速くなるが、書くたびに索引も直す必要がある。", hardPrompt: "検索を高速化する目的で索引を多数追加したところ、更新処理が遅くなった。主な理由は？", answer: "検索や並べ替えを高速化できる一方、追加・更新・削除のたびに索引の更新負荷と保存容量が増えること。作り過ぎると更新性能が下がる。", level: 1, confusion: "インデックスは参照性能を高める一方、更新時には保守コストがかかる" },
   { id: "optimizer", term: "オプティマイザ", category: "データベース", hint: "SQLをどう実行すれば速いか、候補から選ぶ。", answer: "SQLの複数の実行方法をコストなどで評価し、結合順序やインデックス利用を含む効率的な実行計画を選ぶ機能。", level: 1 },
@@ -202,15 +189,8 @@ const terms: Term[] = [
   { id: "cold-standby", term: "コールドスタンバイ", category: "マネジメント", hint: "予備系は通常停止し、障害が起きてから起動・設定する。", hardPrompt: "待機系を通常は停止させ、障害発生後に起動やデータ復旧を行って切り替える方式は？", answer: "待機系を停止または最小限の状態で用意し、障害時に起動・設定・データ復旧を行う方式。低コストだが復旧に時間がかかる。", level: 1, confusion: "ホットスタンバイは待機系を稼働状態にして短時間で切り替える" },
   { id: "rto", term: "RTO", category: "マネジメント", hint: "障害が起きてから、何時間以内にサービスを戻すか。", hardPrompt: "災害発生後、サービスを4時間以内に再開するという目標で示される指標は？", answer: "Recovery Time Objective。災害や障害による停止後、サービスを復旧させるまでの目標時間。", level: 1, confusion: "RPOはどの時点のデータまで復旧するかを示す" },
   { id: "rpo", term: "RPO", category: "マネジメント", hint: "障害発生時点から見て、どこまで過去のデータに戻ってよいか。", hardPrompt: "障害時に、最大1時間前のデータまで失われても許容するという目標で示される指標は？", answer: "Recovery Point Objective。障害時に許容できるデータ損失量を、復旧すべきデータの時点で表した目標。", level: 1, confusion: "RTOは復旧完了までの目標時間を示す" },
-  { id: "externalization", term: "表出化", category: "マネジメント", hint: "経験や勘を、文章・図・手順として言葉にする。", answer: "SECIモデルで、個人の暗黙知を言語化・図式化して形式知へ変換するプロセス。暗黙知から形式知。", level: 1 },
-  { id: "combination", term: "連結化", category: "マネジメント", hint: "複数の文書やデータを編集し、新しい体系的な知識にまとめる。", answer: "SECIモデルで、複数の形式知を組み合わせ、整理・編集して新たな形式知を生み出すプロセス。形式知から形式知。", level: 1 },
-  { id: "socialization", term: "共同化", category: "マネジメント", hint: "一緒に作業し、言葉にしにくいコツを体験から受け継ぐ。", answer: "SECIモデルで、共通体験や観察・模倣を通じて暗黙知を共有するプロセス。暗黙知から暗黙知。", level: 1 },
-  { id: "internalization", term: "内面化", category: "マネジメント", hint: "手順書などを実践し、自分の経験や技能として身に付ける。", answer: "SECIモデルで、形式知を実践・学習によって個人の暗黙知として身に付けるプロセス。形式知から暗黙知。", level: 1 },
-  { id: "initiating-process-group", term: "立上げのプロセス群", category: "マネジメント", hint: "プロジェクトやフェーズを正式に始め、目的と責任者を明確にする。", hardPrompt: "プロジェクト憲章を作成し、プロジェクトを正式に開始する承認を得るプロセス群は？", answer: "プロジェクトまたはフェーズを正式に開始し、目的、主要な利害関係者、プロジェクトマネージャなどを明確にするプロセス群。", level: 1 },
-  { id: "planning-process-group", term: "計画のプロセス群", category: "マネジメント", hint: "プロジェクトの目的、範囲、日程、費用、リスクへの進め方を決める。", hardPrompt: "スコープ、スケジュール、コスト、品質、リスクなどの実行方針を具体化するプロセス群は？", answer: "プロジェクトの目標を明確にし、スコープ、スケジュール、コスト、品質、リスクなどの計画を作成するプロセス群。", level: 1 },
-  { id: "executing-process-group", term: "実行のプロセス群", category: "マネジメント", hint: "作成した計画に従い、人や資源を動かして成果物を作る。", hardPrompt: "プロジェクト計画に従ってチームと資源を調整し、成果物を作成するプロセス群は？", answer: "プロジェクトマネジメント計画に沿って作業を実施し、人や資源を調整して要求された成果物を作るプロセス群。", level: 1 },
-  { id: "controlling-process-group", term: "監視・コントロールのプロセス群", category: "マネジメント", hint: "計画と実績のずれを確認し、必要なら進め方を修正する。", hardPrompt: "進捗と実績を計画値と比較し、差異を分析して是正処置や変更を行うプロセス群は？", answer: "プロジェクトの実績を測定して計画と比較し、差異を分析して是正処置や変更を行うプロセス群。", level: 1 },
-  { id: "closing-process-group", term: "終結のプロセス群", category: "マネジメント", hint: "成果物の受入れを確認し、契約や記録を閉じて正式に完了させる。", hardPrompt: "成果物の正式な受入れ、契約の完了、教訓の記録などを行うプロセス群は？", answer: "プロジェクトまたはフェーズの成果物を正式に受け入れ、契約・文書・教訓などを整理して完了させるプロセス群。", level: 1 },
+  { id: "externalization", term: "SECIモデル", category: "マネジメント", hint: "暗黙知と形式知を行き来する四つの変換を、順番と向きで整理する。", studyPrompt: "共同化・表出化・連結化・内面化の変換方向を言えますか？", hardPrompt: "暗黙知と形式知の相互変換を、共同化・表出化・連結化・内面化で表す知識創造モデルは？", answer: "共同化＝暗黙知→暗黙知（体験を共有）。表出化＝暗黙知→形式知（言語・図にする）。連結化＝形式知→形式知（文書などを組み合わせる）。内面化＝形式知→暗黙知（実践して身に付ける）。", level: 1 },
+  { id: "initiating-process-group", term: "プロジェクトのプロセス群", category: "マネジメント", hint: "開始し、計画し、実行し、進み方を監視して、最後に閉じる。", studyPrompt: "五つのプロセス群を順番に、それぞれの役割と一緒に言えますか？", hardPrompt: "立上げ・計画・実行・監視コントロール・終結の五つでプロジェクト管理活動を整理する区分は？", answer: "立上げ＝正式に開始する。計画＝範囲・日程・費用などを決める。実行＝人と資源を動かし成果物を作る。監視・コントロール＝計画と実績を比較して是正する。終結＝受入れ・契約・記録を整理して完了する。", level: 1 },
   { id: "metadata", term: "メタデータ", category: "データベース", hint: "図書館の本に対する、タイトル・著者・分類番号のような情報。", answer: "表名、列名、データ型、制約など、データの構造や性質を説明する情報。", level: 3 },
   { id: "tuckman-model", term: "タックマンモデル", category: "マネジメント", hint: "チームができてから機能するまでの段階を考える。", hardPrompt: "新しいチームが形成・混乱・統一・機能を経て成熟する過程を説明するモデルは？", answer: "チームの発達を形成期・混乱期・統一期・機能期などの段階で捉えるモデル。意見の対立を経て役割や規範が定まり、協働できるようになる。", level: 1, collection: "special" },
   { id: "mes", term: "MES", category: "ストラテジ", hint: "企業全体の計画と、工場の現場作業の間をつなぐ。", hardPrompt: "工場の製造現場で作業指示・進捗・品質・設備稼働などを管理するシステムは？", answer: "Manufacturing Execution System（製造実行システム）。製造現場の作業指示や進捗、品質、設備稼働などを管理し、ERPの計画と現場をつなぐ。", level: 1, collection: "special", confusion: "ERPは企業全体の経営資源、MESは製造現場の実行を管理する" },
@@ -223,10 +203,8 @@ const terms: Term[] = [
   { id: "immersion-cooling", term: "液浸冷却", category: "テクノロジ", hint: "サーバの熱を空気ではなく液体へ逃がす。", hardPrompt: "サーバなどの電子機器を絶縁性の液体に浸して熱を取り除く冷却方式は？", answer: "サーバなどを電気を通しにくい冷却液へ浸し、機器の熱を液体へ移して冷却する方式。空冷と異なり液体で直接熱を回収する。", level: 1, collection: "special" },
   { id: "iot", term: "IoT", category: "ストラテジ", hint: "身近な機器や設備がネットにつながり、データをやり取りする。", hardPrompt: "センサを備えた機器などをネットワークにつなぎ、状態の収集や遠隔制御に利用する仕組みは？", answer: "Internet of Things（モノのインターネット）。機器や設備をネットワークにつなぎ、データの収集・分析や遠隔制御などに活用する。", level: 1, collection: "special" },
   { id: "soa", term: "SOA", category: "テクノロジ", hint: "業務機能を独立したサービスとして組み合わせる設計。", hardPrompt: "業務機能を再利用可能なサービスとして分け、連携させてシステムを構築する考え方は？", answer: "Service-Oriented Architecture（サービス指向アーキテクチャ）。業務機能を独立したサービスとして公開・連携し、再利用しやすくする設計思想。", level: 1, collection: "special" },
-  { id: "mm1-queue", term: "M/M/1待ち行列", category: "テクノロジ", hint: "一つの窓口に、仕事がランダムに到着して順番を待つモデル。", hardPrompt: "到着と処理の間隔をそれぞれ指数分布で表し、窓口が一つだけの待ち行列モデルは？", answer: "到着がポアソン過程、処理時間が指数分布に従い、窓口が一つの待ち行列モデル。到着率λより処理率μが大きいとき安定し、利用率が上がると待ち時間が急増する。", level: 1, collection: "special" },
-  { id: "mm1-utilization", term: "利用率（M/M/1）", category: "テクノロジ", hint: "到着の速さを、処理できる速さと比べる。", hardPrompt: "到着率が毎時8件、処理率が毎時10件なら0.8となる、窓口の忙しさを表す指標は？", answer: "到着率λを処理率μで割ったρ＝λ/μ。例えば8件/時が到着し10件/時を処理できるなら0.8（80%）。μに近づくほど待ち時間が長くなる。", level: 1, collection: "special", confusion: "平均系内時間は待ち時間と処理時間の合計で、利用率とは単位も意味も異なる" },
-  { id: "mm1-system-time", term: "平均系内時間（M/M/1）", category: "テクノロジ", hint: "列に並んでいる時間だけでなく、実際に処理される時間も含む。", hardPrompt: "到着率が毎時8件、処理率が毎時10件なら30分となる、到着から処理完了までの平均時間は？", answer: "待ち時間と処理時間を合わせた平均時間。M/M/1でλ＜μなら1/（μ−λ）。λ＝8件/時、μ＝10件/時なら1/2時間＝30分。待ち時間だけの値ではない。", level: 1, collection: "special", confusion: "平均処理時間は1/μで、列に並ぶ時間を含まない" },
-  { id: "mm1-service-time", term: "平均処理時間（サービス率μ）", category: "テクノロジ", hint: "一時間に何件処理できるかを、一件当たりの時間に直す。", hardPrompt: "1時間に10件処理できる窓口で、1件当たり6分となる時間は？", answer: "処理率μの逆数で、1件を処理する平均時間は1/μ。μ＝10件/時なら1/10時間＝6分。待ち時間は含まず、平均系内時間とは異なる。", level: 1, collection: "special" },
+  { id: "mm1-queue", term: "M/M/1待ち行列：モデルと利用率", category: "テクノロジ", hint: "到着率λと処理率μを比べ、窓口がどれくらい忙しいかを求める。", studyPrompt: "M/M/1の前提、安定条件、利用率の式を言えますか？", hardPrompt: "到着がポアソン、処理時間が指数分布、窓口が一つで、利用率をρ＝λ÷μとするモデルは？", answer: "到着がポアソン過程、処理時間が指数分布、窓口が一つのモデル。到着率λ＜処理率μなら安定する。利用率ρ＝λ÷μで、λ＝8件/時、μ＝10件/時なら80％。ρが1へ近づくと待ち時間が急増する。", level: 1, collection: "special" },
+  { id: "mm1-system-time", term: "M/M/1待ち行列：三つの時間", category: "テクノロジ", hint: "系内時間は、列で待つ時間と実際に処理される時間の合計。", studyPrompt: "平均系内時間・平均処理時間・平均待ち時間の式と関係を言えますか？", hardPrompt: "λ＝8件/時、μ＝10件/時なら、系内30分・処理6分・待ち24分となるM/M/1の時間計算は？", answer: "平均系内時間＝1÷（μ－λ）。平均処理時間＝1÷μ。平均待ち時間＝平均系内時間－平均処理時間。λ＝8、μ＝10なら系内30分、処理6分、待ち24分。", level: 1, collection: "special" },
   { id: "linear-search", term: "線形探索", category: "テクノロジ", hint: "並び順に頼らず、先頭から一件ずつ確かめる。", hardPrompt: "未整列のn件を先頭から順に比較し、探す回数が件数に比例する探索法は？", answer: "先頭から順番に一件ずつ比較する探索法。整列は不要だが、最悪の場合n件を調べるため計算量はO(n)。", level: 1, collection: "special" },
   { id: "binary-search", term: "二分探索", category: "テクノロジ", hint: "整列済みの範囲を、比較のたびに半分に絞る。", hardPrompt: "整列済みの1024件なら約10回の比較で候補を絞れる、O(log n)の探索法は？", answer: "整列済みのデータの中央と比較し、探索範囲を半分ずつ減らす。計算量はO(log₂n)。log₂1024＝10は、1024を2で10回割ると1になるイメージ。", level: 1, collection: "special", confusion: "線形探索は先頭から順に調べるためO(n)、二分探索には整列済みのデータが必要" },
   { id: "hash-search", term: "ハッシュ探索", category: "テクノロジ", hint: "キーから保存場所の目安を計算して探す。", hardPrompt: "キーから位置を計算する表を使い、衝突が少なければ平均O(1)で探せる方法は？", answer: "キーのハッシュ値から格納先を求めて探す方法。探索は平均O(1)だが、衝突が多いと遅くなり、常にO(1)とは限らない。", level: 1, collection: "special", confusion: "二分探索は整列済みデータを半分ずつ絞り、O(log n)で探す" },
@@ -239,11 +217,8 @@ const terms: Term[] = [
   { id: "logic-nor", term: "NOR", category: "テクノロジ", hint: "二つとも0のときだけ1、それ以外は0。", hardPrompt: "二つの入力がともに0の場合だけ1となる、論理和を反転した演算は？", answer: "OR（論理和）の結果を反転する否定論理和。00→1、01→0、10→0、11→0。", level: 1, collection: "special", confusion: "NANDはANDの反転で、両方1のときだけ0" },
   { id: "roc-curve", term: "ROC曲線", category: "テクノロジ", hint: "二値分類の判定しきい値を動かし、検出と誤検出の関係を比べる。", studyPrompt: "横軸・縦軸と、何を比べる曲線か言えますか？", hardPrompt: "横軸を偽陽性率、縦軸を真陽性率として、判定しきい値ごとの性能を描く曲線は？", answer: "二値分類器の判定しきい値を変えたときの真陽性率（縦軸）と偽陽性率（横軸）の関係を表す曲線。左上に近いほど良く、曲線下の面積をAUCという。", level: 1, collection: "special" },
   { id: "sampling-theorem", term: "標本化定理", category: "テクノロジ", hint: "元の波に含まれる最も速い振動を、十分な回数で測る。", studyPrompt: "最高周波数が3kHzなら、最低何kHzで標本化する？", hardPrompt: "最高周波数が3kHzの信号を標本化するには、理論上少なくとも6kHzが必要とする定理は？", answer: "最高周波数をfとすると、標本化周波数は理論上少なくとも2fが必要。これより低いと折返し雑音（エイリアシング）が生じる。実際は余裕を持って高めに設定する。", level: 1, collection: "special" },
-  { id: "signal-frequency", term: "周波数", category: "テクノロジ", hint: "波が1秒間に何回繰り返すかを表す。", studyPrompt: "周期0.02秒の波は何Hz？式も言えますか？", hardPrompt: "周期が0.02秒の波では50Hzとなる、1秒当たりの繰返し回数は？", answer: "1秒間の繰返し回数で、単位はHz。周期をT秒とすると周波数f＝1/T。周期0.02秒なら1÷0.02＝50Hz。100Hzなら1秒間に100回繰り返す。", level: 1, collection: "special", confusion: "周期は1回の繰返しにかかる時間で、単位は秒" },
-  { id: "signal-period", term: "周期", category: "テクノロジ", hint: "波が1回繰り返すのにかかる時間。", studyPrompt: "周波数100Hzの波は1回何秒？式も言えますか？", hardPrompt: "周波数が100Hzの波では0.01秒となる、1回分の長さは？", answer: "波が1回繰り返すのにかかる時間で、単位は秒。周波数をf Hzとすると周期T＝1/f。100Hzなら1÷100＝0.01秒。逆に周期0.02秒なら50Hz。", level: 1, collection: "special", confusion: "周波数は1秒当たりの繰返し回数で、単位はHz" },
-  { id: "memory-first-fit", term: "First Fit", category: "テクノロジ", hint: "探索する順序が、どの領域を使うかに影響する。", studyPrompt: "空き250・200・400KB、要求180KBならどこへ入れる？", hardPrompt: "空き領域が250・200・400KBの順で、180KBを要求したとき、最初の250KBを選ぶ方式は？", answer: "空き領域を順に調べ、要求サイズが入る最初の領域へ割り当てる方式。250・200・400KBの順なら180KBは最初の250KBへ入れる。", level: 1, collection: "special", confusion: "Best Fitは入る中で最小、Worst Fitは入る中で最大の空き領域を選ぶ" },
-  { id: "memory-best-fit", term: "Best Fit", category: "テクノロジ", hint: "割り当てた後にどれだけ余るかを考える。", studyPrompt: "空き250・200・400KB、要求180KBならどこへ入れる？", hardPrompt: "空き領域が250・200・400KBの順で、180KBを要求したとき、200KBを選ぶ方式は？", answer: "要求サイズが入る空き領域のうち、最も小さい領域へ割り当てる方式。250・200・400KBなら180KBには200KBを選ぶ。", level: 1, collection: "special", confusion: "First Fitは最初に入る領域、Worst Fitは最大の領域を選ぶ" },
-  { id: "memory-worst-fit", term: "Worst Fit", category: "テクノロジ", hint: "割り当て後にも、まとまった空きを残そうとする。", studyPrompt: "空き250・200・400KB、要求180KBならどこへ入れる？", hardPrompt: "空き領域が250・200・400KBの順で、180KBを要求したとき、400KBを選ぶ方式は？", answer: "要求サイズが入る空き領域のうち、最も大きい領域へ割り当てる方式。250・200・400KBなら180KBには400KBを選ぶ。", level: 1, collection: "special", confusion: "Best Fitは入る中で最小の領域、First Fitは最初に入る領域を選ぶ" },
+  { id: "signal-frequency", term: "周波数と周期", category: "テクノロジ", hint: "1秒当たりの回数と、1回にかかる秒数は互いに逆数。", studyPrompt: "f＝1/TとT＝1/fを使い、100Hzと0.02秒を相互変換できますか？", hardPrompt: "100Hzなら周期0.01秒、周期0.02秒なら50Hzとなる、互いに逆数の二つの量は？", answer: "周波数fは1秒当たりの繰返し回数で単位はHz、周期Tは1回にかかる時間で単位は秒。f＝1÷T、T＝1÷f。100Hzなら0.01秒、0.02秒なら50Hz。", level: 1, collection: "special" },
+  { id: "memory-first-fit", term: "メモリ割当て方式", category: "テクノロジ", hint: "最初に入る場所、入る中で最小の場所、入る中で最大の場所を比べる。", studyPrompt: "First Fit・Best Fit・Worst Fitの選び方を一度に説明できますか？", hardPrompt: "空き250・200・400KBへ180KBを割り当てると、順に250・200・400KBを選ぶ三方式は？", answer: "First Fit＝走査順で最初に入る領域。Best Fit＝入る中で最小の領域。Worst Fit＝入る中で最大の領域。空きが250・200・400KB、要求180KBなら、それぞれ250・200・400KBを選ぶ。", level: 1, collection: "special" },
 ];
 
 type Progress = Record<string, { correct: number; wrong: number; unsure?: number; confident?: number; retention?: number; quizCount?: number }>;
@@ -259,6 +234,94 @@ const retentionResetKey = "ap-study-retention-reset-2026-08-27";
 const collectionStorageKey = "ap-study-collections-v1";
 const disabledStorageKey = "ap-study-disabled-ids-v1";
 const backupKeys = ["ap-study-progress", "ap-study-round", "ap-study-priority-round", "ap-study-mode-stats", "ap-study-question-stats-v1", collectionStorageKey, disabledStorageKey, retentionResetKey] as const;
+const modeKeys: ModeKey[] = ["study", "quiz", "priority", "weak", "unseen", "lowquiz", "special"];
+const legacyTermMerges: Record<string, string> = {
+  "ppm-problem-child": "ppm",
+  "primary-db": "replication",
+  "replica-db": "replication",
+  "async-replication": "sync-replication",
+  "database-design": "conceptual-design",
+  "logical-design": "conceptual-design",
+  "physical-design": "conceptual-design",
+  "transaction-isolation-level": "repeatable-read",
+  "read-committed": "read-uncommitted",
+  "serializable-isolation": "repeatable-read",
+  "differential-backup": "full-backup",
+  "incremental-backup": "full-backup",
+  combination: "externalization",
+  socialization: "externalization",
+  internalization: "externalization",
+  "planning-process-group": "initiating-process-group",
+  "executing-process-group": "initiating-process-group",
+  "controlling-process-group": "initiating-process-group",
+  "closing-process-group": "initiating-process-group",
+  "mm1-utilization": "mm1-queue",
+  "mm1-service-time": "mm1-system-time",
+  "signal-period": "signal-frequency",
+  "memory-best-fit": "memory-first-fit",
+  "memory-worst-fit": "memory-first-fit",
+};
+
+function mergedTermId(id: string) {
+  return legacyTermMerges[id] ?? id;
+}
+
+function recordRetention(record: Progress[string]) {
+  if (typeof record.retention === "number") return Math.max(0, Math.min(100, record.retention));
+  return Math.max(5, Math.min(95, 35 + (record.correct ?? 0) * 20 - (record.wrong ?? 0) * 22));
+}
+
+function migrateProgressRecords(savedProgress: Progress) {
+  const migrated = { ...savedProgress };
+  Object.entries(legacyTermMerges).forEach(([sourceId, targetId]) => {
+    const source = migrated[sourceId];
+    if (!source) return;
+    const target = migrated[targetId];
+    migrated[targetId] = target ? {
+      correct: (target.correct ?? 0) + (source.correct ?? 0),
+      wrong: (target.wrong ?? 0) + (source.wrong ?? 0),
+      unsure: (target.unsure ?? 0) + (source.unsure ?? 0),
+      confident: (target.confident ?? 0) + (source.confident ?? 0),
+      quizCount: (target.quizCount ?? 0) + (source.quizCount ?? 0),
+      retention: Math.min(recordRetention(target), recordRetention(source)),
+    } : { ...source };
+    delete migrated[sourceId];
+  });
+  return Object.fromEntries(Object.entries(migrated).filter(([id]) => terms.some((item) => item.id === id))) as Progress;
+}
+
+function migrateQuestionStats(savedStats: QuestionStats) {
+  const migrated: QuestionStats = Object.fromEntries(Object.entries(savedStats).map(([id, stats]) => [id, { ...stats }]));
+  Object.entries(legacyTermMerges).forEach(([sourceId, targetId]) => {
+    const source = migrated[sourceId];
+    if (!source) return;
+    const target = migrated[targetId] ?? {};
+    const merged: Partial<Record<ModeKey, { correct: number; wrong: number }>> = { ...target };
+    modeKeys.forEach((key) => {
+      if (!source[key] && !target[key]) return;
+      merged[key] = {
+        correct: (target[key]?.correct ?? 0) + (source[key]?.correct ?? 0),
+        wrong: (target[key]?.wrong ?? 0) + (source[key]?.wrong ?? 0),
+      };
+    });
+    migrated[targetId] = merged;
+    delete migrated[sourceId];
+  });
+  return Object.fromEntries(Object.entries(migrated).filter(([id]) => terms.some((item) => item.id === id))) as QuestionStats;
+}
+
+function migrateCollectionOverrides(saved: CollectionOverrides) {
+  const migrated = { ...saved };
+  Object.entries(legacyTermMerges).forEach(([sourceId, targetId]) => {
+    if (!migrated[targetId] && migrated[sourceId]) migrated[targetId] = migrated[sourceId];
+    delete migrated[sourceId];
+  });
+  return Object.fromEntries(Object.entries(migrated).filter(([id, value]) => terms.some((item) => item.id === id) && (value === "regular" || value === "special"))) as CollectionOverrides;
+}
+
+function migrateDisabledIds(ids: string[]) {
+  return [...new Set(ids.map(mergedTermId).filter((id) => terms.some((item) => item.id === id)))];
+}
 
 function getCollection(item: Term, overrides: CollectionOverrides): Collection {
   return overrides[item.id] ?? (item.collection === "special" ? "special" : "regular");
@@ -335,9 +398,9 @@ const confusionGroups = [
   ["rollforward", "transaction-log", "checkpoint", "savepoint", "transaction"],
   ["data-dictionary", "metadata", "external-schema", "conceptual-schema"],
   ["why-split-tables", "normalization", "first-normal-form", "second-normal-form"],
-  ["acid", "transaction", "serializability", "transaction-isolation-level"],
+  ["acid", "transaction", "serializability", "read-uncommitted", "repeatable-read"],
   ["lock", "shared-lock", "deadlock", "consistency"],
-  ["swot-external", "ppm", "ppm-problem-child", "pest"],
+  ["swot-external", "ppm", "pest", "segmentation"],
   ["balance-sheet", "income-statement", "intellectual-assets", "core-competence"],
   ["incident-management", "problem-management", "service-request"],
   ["sla", "service-level-management", "kpi", "itil"],
@@ -346,15 +409,15 @@ const confusionGroups = [
   ["itil", "iso-iec-20000", "service-level-management", "sla"],
   ["crm", "scm", "erp", "bpr"],
   ["segmentation", "targeting", "positioning", "product-life-cycle"],
-  ["fp-method", "analogy-estimation", "evm-cost", "earliest-finish"],
+  ["fp-method", "analogy-estimation", "evm-cost", "feasibility-study"],
   ["napt", "dhcp", "spf", "packet"],
   ["functional-dependency", "partial-functional-dependency", "transitive-functional-dependency", "normalization"],
   ["unique-constraint", "check-constraint", "referential-integrity", "foreign-key"],
   ["bplus-tree-index", "hash-index", "composite-index", "materialized-view"],
-  ["replication", "sharding", "primary-db", "replica-db"],
-  ["sync-replication", "async-replication", "replication", "replica-db"],
-  ["conceptual-design", "logical-design", "physical-design", "database-design"],
-  ["read-uncommitted", "read-committed", "repeatable-read", "serializable-isolation", "transaction-isolation-level"],
+  ["replication", "sharding", "two-phase-commit", "failover"],
+  ["sync-replication", "replication", "sharding", "failover"],
+  ["conceptual-design", "conceptual-schema", "external-schema", "internal-schema"],
+  ["read-uncommitted", "repeatable-read", "dirty", "phantom"],
   ["primary-key", "candidate-key", "foreign-key", "unique-constraint"],
   ["one-to-many", "many-to-many", "junction-table", "er-diagram"],
   ["first-normal-form", "second-normal-form", "third-normal-form", "normalization"],
@@ -363,7 +426,7 @@ const confusionGroups = [
   ["inner-join", "left-join", "union", "subquery"],
   ["grant", "revoke", "commit", "rollback"],
   ["shared-lock", "exclusive-lock", "lock", "deadlock"],
-  ["full-backup", "differential-backup", "incremental-backup", "checkpoint"],
+  ["full-backup", "checkpoint", "rollforward", "transaction-log"],
   ["database-index", "bplus-tree-index", "hash-index", "composite-index"],
   ["optimizer", "execution-plan", "partitioning", "index-tradeoff"],
   ["view", "materialized-view", "not-null", "check-constraint"],
@@ -375,9 +438,9 @@ const confusionGroups = [
   ["false-negative", "false-positive", "heuristic", "exploit-code"],
   ["hot-standby", "warm-standby", "cold-standby", "failover"],
   ["rto", "rpo", "it-service-continuity-management", "checkpoint"],
-  ["externalization", "combination", "socialization", "internalization"],
-  ["initiating-process-group", "planning-process-group", "executing-process-group", "controlling-process-group", "closing-process-group"],
-  ["tuckman-model", "planning-process-group", "controlling-process-group", "incident-management"],
+  ["externalization", "knowledge-management", "brainstorming", "delphi-method"],
+  ["initiating-process-group", "tuckman-model", "evm-cost", "fp-method"],
+  ["tuckman-model", "initiating-process-group", "incident-management", "problem-management"],
   ["mes", "erp", "scm", "iot"],
   ["scala-language", "soa", "iot", "mes"],
   ["delphi-method", "brainstorming", "feasibility-study", "analogy-estimation"],
@@ -385,13 +448,13 @@ const confusionGroups = [
   ["marketing-4p-4c", "segmentation", "targeting", "positioning"],
   ["immersion-cooling", "warm-standby", "hot-standby", "availability-management"],
   ["soa", "erp", "scm", "crm"],
-  ["mm1-queue", "mm1-utilization", "mm1-system-time", "mm1-service-time"],
+  ["mm1-queue", "mm1-system-time", "signal-frequency", "sampling-theorem"],
   ["linear-search", "binary-search", "hash-search", "bplus-tree-index"],
   ["parity-check", "crc-error-check", "hamming-code", "integrity"],
   ["logic-not", "logic-xor", "logic-nand", "logic-nor"],
   ["roc-curve", "false-positive", "false-negative", "heuristic"],
-  ["sampling-theorem", "signal-frequency", "signal-period", "mm1-service-time"],
-  ["memory-first-fit", "memory-best-fit", "memory-worst-fit"],
+  ["sampling-theorem", "signal-frequency", "mm1-system-time", "binary-search"],
+  ["memory-first-fit", "partitioning", "database-index", "hash-index"],
 ];
 
 function textBigrams(text: string) {
@@ -524,18 +587,22 @@ export default function Home() {
     try {
       const parsed = JSON.parse(localStorage.getItem(collectionStorageKey) ?? "{}");
       if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-        savedCollections = Object.fromEntries(Object.entries(parsed).filter(([id, value]) => terms.some((item) => item.id === id) && (value === "regular" || value === "special"))) as CollectionOverrides;
+        savedCollections = migrateCollectionOverrides(parsed as CollectionOverrides);
+        localStorage.setItem(collectionStorageKey, JSON.stringify(savedCollections));
       }
     } catch { /* 古いデータや破損した設定は初期の区分を使う */ }
     setCollectionOverrides(savedCollections);
     let savedDisabledIds: string[] = [];
     try {
       const parsed = JSON.parse(localStorage.getItem(disabledStorageKey) ?? "[]");
-      if (Array.isArray(parsed)) savedDisabledIds = [...new Set(parsed.filter((id): id is string => typeof id === "string" && terms.some((item) => item.id === id)))];
+      if (Array.isArray(parsed)) {
+        savedDisabledIds = migrateDisabledIds(parsed.filter((id): id is string => typeof id === "string"));
+        localStorage.setItem(disabledStorageKey, JSON.stringify(savedDisabledIds));
+      }
     } catch { /* 破損した設定は出題中として扱う */ }
     setDisabledIds(savedDisabledIds);
     const saved = localStorage.getItem("ap-study-progress");
-    let savedProgress = saved ? JSON.parse(saved) as Progress : {};
+    let savedProgress = migrateProgressRecords(saved ? JSON.parse(saved) as Progress : {});
     if (localStorage.getItem(retentionResetKey) !== "done") {
       // 過去の「全問題を-20」調整は保存済みの問題だけに適用する。
       // 初めて開いた端末や、後から追加した問題の初期値は35のままにする。
@@ -547,11 +614,16 @@ export default function Home() {
       localStorage.setItem("ap-study-progress", JSON.stringify(savedProgress));
       localStorage.setItem(retentionResetKey, "done");
     }
+    localStorage.setItem("ap-study-progress", JSON.stringify(savedProgress));
     setProgress(savedProgress);
     const savedStats = localStorage.getItem("ap-study-mode-stats");
     if (savedStats) setModeStats((old) => ({ ...old, ...JSON.parse(savedStats) as Partial<ModeStats> }));
     const savedQuestionStats = localStorage.getItem("ap-study-question-stats-v1");
-    if (savedQuestionStats) setQuestionStats(JSON.parse(savedQuestionStats) as QuestionStats);
+    if (savedQuestionStats) {
+      const migratedStats = migrateQuestionStats(JSON.parse(savedQuestionStats) as QuestionStats);
+      setQuestionStats(migratedStats);
+      localStorage.setItem("ap-study-question-stats-v1", JSON.stringify(migratedStats));
+    }
     const savedRoundText = localStorage.getItem("ap-study-round");
     try {
       const savedRound = savedRoundText ? JSON.parse(savedRoundText) as { ids?: unknown; position?: unknown; category?: unknown } : null;

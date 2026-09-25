@@ -33,7 +33,7 @@ test("server-renders the AP study tool", async () => {
   assert.match(html, /応用情報/);
   assert.match(html, /用語チェック/);
   assert.match(html, /4択クイズ/);
-  assert.match(html, /195<small>語<\/small>/);
+  assert.match(html, /175<small>語<\/small>/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape/i);
 });
 
@@ -43,10 +43,10 @@ test("keeps question data stable and fully grouped", async () => {
   const ids = [...termsBlock.matchAll(/id: "([^"]+)"/g)].map((match) => match[1]);
   const groupsBlock = page.slice(page.indexOf("const confusionGroups"), page.indexOf("function textBigrams"));
 
-  assert.equal(ids.length, 227);
+  assert.equal(ids.length, 202);
   assert.equal(new Set(ids).size, ids.length);
   assert.ok((termsBlock.match(/hardPrompt:/g) ?? []).length >= 30);
-  for (const id of ["conceptual-schema", "internal-schema", "false-positive", "hot-standby", "cold-standby", "initiating-process-group", "executing-process-group", "closing-process-group"]) {
+  for (const id of ["conceptual-schema", "internal-schema", "false-positive", "hot-standby", "cold-standby", "conceptual-design", "externalization", "initiating-process-group"]) {
     assert.ok(ids.includes(id), `missing term: ${id}`);
   }
   for (const id of ids) assert.match(groupsBlock, new RegExp(`"${id}"`), `term has no confusion group: ${id}`);
@@ -65,14 +65,29 @@ test("opens the weak-only mode from the same all-category pool used by its count
 
 test("new terms start in the special collection and can be moved individually", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
-  const specialIds = ["tuckman-model", "mes", "scala-language", "delphi-method", "brainstorming", "feasibility-study", "reverse-proxy", "marketing-4p-4c", "immersion-cooling", "iot", "soa", "mm1-queue", "mm1-utilization", "mm1-system-time", "mm1-service-time", "linear-search", "binary-search", "hash-search", "parity-check", "crc-error-check", "hamming-code", "logic-not", "logic-xor", "logic-nand", "logic-nor", "roc-curve", "sampling-theorem", "signal-frequency", "signal-period", "memory-first-fit", "memory-best-fit", "memory-worst-fit"];
+  const specialIds = ["tuckman-model", "mes", "scala-language", "delphi-method", "brainstorming", "feasibility-study", "reverse-proxy", "marketing-4p-4c", "immersion-cooling", "iot", "soa", "mm1-queue", "mm1-system-time", "linear-search", "binary-search", "hash-search", "parity-check", "crc-error-check", "hamming-code", "logic-not", "logic-xor", "logic-nand", "logic-nor", "roc-curve", "sampling-theorem", "signal-frequency", "memory-first-fit"];
   for (const id of specialIds) assert.match(page, new RegExp(`id: "${id}"[^\\n]+collection: "special"`));
-  assert.match(page, /id: "signal-frequency"[^\n]+studyPrompt: "周期0\.02秒/);
-  assert.match(page, /id: "memory-best-fit"[^\n]+studyPrompt: "空き250・200・400KB/);
+  assert.match(page, /id: "signal-frequency"[^\n]+studyPrompt: "f＝1\/TとT＝1\/f/);
+  assert.match(page, /id: "memory-first-fit"[^\n]+studyPrompt: "First Fit・Best Fit・Worst Fit/);
   assert.match(page, /studyLabel: card\.studyPrompt \?\?/);
   assert.match(page, /const collectionStorageKey = "ap-study-collections-v1"/);
   assert.match(page, /function toggleCollection\(item: Term\)/);
   assert.match(page, /getCollection\(item, overrides\) === collection/);
+});
+
+test("consolidates comparison-heavy cards without losing saved progress", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const termsBlock = page.slice(page.indexOf("const terms"), page.indexOf("type Progress"));
+  const kept = ["ppm", "swot-external", "conceptual-design", "replication", "sync-replication", "read-uncommitted", "repeatable-read", "full-backup", "externalization", "initiating-process-group", "mm1-queue", "mm1-system-time", "signal-frequency", "memory-first-fit", "evm-cost"];
+  const removed = ["ppm-problem-child", "primary-db", "replica-db", "async-replication", "database-design", "logical-design", "physical-design", "transaction-isolation-level", "read-committed", "serializable-isolation", "differential-backup", "incremental-backup", "combination", "socialization", "internalization", "planning-process-group", "executing-process-group", "controlling-process-group", "closing-process-group", "mm1-utilization", "mm1-service-time", "signal-period", "memory-best-fit", "memory-worst-fit", "earliest-finish"];
+
+  for (const id of kept) assert.match(termsBlock, new RegExp(`id: "${id}"`), `missing consolidated term: ${id}`);
+  for (const id of removed) assert.doesNotMatch(termsBlock, new RegExp(`id: "${id}"`), `legacy term still appears: ${id}`);
+  for (const id of removed.filter((id) => id !== "earliest-finish")) assert.match(page, new RegExp(`"?${id}"?: "`), `progress migration is missing: ${id}`);
+  assert.match(termsBlock, /高・高＝花形、高・低＝問題児、低・高＝金のなる木、低・低＝負け犬/);
+  assert.match(termsBlock, /CPI＝EV÷ACで費用効率、SPI＝EV÷PVで進捗効率/);
+  assert.match(page, /function migrateProgressRecords/);
+  assert.match(page, /retention: Math\.min\(recordRetention\(target\), recordRetention\(source\)\)/);
 });
 
 test("paused questions stay out of rounds and choices, with settings in backups", async () => {
