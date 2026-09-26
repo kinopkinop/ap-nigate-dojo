@@ -33,7 +33,7 @@ test("server-renders the AP study tool", async () => {
   assert.match(html, /応用情報/);
   assert.match(html, /用語チェック/);
   assert.match(html, /4択クイズ/);
-  assert.match(html, /175<small>語<\/small>/);
+  assert.match(html, /200<small>語<\/small>/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape/i);
 });
 
@@ -43,7 +43,7 @@ test("keeps question data stable and fully grouped", async () => {
   const ids = [...termsBlock.matchAll(/id: "([^"]+)"/g)].map((match) => match[1]);
   const groupsBlock = page.slice(page.indexOf("const confusionGroups"), page.indexOf("function textBigrams"));
 
-  assert.equal(ids.length, 202);
+  assert.equal(ids.length, 211);
   assert.equal(new Set(ids).size, ids.length);
   assert.ok((termsBlock.match(/hardPrompt:/g) ?? []).length >= 30);
   for (const id of ["conceptual-schema", "internal-schema", "false-positive", "hot-standby", "cold-standby", "conceptual-design", "externalization", "initiating-process-group"]) {
@@ -63,31 +63,61 @@ test("opens the weak-only mode from the same all-category pool used by its count
   assert.match(weakButton, /buildRound\("すべて", progress, weakIds, false, false, true, collectionOverrides, "regular", disabledIds\)/);
 });
 
-test("new terms start in the special collection and can be moved individually", async () => {
+test("keeps calculation-oriented cards special and term cards regular", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
-  const specialIds = ["tuckman-model", "mes", "scala-language", "delphi-method", "brainstorming", "feasibility-study", "reverse-proxy", "marketing-4p-4c", "immersion-cooling", "iot", "soa", "mm1-queue", "mm1-system-time", "linear-search", "binary-search", "hash-search", "parity-check", "crc-error-check", "hamming-code", "logic-not", "logic-xor", "logic-nand", "logic-nor", "roc-curve", "sampling-theorem", "signal-frequency", "memory-first-fit"];
+  const termsBlock = page.slice(page.indexOf("const terms"), page.indexOf("type Progress"));
+  const specialIds = ["mm1-queue", "mm1-system-time", "linear-search", "binary-search", "hash-search", "logic-not", "logic-xor", "logic-nand", "logic-nor", "sampling-theorem", "signal-frequency"];
+  const regularIds = ["tuckman-model", "mes", "scala-language", "delphi-method", "brainstorming", "feasibility-study", "reverse-proxy", "marketing-4p-4c", "marketing-4c", "immersion-cooling", "iot", "soa", "parity-check", "crc-error-check", "hamming-code", "roc-curve", "memory-first-fit", "memory-best-fit", "memory-worst-fit"];
   for (const id of specialIds) assert.match(page, new RegExp(`id: "${id}"[^\\n]+collection: "special"`));
-  assert.match(page, /id: "signal-frequency"[^\n]+studyPrompt: "f＝1\/TとT＝1\/f/);
-  assert.match(page, /id: "memory-first-fit"[^\n]+studyPrompt: "First Fit・Best Fit・Worst Fit/);
+  for (const id of regularIds) {
+    const line = termsBlock.split("\n").find((candidate) => candidate.includes(`id: "${id}"`)) ?? "";
+    assert.ok(line, `missing regular term: ${id}`);
+    assert.doesNotMatch(line, /collection: "special"/, `term should be regular: ${id}`);
+  }
+  assert.match(page, /id: "signal-frequency"[^\n]+周波数と周期は互いに逆数/);
   assert.match(page, /studyLabel: card\.studyPrompt \?\?/);
   assert.match(page, /const collectionStorageKey = "ap-study-collections-v1"/);
   assert.match(page, /function toggleCollection\(item: Term\)/);
   assert.match(page, /getCollection\(item, overrides\) === collection/);
 });
 
-test("consolidates comparison-heavy cards without losing saved progress", async () => {
+test("splits overloaded cards and migrates their saved progress", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   const termsBlock = page.slice(page.indexOf("const terms"), page.indexOf("type Progress"));
-  const kept = ["ppm", "swot-external", "conceptual-design", "replication", "sync-replication", "read-uncommitted", "repeatable-read", "full-backup", "externalization", "initiating-process-group", "mm1-queue", "mm1-system-time", "signal-frequency", "memory-first-fit", "evm-cost"];
-  const removed = ["ppm-problem-child", "primary-db", "replica-db", "async-replication", "database-design", "logical-design", "physical-design", "transaction-isolation-level", "read-committed", "serializable-isolation", "differential-backup", "incremental-backup", "combination", "socialization", "internalization", "planning-process-group", "executing-process-group", "controlling-process-group", "closing-process-group", "mm1-utilization", "mm1-service-time", "signal-period", "memory-best-fit", "memory-worst-fit", "earliest-finish"];
+  const splitIds = ["replication", "sync-replication", "async-replication", "conceptual-design", "logical-design", "physical-design", "read-uncommitted", "read-committed", "repeatable-read", "serializable-isolation", "full-backup", "differential-backup", "incremental-backup", "marketing-4p-4c", "marketing-4c", "memory-first-fit", "memory-best-fit", "memory-worst-fit"];
 
-  for (const id of kept) assert.match(termsBlock, new RegExp(`id: "${id}"`), `missing consolidated term: ${id}`);
-  for (const id of removed) assert.doesNotMatch(termsBlock, new RegExp(`id: "${id}"`), `legacy term still appears: ${id}`);
-  for (const id of removed.filter((id) => id !== "earliest-finish")) assert.match(page, new RegExp(`"?${id}"?: "`), `progress migration is missing: ${id}`);
-  assert.match(termsBlock, /高・高＝花形、高・低＝問題児、低・高＝金のなる木、低・低＝負け犬/);
-  assert.match(termsBlock, /CPI＝EV÷ACで費用効率、SPI＝EV÷PVで進捗効率/);
+  for (const id of splitIds) assert.match(termsBlock, new RegExp(`id: "${id}"`), `missing split term: ${id}`);
+  assert.doesNotMatch(termsBlock, /id: "index-tradeoff"/);
+  assert.match(page, /"index-tradeoff": "database-index"/);
+  assert.match(page, /"sync-replication": \["async-replication"\]/);
+  assert.match(page, /"conceptual-design": \["logical-design", "physical-design"\]/);
+  assert.match(page, /"read-uncommitted": \["read-committed"\]/);
+  assert.match(page, /"repeatable-read": \["serializable-isolation"\]/);
+  assert.match(page, /"full-backup": \["differential-backup", "incremental-backup"\]/);
+  assert.match(page, /"marketing-4p-4c": \["marketing-4c"\]/);
+  assert.match(page, /"memory-first-fit": \["memory-best-fit", "memory-worst-fit"\]/);
   assert.match(page, /function migrateProgressRecords/);
+  assert.match(page, /function migrateQuestionStats/);
+  assert.match(page, /function migrateCollectionOverrides/);
+  assert.match(page, /function migrateDisabledIds/);
   assert.match(page, /retention: Math\.min\(recordRetention\(target\), recordRetention\(source\)\)/);
+});
+
+test("keeps every answer concise and every hint from revealing the exact term", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const termsBlock = page.slice(page.indexOf("const terms"), page.indexOf("type Progress"));
+  const termLines = termsBlock.split("\n").filter((line) => /^\s*\{ id: /.test(line));
+
+  for (const line of termLines) {
+    const id = line.match(/id: "([^"]+)"/)?.[1] ?? "unknown";
+    const term = line.match(/term: "([^"]+)"/)?.[1] ?? "";
+    const hint = line.match(/hint: "([^"]*)"/)?.[1] ?? "";
+    const answer = line.match(/answer: "([^"]*)"/)?.[1] ?? "";
+    assert.ok(answer, `answer is missing: ${id}`);
+    assert.ok(answer.length <= 90, `answer is too long: ${id} (${answer.length})`);
+    assert.ok((answer.match(/。/g) ?? []).length <= 2, `answer has more than two sentences: ${id}`);
+    assert.ok(!hint.toLocaleUpperCase().includes(term.toLocaleUpperCase()), `hint reveals its term: ${id}`);
+  }
 });
 
 test("paused questions stay out of rounds and choices, with settings in backups", async () => {

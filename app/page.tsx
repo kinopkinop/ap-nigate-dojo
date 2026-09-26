@@ -17,7 +17,7 @@ type Term = {
 };
 
 const terms: Term[] = [
-  { id: "https", term: "HTTPS", category: "セキュリティ", hint: "安全性と処理速度を両立させたい。最初の握手と、その後の会話を分けて考える。", answer: "公開鍵暗号で共通鍵を安全に共有し、その後は高速な共通鍵暗号で通信する。", level: 1 },
+  { id: "https", term: "HTTPS", category: "セキュリティ", hint: "Web通信をTLSで保護する仕組み。", answer: "TLSでは公開鍵暗号などを使って安全に鍵共有・認証を行い、その後は主に共通鍵暗号で通信する。", level: 1 },
   { id: "signature", term: "電子署名", category: "セキュリティ", hint: "『本人だけが作れて、誰でも確かめられる』には、鍵をどう使えばよい？", answer: "送信者が秘密鍵で署名し、受信者は送信者の公開鍵で検証する。改ざん検知と本人確認に使う。", level: 1 },
   { id: "heuristic", term: "ヒューリスティック法", category: "セキュリティ", hint: "指名手配写真にない犯人でも、行動が不自然なら見つけられる。", answer: "既知のパターンとの一致ではなく、怪しい特徴や挙動から未知のマルウェアを検出する。", level: 1 },
   { id: "polymorphic", term: "ポリモーフィック型", category: "セキュリティ", hint: "同じ指名手配写真を使わせないマルウェア。", answer: "感染のたびに暗号化方法やコードを変化させ、同じパターンで検出されにくくする。", level: 1 },
@@ -33,7 +33,7 @@ const terms: Term[] = [
   { id: "packet", term: "パケットフィルタリング", category: "セキュリティ", hint: "荷物の中身までは開けず、宛名・差出人・受付窓口を見て通すか決める。", answer: "送信元・宛先IPアドレス、ポート番号、プロトコルなどで通信を許可・拒否する。", level: 2 },
   { id: "keydelivery", term: "鍵配送問題", category: "セキュリティ", hint: "金庫は安全。でも、その金庫を開ける鍵を相手へ届けるには？", answer: "暗号化に使う共通鍵を、盗聴されず安全に相手へ渡さなければならない問題。", level: 2 },
   { id: "publickey", term: "公開鍵暗号", category: "セキュリティ", hint: "誰でも閉められるが、持ち主だけが開けられる南京錠を想像する。", answer: "受信者の公開鍵で暗号化し、受信者が自分の秘密鍵で復号する。", level: 2 },
-  { id: "ca", term: "CAの署名検証", category: "セキュリティ", hint: "電子署名のルールを、認証局にそのまま当てはめる。", answer: "CAの公開鍵で検証し、証明書が信頼できるCAによって署名されたことを確認する。", level: 2 },
+  { id: "ca", term: "CA（認証局）", category: "セキュリティ", hint: "Webサイトなどの身元を第三者として保証する。", answer: "デジタル証明書を発行し、公開鍵と所有者の結び付きを保証する信頼された機関。", level: 2, confusion: "デジタル証明書は、CAが発行する身元確認用の電子的な証明書" },
   { id: "napt", term: "NAPT", category: "セキュリティ", hint: "同じ建物の住所を共有するなら、部屋番号も必要になる。", answer: "IPアドレスだけでなくポート番号も変換し、複数端末で一つのグローバルIPを共有する。", level: 2 },
   { id: "password-list", term: "パスワードリスト攻撃", category: "セキュリティ", hint: "人は複数サービスで同じ合鍵を使い回しがち。そこを狙う。", answer: "他サービスから漏えいしたID・パスワードの組合せを、別サービスで試す。", level: 2 },
   { id: "account-lock", term: "アカウントロック", category: "セキュリティ", hint: "暗証番号を何度も間違えたキャッシュカードを想像する。", answer: "一定回数ログインに失敗したアカウントを一時的または恒久的に利用停止する。", level: 2 },
@@ -51,7 +51,7 @@ const terms: Term[] = [
   { id: "nonrepeatable", term: "ノンリピータブルリード", category: "データベース", hint: "同じレコードを読み直したら、誰かの更新で内容が変わっていた。", answer: "同じ行を再度読んだとき、別トランザクションの更新・コミットによって値が変わっている現象。", level: 2 },
   { id: "phantom", term: "ファントムリード", category: "データベース", hint: "値の変化ではなく、検索結果に『幽霊の行』が現れたり消えたりする。", answer: "同じ条件で再検索したとき、別トランザクションの追加・削除によって該当行が増減する現象。", level: 2 },
   { id: "aggregate", term: "集約関数", category: "データベース", hint: "COUNT、SUM、AVGの共通点は？", hardPrompt: "部署ごとの複数の給与行から、平均値や最大値など一つの値を求める関数の総称は？", answer: "複数行を集計して一つの値を返す関数。COUNT、SUM、AVG、MAX、MINなど。", level: 3 },
-  { id: "union", term: "UNION", category: "データベース", hint: "JOINは表を横へ。この演算子は検索結果をどちらの方向へ足す？", answer: "複数のSELECT結果を一つに結合する。列数と対応するデータ型を合わせる。重複は除かれる。", level: 3, confusion: "サブクエリではなく、検索結果どうしの結合" },
+  { id: "union", term: "UNION", category: "データベース", hint: "JOINは表を横へ。この演算子は検索結果をどちらの方向へ足す？", answer: "複数のSELECT結果を縦に結合する集合演算。列数と対応するデータ型を合わせ、重複は除かれる。", level: 3, confusion: "サブクエリではなく、検索結果どうしの結合" },
   { id: "orderby", term: "ORDER BY", category: "データベース", hint: "ASCとDESCを後ろに付ける句。", hardPrompt: "抽出対象の行は変えず、検索結果の表示順だけを列と昇順・降順で指定するSQL句は？", answer: "検索結果を指定列で並べ替える。ASCは昇順（既定）、DESCは降順。", level: 3 },
   { id: "lock", term: "排他制御", category: "データベース", hint: "一人が編集中の書類に『使用中』の札を掛ける。", hardPrompt: "複数のトランザクションが同じデータを扱うとき、アクセスの競合を制御して整合性を保つ仕組みは？", answer: "共有ロックや専有ロックなどを使って同時アクセスを制御し、データの整合性を保つ仕組み。", level: 3, confusion: "専有ロックは排他制御に使うロックの一種。デッドロックは互いの解除待ちで進めない状態" },
   { id: "distinct", term: "DISTINCT", category: "データベース", hint: "名簿から都道府県の種類だけを取り出したい。", answer: "SELECT DISTINCT 列名 の形で、検索結果から重複する行を除外する。綴りは DISTINCT。", level: 3, confusion: "destinct ではなく DISTINCT" },
@@ -59,7 +59,7 @@ const terms: Term[] = [
   { id: "ddl", term: "DDL", category: "データベース", hint: "建物でいえば、設計図や間取りを扱う言語。", hardPrompt: "既存の表へ列を追加する命令が分類されるSQL言語は？", answer: "Data Definition Language。CREATE、ALTER、DROPなど、データベースの構造を定義する言語。", level: 2 },
   { id: "dml", term: "DML", category: "データベース", hint: "建物ではなく、その中に置く荷物を出し入れする言語。", hardPrompt: "表の行を検索・追加・更新・削除する命令が分類されるSQL言語は？", answer: "Data Manipulation Language。SELECT、INSERT、UPDATE、DELETEなど、データを操作する言語。", level: 2, confusion: "DDLは構造、DMLは中身" },
   { id: "grant", term: "GRANT", category: "データベース", hint: "英語では『与える』。対になる命令はREVOKE。", hardPrompt: "データベース利用者へSELECT権限を付与するSQL命令は？", answer: "ユーザーやロールに、SELECTやUPDATEなどの権限を付与するSQL文。取り消しはREVOKE。", level: 3 },
-  { id: "truncate", term: "TRUNCATE", category: "データベース", hint: "DELETEより大胆だが、DROPほどではない。", answer: "テーブルの構造を残したまま全行を高速に削除するDDL。条件を指定するWHEREは使えない。", level: 2, confusion: "DELETEはDML、TRUNCATEはDDL" },
+  { id: "truncate", term: "TRUNCATE", category: "データベース", hint: "表そのものは残し、中の行をまとめて空にする。", answer: "テーブル構造を残したまま全行を削除するDDL。WHEREで条件指定はできない。", level: 2, confusion: "DELETEはDML、TRUNCATEはDDL" },
   { id: "serializability", term: "直列化可能性", category: "データベース", hint: "同時に走らせても、交通整理された一列の処理と同じなら安全。", answer: "複数のトランザクションを同時実行した結果が、何らかの順序で一つずつ直列実行した結果と同じになる性質。", level: 2 },
   { id: "data-dictionary", term: "データディクショナリ", category: "データベース", hint: "辞書が言葉の意味を管理するように、DB自身の情報を管理する。", answer: "表名、列名、データ型、制約などのメタデータを一元的に管理する仕組み。", level: 2, confusion: "メタデータは情報そのもの、データディクショナリはそれを管理するもの" },
   { id: "foreign-key", term: "外部キー", category: "データベース", hint: "注文表の顧客番号から、顧客表の一人を指し示す。", answer: "別テーブルの主キーや一意キーを参照し、テーブル間の関係と参照整合性を保つ列。", level: 1 },
@@ -82,17 +82,17 @@ const terms: Term[] = [
   { id: "tcl", term: "TCL", category: "データベース", hint: "処理を確定するか、取り消すかを制御する。", hardPrompt: "更新の確定・取消し・途中の戻り地点を扱う命令が分類されるSQL言語は？", answer: "Transaction Control Language。COMMIT、ROLLBACK、SAVEPOINTなど、トランザクションを制御する言語。", level: 1 },
   { id: "savepoint", term: "SAVEPOINT", category: "データベース", hint: "全部を最初まで戻さず、途中の印まで戻れるようにする。", answer: "トランザクションの途中に戻り地点を設定し、その地点まで部分的にロールバックできるようにする命令。", level: 1 },
   { id: "inner-join", term: "INNER JOIN", category: "データベース", hint: "二つの名簿を重ね、両方に載っている人だけを残す。", answer: "結合条件が両方のテーブルで一致する行だけを結果に残す内部結合。", level: 1 },
-  { id: "dmz", term: "DMZ", category: "セキュリティ", hint: "インターネットと社内LANの間に、公開用の緩衝地帯を置く。", answer: "Webサーバなどの公開サーバを配置し、インターネットと社内LANの両方から隔離する領域。", level: 1 },
+  { id: "dmz", term: "DMZ", category: "セキュリティ", hint: "公開サーバを社内ネットワークへ直接置かないための領域。", answer: "インターネット公開用サーバを、社内LANから分離して配置する中間領域。", level: 1 },
   { id: "fp-method", term: "FP法", category: "マネジメント", hint: "プログラムの行数ではなく、利用者から見える入出力や機能を数える。", answer: "利用者から見た機能の種類と数を基に、ソフトウェアの規模をファンクションポイントで見積もる方法。", level: 1 },
   { id: "swot-external", term: "SWOT分析", category: "ストラテジ", hint: "内部環境と外部環境に分け、プラス要因とマイナス要因を一つずつ置く。", studyPrompt: "S・W・O・Tを、内部環境と外部環境に分けて言えますか？", hardPrompt: "内部環境の強み・弱みと、外部環境の機会・脅威を整理する分析手法は？", answer: "内部環境はStrength（強み）・Weakness（弱み）、外部環境はOpportunity（機会）・Threat（脅威）。四つを組み合わせて戦略を検討する。", level: 1 },
-  { id: "ppm", term: "PPM", category: "ストラテジ", hint: "市場成長率と相対的市場シェアの高低で、四つの事業タイプを作る。", studyPrompt: "PPMの二つの軸と、四つの象限をすべて言えますか？", hardPrompt: "市場成長率と相対的市場シェアで事業を四象限に分類し、経営資源の配分を考える手法は？", answer: "縦軸が市場成長率、横軸が相対的市場シェア。高・高＝花形、高・低＝問題児、低・高＝金のなる木、低・低＝負け犬。問題児には育成投資、金のなる木からは資金回収を考える。", level: 1 },
+  { id: "ppm", term: "PPM", category: "ストラテジ", hint: "複数の事業を四つに分類し、投資配分を考える。", studyPrompt: "PPMは何を二つの軸にして、何を考える手法ですか？", hardPrompt: "市場成長率と相対的市場シェアで事業を四象限に分類し、経営資源の配分を考える手法は？", answer: "市場成長率と相対的市場シェアで事業を4分類し、経営資源の配分を考える手法。分類は花形・問題児・金のなる木・負け犬。", level: 1 },
   { id: "balance-sheet", term: "貸借対照表", category: "ストラテジ", hint: "ある時点の会社の財産と、その調達元を左右で見る。", answer: "B/S。一定時点の資産・負債・純資産を示し、財政状態を表す財務諸表。", level: 1 },
   { id: "income-statement", term: "損益計算書", category: "ストラテジ", hint: "一定期間に、いくら稼ぎ、いくら使い、いくら残ったか。", answer: "P/L。一定期間の売上・費用・利益を示し、経営成績を表す財務諸表。", level: 1 },
   { id: "incident-management", term: "インシデント管理", category: "マネジメント", hint: "まず通常サービスへ早く戻す。原因究明は別の管理プロセス。", answer: "サービス中断や品質低下から、可能な限り早く通常サービスを復旧するための管理。", level: 1, confusion: "問題管理は根本原因と再発防止を扱う" },
   { id: "problem-management", term: "問題管理", category: "マネジメント", hint: "火を消すだけでなく、なぜ燃えたかを調べて次を防ぐ。", answer: "インシデントの根本原因を特定し、恒久対策によって再発を防止するための管理。", level: 1, confusion: "インシデント管理は早期復旧を優先する" },
   { id: "service-request", term: "サービス要求", category: "マネジメント", hint: "障害ではなく、利用者からの定型的なお願い。", answer: "パスワードリセットや情報提供など、通常のサービス提供に関する利用者からの依頼。", level: 1 },
-  { id: "sla", term: "SLA", category: "マネジメント", hint: "提供者と利用者が、応答時間や稼働率などの目標を約束する。", hardPrompt: "サービス提供者と顧客が、稼働率99.9％や応答時間などの目標値を文書で合意した。この文書は？", answer: "Service Level Agreement。サービスの品質水準について、提供者と利用者の間で合意した文書。稼働率や応答時間などを定める。", level: 1, confusion: "SLMはSLAの達成状況を管理・改善する活動" },
-  { id: "service-level-management", term: "サービスレベル管理（SLM）", category: "マネジメント", hint: "品質目標を決めるだけでなく、実績を測定し、未達なら改善する。", hardPrompt: "合意したサービス水準の実績を測定・報告し、未達時に改善を続ける管理活動は？", answer: "Service Level Management。SLAを合意し、サービス水準を監視・報告して、目標を達成できるよう継続的に改善する管理プロセス。", level: 1, confusion: "SLAは品質水準についての合意そのもの" },
+  { id: "sla", term: "SLA", category: "マネジメント", hint: "提供者と利用者が、サービス品質の目標を約束する。", hardPrompt: "サービス提供者と顧客が、稼働率や応答時間などの目標値を合意した文書は？", answer: "Service Level Agreement。サービスの品質水準について、提供者と利用者が合意した文書。", level: 1, confusion: "SLMはSLAの達成状況を管理・改善する活動" },
+  { id: "service-level-management", term: "サービスレベル管理（SLM）", category: "マネジメント", hint: "合意した品質目標を測定し、改善する。", hardPrompt: "合意したサービス水準を監視し、未達時に改善する管理活動は？", answer: "Service Level Management。SLAの達成状況を監視し、サービス品質を改善する管理活動。", level: 1, confusion: "SLAは品質水準についての合意そのもの" },
   { id: "configuration-management", term: "構成管理", category: "マネジメント", hint: "サービスを構成する機器やソフトと、それらの関係を記録する。", answer: "サーバ、ネットワーク機器、ソフトウェア、文書などの構成アイテムと、その属性・関係・履歴を正確に管理する活動。", level: 1, confusion: "変更管理は変更の影響とリスクを評価・承認する" },
   { id: "change-management", term: "変更管理", category: "マネジメント", hint: "本番環境を変える前に、影響や危険性を評価して承認する。", answer: "ITサービスへの変更について、実施前に影響・リスク・優先度を評価し、承認や計画を行って障害を抑える管理。", level: 1, confusion: "構成管理は機器やソフトなどの構成情報を管理する" },
   { id: "availability-management", term: "可用性管理", category: "マネジメント", hint: "通常時に、必要なサービスを必要なとき使えるようにする。", answer: "事業が必要とする可用性を満たすため、稼働率、信頼性、保守性などを設計・測定・改善する管理。", level: 1, confusion: "ITサービス継続性管理は大規模災害などからの継続・復旧を扱う" },
@@ -102,7 +102,7 @@ const terms: Term[] = [
   { id: "itil", term: "ITIL", category: "マネジメント", hint: "ITサービス管理をうまく行うための、実践知をまとめた体系。", answer: "ITサービスマネジメントのベストプラクティスを体系化したフレームワーク。組織がサービス価値を継続的に生み出すための考え方を示す。", level: 1, confusion: "ISO/IEC 20000は認証にも用いられる国際規格" },
   { id: "iso-iec-20000", term: "ISO/IEC 20000", category: "マネジメント", hint: "ITサービスマネジメントの仕組みに対する国際的な要求事項。", answer: "ITサービスマネジメントシステムに関する国際規格。組織がサービスを計画・提供・評価・改善するための要求事項を定める。", level: 1, confusion: "ITILはベストプラクティスをまとめたフレームワーク" },
   { id: "kpi", term: "KPI", category: "マネジメント", hint: "目標に近づいているかを途中で測る重要なものさし。", answer: "Key Performance Indicator。組織や業務が目標達成へどの程度進んでいるかを測定する重要業績評価指標。", level: 1 },
-  { id: "evm-cost", term: "EVM（PV・EV・AC）", category: "マネジメント", hint: "計画、出来高、実コストの三つを比べ、費用と進捗を別々に評価する。", studyPrompt: "PV・EV・ACの意味と、CPI・SPIの式を言えますか？", hardPrompt: "PV・EV・ACを使い、CPI＝EV÷AC、SPI＝EV÷PVで費用効率と進捗効率を評価する手法は？", answer: "PV＝計画価値、EV＝出来高、AC＝実コスト。CPI＝EV÷ACで費用効率、SPI＝EV÷PVで進捗効率を測る。1未満ならそれぞれ予算超過・進捗遅れ。CV＝EV－AC、SV＝EV－PV。", level: 1 },
+  { id: "evm-cost", term: "EVM", category: "マネジメント", hint: "作業の進み具合を金額換算した出来高で管理する。", studyPrompt: "EVMは何を使って、何を管理する手法ですか？", hardPrompt: "PV・EV・ACを使い、プロジェクトの進捗とコストをまとめて管理する手法は？", answer: "出来高を使って、プロジェクトの進捗とコストを管理する手法。PVは計画価値、EVは出来高、ACは実コストを表す。", level: 1 },
   { id: "dhcp", term: "DHCP", category: "ネットワーク", hint: "端末がネットワークへ参加するとき、住所などを自動でもらう。", answer: "IPアドレス、サブネットマスク、デフォルトゲートウェイなどを端末へ自動的に割り当てるプロトコル。", level: 1 },
   { id: "oauth", term: "OAuth", category: "セキュリティ", hint: "パスワードを渡さず、別サービスへ限定的な操作権を渡す。", answer: "利用者の認証情報を共有せず、他サービスが利用者の代わりに資源へアクセスする権限を認可する仕組み。", level: 1, confusion: "OAuthは認可。認証そのものではない" },
   { id: "crl", term: "CRL", category: "セキュリティ", hint: "有効期限前でも、もう信用してはいけない証明書の一覧。", answer: "Certificate Revocation List。CAが発行する、失効したデジタル証明書の一覧。", level: 1 },
@@ -134,13 +134,18 @@ const terms: Term[] = [
   { id: "bplus-tree-index", term: "B+木インデックス", category: "データベース", hint: "キーを順序どおり木に並べ、葉をたどって連続した範囲も探せる。", answer: "平衡木構造を使うインデックス。完全一致に加え、大小比較・範囲検索・並べ替えに強い。", level: 1 },
   { id: "hash-index", term: "ハッシュインデックス", category: "データベース", hint: "値から保管場所を直接求めるので、等しいかどうかを探すのが得意。", answer: "ハッシュ値で格納位置を求めるインデックス。完全一致検索に強いが、範囲検索や順序検索には向かない。", level: 1, confusion: "範囲検索に強いのはB+木インデックス" },
   { id: "composite-index", term: "複合インデックス", category: "データベース", hint: "一つではなく、複数の列を決められた順番で組み合わせる。", answer: "複数列を組み合わせて作るインデックス。検索条件が先頭列から一致するかなど、列の順序が効き方に影響する。", level: 1 },
-  { id: "replication", term: "レプリケーション：構成", category: "データベース", hint: "同じデータの写しを持つ構成で、更新を受ける側と複製を持つ側の役割を比べる。", studyPrompt: "プライマリとレプリカの役割を説明できますか？", hardPrompt: "更新を受けるプライマリと、その複製を持つレプリカで可用性や読取り性能を高める仕組みは？", answer: "同じデータを複数DBへ複製する仕組み。プライマリが主に更新を受け、レプリカが複製を保持する。読取り負荷の分散や障害時の切替えに使う。シャーディングは同じデータの複製ではなく、データを分割して持つ。", level: 1 },
-  { id: "sharding", term: "シャーディング", category: "データベース", hint: "コピーを作るのではなく、データの担当範囲を分けて別々に持つ。", answer: "データをキーなどで水平分割し、複数のデータベースへ分散して保持する方式。容量や処理負荷を分散する。", level: 1, confusion: "レプリケーションは同じデータを複製する" },
-  { id: "sync-replication", term: "レプリケーション：同期・非同期", category: "データベース", hint: "更新完了を返す前に、レプリカへの反映を待つか待たないかを比べる。", studyPrompt: "同期方式と非同期方式の長所・短所を説明できますか？", hardPrompt: "レプリカへの反映を待つ方式と、待たずに完了を返す方式の違いを問うレプリケーションの分類は？", answer: "同期方式はレプリカへの反映を待つため整合性に強いが遅延が増えやすい。非同期方式は待たないため高速だが、反映遅延があり、障害時に未反映データを失う可能性がある。", level: 1 },
-  { id: "conceptual-design", term: "DB設計3段階", category: "データベース", hint: "業務の世界を整理し、表へ落とし込み、最後にDBMS上の実装を決める。", studyPrompt: "概念設計・論理設計・物理設計で決めるものを順番に言えますか？", hardPrompt: "エンティティと関係、表・キー・正規化、索引・格納方法の順に具体化する設計工程は？", answer: "概念設計＝業務上のエンティティと関係を整理する。論理設計＝テーブル・列・主キー・外部キー・正規化を決める。物理設計＝DBMSに合わせてデータ型・インデックス・格納領域・パーティションを決める。", level: 1 },
-  { id: "read-uncommitted", term: "分離レベル：READ UNCOMMITTED / READ COMMITTED", category: "データベース", hint: "低い二段階。未コミット値を読めるかどうかが境目。", studyPrompt: "READ UNCOMMITTEDとREAD COMMITTEDで、防げる異常を比較できますか？", hardPrompt: "未コミット値も読める最低レベルと、コミット済みだけを読むレベルをまとめて比較するカードは？", answer: "READ UNCOMMITTEDはダーティリード・ノンリピータブルリード・ファントムリードがすべて起こり得る。READ COMMITTEDはダーティリードを防ぐが、残り二つは起こり得る。", level: 1, confusion: "上位二段階では、同じ行の再読や検索結果の行数まで保護範囲が広がる" },
-  { id: "repeatable-read", term: "分離レベル：REPEATABLE READ / SERIALIZABLE", category: "データベース", hint: "高い二段階。同じ行の値まで守るか、検索結果の行の増減まで守るか。", studyPrompt: "REPEATABLE READとSERIALIZABLEで、防げる異常を比較できますか？", hardPrompt: "同じ行の再読結果を保つレベルと、三つのリード異常をすべて防ぐ最高レベルをまとめて比較するカードは？", answer: "REPEATABLE READはダーティリードとノンリピータブルリードを防ぐが、標準上はファントムリードが起こり得る。SERIALIZABLEは三つすべてを防ぎ、直列実行と同等にするが、並行性は下がりやすい。", level: 1, confusion: "READ COMMITTEDは同じ行の再読結果までは保証しない" },
-  { id: "primary-key", term: "主キー", category: "データベース", hint: "各行を一つに特定する代表者。重複も空欄も許さない。", answer: "テーブルの各行を一意に識別するキー。重複を許さず、NULLにもできない。候補キーから一つ選ぶ。", level: 1 },
+  { id: "replication", term: "レプリケーション", category: "データベース", hint: "同じデータの写しを別のDBにも持たせる。", hardPrompt: "同じデータを複数のDBへ複製し、可用性や読取り性能を高める仕組みは？", answer: "同じデータを複数のデータベースへ複製する仕組み。可用性の向上や読取り負荷の分散に使う。", level: 1, confusion: "シャーディングはデータを分割して複数DBへ持たせる" },
+  { id: "sharding", term: "シャーディング", category: "データベース", hint: "コピーではなく、データの担当範囲を分けて持つ。", answer: "データを複数のデータベースへ分割して保持し、負荷を分散する方式。", level: 1, confusion: "レプリケーションは同じデータを複製する" },
+  { id: "sync-replication", term: "同期レプリケーション", category: "データベース", hint: "複製先への反映を確認してから更新完了とする。", hardPrompt: "レプリカへの反映完了を待ってから、更新完了を返すレプリケーション方式は？", answer: "レプリカへの反映を待ってから更新を完了する方式。整合性を保ちやすいが、応答が遅くなりやすい。", level: 1, confusion: "非同期方式はレプリカへの反映を待たない" },
+  { id: "async-replication", term: "非同期レプリケーション", category: "データベース", hint: "複製先への反映を待たずに更新完了とする。", hardPrompt: "レプリカへの反映完了を待たず、先に更新完了を返すレプリケーション方式は？", answer: "レプリカへの反映を待たずに更新を完了する方式。高速だが、反映遅延や障害時のデータ欠損が起こり得る。", level: 1, confusion: "同期方式はレプリカへの反映を待つ" },
+  { id: "conceptual-design", term: "概念設計", category: "データベース", hint: "業務上の対象と、その関係を整理する段階。", hardPrompt: "DBMSや表の形を決める前に、業務上のエンティティと関係を整理する設計段階は？", answer: "業務上のエンティティや、その関係を整理する段階。DBMSなどの実装には依存しない。", level: 1 },
+  { id: "logical-design", term: "論理設計", category: "データベース", hint: "業務上の対象を、表やキーへ落とし込む段階。", hardPrompt: "テーブル、列、主キー、外部キー、正規化などを決める設計段階は？", answer: "テーブル、列、キー、正規化など、データベースの論理的な構造を決める段階。", level: 1 },
+  { id: "physical-design", term: "物理設計", category: "データベース", hint: "性能や容量を考えて、DBMS上の実装を決める段階。", hardPrompt: "インデックス、格納方法、パーティションなどDBMS上の実装を決める設計段階は？", answer: "インデックスや格納方法など、DBMS上の物理的な実装を決める段階。", level: 1 },
+  { id: "read-uncommitted", term: "READ UNCOMMITTED", category: "データベース", hint: "まだ確定していない更新も見える、最も低い分離レベル。", hardPrompt: "未コミットの更新値まで読める、最も低いトランザクション分離レベルは？", answer: "未コミットのデータも読める、最も低い分離レベル。ダーティリードが起こり得る。", level: 1 },
+  { id: "read-committed", term: "READ COMMITTED", category: "データベース", hint: "確定したデータだけを読む。", hardPrompt: "コミット済みのデータだけを読み、ダーティリードを防ぐ分離レベルは？", answer: "コミット済みのデータだけを読む分離レベル。ダーティリードは防ぐが、再読時に値が変わることはある。", level: 1 },
+  { id: "repeatable-read", term: "REPEATABLE READ", category: "データベース", hint: "同じ行を読み直しても、同じ値になるようにする。", hardPrompt: "同じトランザクション内で、同じ行の再読結果を保つ分離レベルは？", answer: "同じ行を再び読んでも同じ値を保証する分離レベル。ノンリピータブルリードを防ぐ。", level: 1 },
+  { id: "serializable-isolation", term: "SERIALIZABLE", category: "データベース", hint: "同時実行でも、一つずつ順番に処理した結果にする。", hardPrompt: "直列実行と同等の結果を保証する、最も高いトランザクション分離レベルは？", answer: "直列実行と同等の結果を保証する、最も高い分離レベル。ファントムリードも防ぐ。", level: 1 },
+  { id: "primary-key", term: "主キー", category: "データベース", hint: "各行を一つに特定する代表のキー。", answer: "テーブルの各行を一意に識別するキー。重複とNULLは許されない。", level: 1 },
   { id: "candidate-key", term: "候補キー", category: "データベース", hint: "行を一意に特定できる、主キーの候補。", answer: "行を一意に識別でき、余分な属性を含まない最小のキー。候補キーの一つが主キーとして選ばれる。", level: 1, confusion: "外部キーは別テーブルのキーを参照する" },
   { id: "one-to-many", term: "1対多", category: "データベース", hint: "一人の顧客が複数の注文を持つような関係。", answer: "一方の1行に対して、もう一方の複数行が対応する関係。通常は「多」側に外部キーを置く。", level: 1 },
   { id: "many-to-many", term: "多対多", category: "データベース", hint: "学生は複数科目を取り、科目にも複数学生がいる。", answer: "双方の1行が相手側の複数行と対応する関係。リレーショナルDBでは中間テーブルを使って二つの1対多に分ける。", level: 1 },
@@ -161,9 +166,10 @@ const terms: Term[] = [
   { id: "rollback", term: "ROLLBACK", category: "データベース", hint: "未確定の更新を取り消し、開始前などへ戻す。", answer: "トランザクション内の未コミットの更新を取り消すTCL。SAVEPOINTを指定して途中まで戻すこともできる。", level: 1, confusion: "ロールフォワードはログから更新を再反映する障害復旧" },
   { id: "acid", term: "ACID特性", category: "データベース", hint: "トランザクションが守る四つの性質。", answer: "原子性（Atomicity）、一貫性（Consistency）、独立性・分離性（Isolation）、永続性（Durability）の四つの性質。", level: 1 },
   { id: "exclusive-lock", term: "専有ロック（排他ロック）", category: "データベース", hint: "更新用。ほかの読み書きを待たせる強いロック。", answer: "データを更新するときに取得するロック。専有ロック中は、ほかのトランザクションの共有ロックや専有ロックと共存できない。", level: 1, confusion: "共有ロック同士は共存できる" },
-  { id: "full-backup", term: "バックアップ方式", category: "データベース", hint: "何を基準に変更分を保存するかと、復元時に何本必要かを比べる。", studyPrompt: "フル・差分・増分の取得範囲と復元方法を比較できますか？", hardPrompt: "全体、直近のフル以降、直前のバックアップ以降という三つの取得範囲を比較するものは？", answer: "フル＝毎回全体を保存し、復元は単純だが時間・容量が大きい。差分＝直近のフル以降の変更を毎回保存し、復元はフル＋最新差分。増分＝直前のバックアップ以降の変更だけを保存し、取得は軽いが復元にはフル＋すべての増分が必要。", level: 1 },
-  { id: "database-index", term: "インデックス", category: "データベース", hint: "本の索引のように、目的の行を速く探すための別構造。", answer: "検索対象の列の値と行の位置を管理し、検索を高速化するデータ構造。B+木やハッシュなどがある。", level: 1 },
-  { id: "index-tradeoff", term: "インデックスのトレードオフ", category: "データベース", hint: "読むのは速くなるが、書くたびに索引も直す必要がある。", hardPrompt: "検索を高速化する目的で索引を多数追加したところ、更新処理が遅くなった。主な理由は？", answer: "検索や並べ替えを高速化できる一方、追加・更新・削除のたびに索引の更新負荷と保存容量が増えること。作り過ぎると更新性能が下がる。", level: 1, confusion: "インデックスは参照性能を高める一方、更新時には保守コストがかかる" },
+  { id: "full-backup", term: "フルバックアップ", category: "データベース", hint: "対象データを毎回すべて保存する。", hardPrompt: "対象データ全体を毎回保存するバックアップ方式は？", answer: "対象データ全体を毎回保存する方式。復元は単純だが、保存時間と容量が大きい。", level: 1 },
+  { id: "differential-backup", term: "差分バックアップ", category: "データベース", hint: "直近のフル以降に変わった分を保存する。", hardPrompt: "直近のフルバックアップ以降の変更分を毎回保存する方式は？", answer: "直近のフルバックアップ以降に変更されたデータを保存する方式。復元にはフルと最新の差分を使う。", level: 1, confusion: "増分は直前のバックアップ以降の変更だけを保存する" },
+  { id: "incremental-backup", term: "増分バックアップ", category: "データベース", hint: "直前のバックアップ以降に変わった分だけを保存する。", hardPrompt: "直前のバックアップ以降の変更分だけを保存する方式は？", answer: "直前のバックアップ以降に変更されたデータだけを保存する方式。復元には一連の増分が必要。", level: 1, confusion: "差分は直近のフル以降の変更を毎回保存する" },
+  { id: "database-index", term: "インデックス", category: "データベース", hint: "本の索引のように、目的の行を速く探すための構造。", answer: "検索を高速化するためのデータ構造。検索は速くなるが、更新時の負荷や保存容量が増える。", level: 1 },
   { id: "optimizer", term: "オプティマイザ", category: "データベース", hint: "SQLをどう実行すれば速いか、候補から選ぶ。", answer: "SQLの複数の実行方法をコストなどで評価し、結合順序やインデックス利用を含む効率的な実行計画を選ぶ機能。", level: 1 },
   { id: "execution-plan", term: "実行計画", category: "データベース", hint: "表を読む順番や索引利用など、SQL実行の手順書。", answer: "DBMSがSQLを処理する具体的な手順。アクセス方法、結合方法、結合順序、推定コストなどを示す。", level: 1 },
   { id: "partitioning", term: "パーティショニング", category: "データベース", hint: "一つの大きな表を、日付や範囲などで内部的に分ける。", answer: "大規模なテーブルやインデックスを範囲・リスト・ハッシュなどで複数領域に分割し、管理性や性能を高める方式。", level: 1, confusion: "シャーディングは複数DBへデータを分散する" },
@@ -171,9 +177,9 @@ const terms: Term[] = [
   { id: "not-null", term: "NOT NULL制約", category: "データベース", hint: "その列を空欄にはできない。", answer: "指定した列にNULLを格納することを禁止し、必ず値が入るようにする制約。", level: 1 },
   { id: "two-phase-commit", term: "2相コミット", category: "データベース", hint: "複数DBへ、準備確認と確定の二段階で一斉に反映する。", answer: "分散トランザクションで、各参加者にコミット可能か確認する準備フェーズと、全体を確定・取消する決定フェーズに分けて原子性を保つ方式。", level: 1 },
   { id: "failover", term: "フェイルオーバー", category: "データベース", hint: "稼働中の系が故障したら、待機系へ役割を切り替える。", answer: "障害発生時に、処理を現用系から待機系やレプリカへ自動または手動で切り替えてサービスを継続すること。", level: 1 },
-  { id: "oltp", term: "OLTP", category: "データベース", hint: "日々の注文や入出金など、短い更新処理を大量に扱う。", answer: "Online Transaction Processing。多数の短いトランザクションをリアルタイムに処理する方式。更新の速さと整合性を重視する。", level: 1 },
-  { id: "olap", term: "OLAP", category: "データベース", hint: "大量の履歴を多角的に集計し、意思決定に使う。", answer: "Online Analytical Processing。蓄積した大量データを多次元的に集計・分析する方式。複雑な参照処理を重視する。", level: 1, confusion: "OLTPは日常業務の短い更新処理を扱う" },
-  { id: "data-warehouse", term: "データウェアハウス（DWH）", category: "データベース", hint: "業務データを分析しやすい形へ整理・加工し、長期的に蓄積する。", answer: "Data Warehouse。複数システムのデータを目的別・時系列に統合、整理、加工して蓄積し、分析や意思決定に利用するデータ基盤。", level: 1, confusion: "データレイクは加工前を含む多様なデータを元の形式に近いまま蓄積する" },
+  { id: "oltp", term: "OLTP", category: "データベース", hint: "注文や入出金など、日常業務の短い処理を大量に扱う。", answer: "Online Transaction Processing。多数の短いトランザクションをリアルタイムに処理する方式。", level: 1 },
+  { id: "olap", term: "OLAP", category: "データベース", hint: "大量の履歴を多角的に集計し、意思決定に使う。", answer: "Online Analytical Processing。蓄積した大量データを多次元的に集計・分析する方式。", level: 1, confusion: "OLTPは日常業務の短い更新処理を扱う" },
+  { id: "data-warehouse", term: "データウェアハウス（DWH）", category: "データベース", hint: "複数の業務データを、分析用にまとめて蓄積する。", answer: "分析のために、複数システムのデータを統合・蓄積するデータベース。", level: 1, confusion: "データレイクは多様なデータを元の形式に近いまま蓄積する" },
   { id: "etl", term: "ETL", category: "データベース", hint: "取り出し、整え、分析先へ入れる三段階。", answer: "Extract（抽出）、Transform（変換）、Load（格納）。元システムのデータを加工してDWHなどへ取り込む処理。", level: 1 },
   { id: "data-mart", term: "データマート", category: "データベース", hint: "全社データから、特定部門や目的に必要な部分を切り出す。", answer: "営業や財務など、特定の部門・用途に絞って整理した小規模な分析用データベース。", level: 1 },
   { id: "data-lake", term: "データレイク", category: "データベース", hint: "構造化前のデータも含め、元の形に近いまま大量にためる。", answer: "構造化・半構造化・非構造化データを、加工前の形式を含めて大規模に蓄積するデータ基盤。", level: 1, confusion: "DWHは分析しやすい形へ統合・整理したデータを蓄積する" },
@@ -189,36 +195,39 @@ const terms: Term[] = [
   { id: "cold-standby", term: "コールドスタンバイ", category: "マネジメント", hint: "予備系は通常停止し、障害が起きてから起動・設定する。", hardPrompt: "待機系を通常は停止させ、障害発生後に起動やデータ復旧を行って切り替える方式は？", answer: "待機系を停止または最小限の状態で用意し、障害時に起動・設定・データ復旧を行う方式。低コストだが復旧に時間がかかる。", level: 1, confusion: "ホットスタンバイは待機系を稼働状態にして短時間で切り替える" },
   { id: "rto", term: "RTO", category: "マネジメント", hint: "障害が起きてから、何時間以内にサービスを戻すか。", hardPrompt: "災害発生後、サービスを4時間以内に再開するという目標で示される指標は？", answer: "Recovery Time Objective。災害や障害による停止後、サービスを復旧させるまでの目標時間。", level: 1, confusion: "RPOはどの時点のデータまで復旧するかを示す" },
   { id: "rpo", term: "RPO", category: "マネジメント", hint: "障害発生時点から見て、どこまで過去のデータに戻ってよいか。", hardPrompt: "障害時に、最大1時間前のデータまで失われても許容するという目標で示される指標は？", answer: "Recovery Point Objective。障害時に許容できるデータ損失量を、復旧すべきデータの時点で表した目標。", level: 1, confusion: "RTOは復旧完了までの目標時間を示す" },
-  { id: "externalization", term: "SECIモデル", category: "マネジメント", hint: "暗黙知と形式知を行き来する四つの変換を、順番と向きで整理する。", studyPrompt: "共同化・表出化・連結化・内面化の変換方向を言えますか？", hardPrompt: "暗黙知と形式知の相互変換を、共同化・表出化・連結化・内面化で表す知識創造モデルは？", answer: "共同化＝暗黙知→暗黙知（体験を共有）。表出化＝暗黙知→形式知（言語・図にする）。連結化＝形式知→形式知（文書などを組み合わせる）。内面化＝形式知→暗黙知（実践して身に付ける）。", level: 1 },
-  { id: "initiating-process-group", term: "プロジェクトのプロセス群", category: "マネジメント", hint: "開始し、計画し、実行し、進み方を監視して、最後に閉じる。", studyPrompt: "五つのプロセス群を順番に、それぞれの役割と一緒に言えますか？", hardPrompt: "立上げ・計画・実行・監視コントロール・終結の五つでプロジェクト管理活動を整理する区分は？", answer: "立上げ＝正式に開始する。計画＝範囲・日程・費用などを決める。実行＝人と資源を動かし成果物を作る。監視・コントロール＝計画と実績を比較して是正する。終結＝受入れ・契約・記録を整理して完了する。", level: 1 },
+  { id: "externalization", term: "SECIモデル", category: "マネジメント", hint: "個人の経験を組織の知識へ広げる考え方。", hardPrompt: "暗黙知と形式知を相互変換しながら、組織の知識を生み出すモデルは？", answer: "暗黙知と形式知を相互変換しながら、組織の知識を生み出すモデル。共同化・表出化・連結化・内面化の四つで表す。", level: 1 },
+  { id: "initiating-process-group", term: "プロジェクトのプロセス群", category: "マネジメント", hint: "プロジェクト管理の活動を、開始から完了までのまとまりで分ける。", hardPrompt: "プロジェクト管理活動を、立上げ・計画・実行・監視コントロール・終結に分けたものは？", answer: "プロジェクト管理の活動を五つに分けたもの。立上げ・計画・実行・監視コントロール・終結がある。", level: 1 },
   { id: "metadata", term: "メタデータ", category: "データベース", hint: "図書館の本に対する、タイトル・著者・分類番号のような情報。", answer: "表名、列名、データ型、制約など、データの構造や性質を説明する情報。", level: 3 },
-  { id: "tuckman-model", term: "タックマンモデル", category: "マネジメント", hint: "チームができてから機能するまでの段階を考える。", hardPrompt: "新しいチームが形成・混乱・統一・機能を経て成熟する過程を説明するモデルは？", answer: "チームの発達を形成期・混乱期・統一期・機能期などの段階で捉えるモデル。意見の対立を経て役割や規範が定まり、協働できるようになる。", level: 1, collection: "special" },
-  { id: "mes", term: "MES", category: "ストラテジ", hint: "企業全体の計画と、工場の現場作業の間をつなぐ。", hardPrompt: "工場の製造現場で作業指示・進捗・品質・設備稼働などを管理するシステムは？", answer: "Manufacturing Execution System（製造実行システム）。製造現場の作業指示や進捗、品質、設備稼働などを管理し、ERPの計画と現場をつなぐ。", level: 1, collection: "special", confusion: "ERPは企業全体の経営資源、MESは製造現場の実行を管理する" },
-  { id: "scala-language", term: "Scala", category: "テクノロジ", hint: "オブジェクト指向と関数型の両方を使える言語。", hardPrompt: "オブジェクト指向と関数型プログラミングを統合し、JVM上でも動く静的型付け言語は？", answer: "オブジェクト指向と関数型の特徴を併せ持つ静的型付けプログラミング言語。JVM上で動作し、Javaの資産も利用できる。", level: 1, collection: "special" },
-  { id: "delphi-method", term: "デルファイ法", category: "ストラテジ", hint: "専門家の予測を一度で決めず、回答を集めて繰り返し見直す。", hardPrompt: "専門家へ匿名で質問を繰り返し、集計結果を示しながら意見を収束させる予測手法は？", answer: "複数の専門家へ匿名のアンケートを反復し、前回の集計結果を知らせながら将来予測などの意見を収束させる手法。", level: 1, collection: "special", confusion: "ブレーンストーミングは対面などで自由にアイデアを出す手法" },
-  { id: "brainstorming", term: "ブレーンストーミング", category: "ストラテジ", hint: "まず量を出す。人の案をその場で批判しない。", hardPrompt: "批判を控え、自由な発想や他人の案との結合を促してアイデアを広げる手法は？", answer: "参加者が批判を避けて自由に多数のアイデアを出し、他人の案の発展や組合せも歓迎する発想法。", level: 1, collection: "special", confusion: "デルファイ法は専門家への反復アンケートで意見を収束させる" },
-  { id: "feasibility-study", term: "フィージビリティスタディ", category: "ストラテジ", hint: "本格着手の前に、実現できるかを調べる。", hardPrompt: "新規事業やシステム化の着手前に、技術・費用・期間などから実現可能性を評価する調査は？", answer: "計画に本格着手する前に、技術面・費用・期間・効果などを調べ、実現可能性を評価すること。FSともいう。", level: 1, collection: "special" },
-  { id: "reverse-proxy", term: "リバースプロキシ", category: "ネットワーク", hint: "利用者ではなく、Webサーバの手前に置く代理窓口。", hardPrompt: "外部利用者からの要求を受け、背後のサーバへ振り分ける中継サーバは？", answer: "クライアントからの要求をサーバの手前で受け、背後のWebサーバへ転送する仕組み。負荷分散、キャッシュ、TLS終端などに使う。", level: 1, collection: "special", confusion: "通常のフォワードプロキシは利用者側の代理として外部へアクセスする" },
-  { id: "marketing-4p-4c", term: "マーケティングの4P・4C", category: "ストラテジ", hint: "売り手の施策と、買い手から見た価値を対応させる。", hardPrompt: "Product・Price・Place・Promotionと、顧客価値・顧客コスト・利便性・コミュニケーションを対応させる考え方は？", answer: "4Pは売り手視点の製品・価格・流通・販促。4Cは買い手視点の顧客価値・顧客コスト・利便性・コミュニケーション。両者を対応させて施策を考える。", level: 1, collection: "special" },
-  { id: "immersion-cooling", term: "液浸冷却", category: "テクノロジ", hint: "サーバの熱を空気ではなく液体へ逃がす。", hardPrompt: "サーバなどの電子機器を絶縁性の液体に浸して熱を取り除く冷却方式は？", answer: "サーバなどを電気を通しにくい冷却液へ浸し、機器の熱を液体へ移して冷却する方式。空冷と異なり液体で直接熱を回収する。", level: 1, collection: "special" },
-  { id: "iot", term: "IoT", category: "ストラテジ", hint: "身近な機器や設備がネットにつながり、データをやり取りする。", hardPrompt: "センサを備えた機器などをネットワークにつなぎ、状態の収集や遠隔制御に利用する仕組みは？", answer: "Internet of Things（モノのインターネット）。機器や設備をネットワークにつなぎ、データの収集・分析や遠隔制御などに活用する。", level: 1, collection: "special" },
-  { id: "soa", term: "SOA", category: "テクノロジ", hint: "業務機能を独立したサービスとして組み合わせる設計。", hardPrompt: "業務機能を再利用可能なサービスとして分け、連携させてシステムを構築する考え方は？", answer: "Service-Oriented Architecture（サービス指向アーキテクチャ）。業務機能を独立したサービスとして公開・連携し、再利用しやすくする設計思想。", level: 1, collection: "special" },
-  { id: "mm1-queue", term: "M/M/1待ち行列：モデルと利用率", category: "テクノロジ", hint: "到着率λと処理率μを比べ、窓口がどれくらい忙しいかを求める。", studyPrompt: "M/M/1の前提、安定条件、利用率の式を言えますか？", hardPrompt: "到着がポアソン、処理時間が指数分布、窓口が一つで、利用率をρ＝λ÷μとするモデルは？", answer: "到着がポアソン過程、処理時間が指数分布、窓口が一つのモデル。到着率λ＜処理率μなら安定する。利用率ρ＝λ÷μで、λ＝8件/時、μ＝10件/時なら80％。ρが1へ近づくと待ち時間が急増する。", level: 1, collection: "special" },
-  { id: "mm1-system-time", term: "M/M/1待ち行列：三つの時間", category: "テクノロジ", hint: "系内時間は、列で待つ時間と実際に処理される時間の合計。", studyPrompt: "平均系内時間・平均処理時間・平均待ち時間の式と関係を言えますか？", hardPrompt: "λ＝8件/時、μ＝10件/時なら、系内30分・処理6分・待ち24分となるM/M/1の時間計算は？", answer: "平均系内時間＝1÷（μ－λ）。平均処理時間＝1÷μ。平均待ち時間＝平均系内時間－平均処理時間。λ＝8、μ＝10なら系内30分、処理6分、待ち24分。", level: 1, collection: "special" },
+  { id: "tuckman-model", term: "タックマンモデル", category: "マネジメント", hint: "チームが結成されてから解散するまでの発達段階。", hardPrompt: "チームの発達を、形成期・混乱期・統一期・機能期・解散期で表すモデルは？", answer: "チームの発達過程を表すモデル。形成期・混乱期・統一期・機能期・解散期の5段階がある。", level: 1 },
+  { id: "mes", term: "MES", category: "ストラテジ", hint: "工場の製造現場で、作業や進捗を管理する。", hardPrompt: "工場で作業指示・進捗・品質・設備稼働などを管理するシステムは？", answer: "Manufacturing Execution System（製造実行システム）。製造現場の作業や進捗、品質などを管理する。", level: 1, confusion: "ERPは企業全体、MESは製造現場を管理する" },
+  { id: "scala-language", term: "Scala", category: "テクノロジ", hint: "オブジェクト指向と関数型の両方を使える言語。", hardPrompt: "オブジェクト指向と関数型の特徴を持ち、JVM上でも動くプログラミング言語は？", answer: "オブジェクト指向と関数型の特徴を併せ持つ、JVM上でも動くプログラミング言語。", level: 1 },
+  { id: "delphi-method", term: "デルファイ法", category: "ストラテジ", hint: "専門家への質問を繰り返し、意見を収束させる。", hardPrompt: "専門家へ匿名で質問を繰り返し、集計結果を示しながら意見を収束させる手法は？", answer: "複数の専門家へ匿名の質問を繰り返し、意見を収束させる予測手法。", level: 1, confusion: "ブレーンストーミングは自由にアイデアを広げる手法" },
+  { id: "brainstorming", term: "ブレーンストーミング", category: "ストラテジ", hint: "批判せず、まず多くのアイデアを出す。", hardPrompt: "批判を控え、自由な発想で多数のアイデアを出す手法は？", answer: "批判を避けて自由に多くのアイデアを出し、発想を広げる手法。", level: 1, confusion: "デルファイ法は専門家への反復質問で意見を収束させる" },
+  { id: "feasibility-study", term: "フィージビリティスタディ", category: "ストラテジ", hint: "本格着手の前に、実現できるかを調べる。", hardPrompt: "計画への着手前に、技術・費用・期間などから実現可能性を評価する調査は？", answer: "計画へ本格着手する前に、技術・費用・期間などから実現可能性を評価する調査。", level: 1 },
+  { id: "reverse-proxy", term: "リバースプロキシ", category: "ネットワーク", hint: "Webサーバの手前で要求を受ける代理窓口。", hardPrompt: "外部からの要求を受け、背後のWebサーバへ転送する中継サーバは？", answer: "Webサーバの手前で要求を受け、背後のサーバへ転送する仕組み。負荷分散などに使う。", level: 1, confusion: "フォワードプロキシは利用者側の代理" },
+  { id: "marketing-4p-4c", term: "4P", category: "ストラテジ", hint: "売り手側からマーケティング施策を考える四つの要素。", hardPrompt: "Product・Price・Place・Promotionからなる、売り手視点のマーケティング要素は？", answer: "売り手視点のマーケティング要素。Product（製品）・Price（価格）・Place（流通）・Promotion（販促）からなる。", level: 1, confusion: "4Cは買い手視点" },
+  { id: "marketing-4c", term: "4C", category: "ストラテジ", hint: "買い手側から価値や負担、便利さ、対話を考える。", hardPrompt: "Customer Value・Cost・Convenience・Communicationからなる、買い手視点の要素は？", answer: "買い手視点のマーケティング要素。Customer Value（顧客価値）・Cost（顧客コスト）・Convenience（利便性）・Communication（対話）からなる。", level: 1, confusion: "4Pは売り手視点" },
+  { id: "immersion-cooling", term: "液浸冷却", category: "テクノロジ", hint: "サーバの熱を空気ではなく液体へ逃がす。", hardPrompt: "電子機器を絶縁性の液体に浸して熱を取り除く冷却方式は？", answer: "サーバなどを絶縁性の冷却液へ浸し、液体で直接冷却する方式。", level: 1 },
+  { id: "iot", term: "IoT", category: "ストラテジ", hint: "機器や設備をネットワークにつなぐ。", hardPrompt: "センサを備えた機器をネットワークにつなぎ、情報収集や遠隔制御に使う仕組みは？", answer: "Internet of Things（モノのインターネット）。機器をネットワークにつなぎ、情報収集や遠隔制御に活用する仕組み。", level: 1 },
+  { id: "soa", term: "SOA", category: "テクノロジ", hint: "業務機能を独立したサービスとして組み合わせる。", hardPrompt: "業務機能を再利用可能なサービスとして分け、連携させる設計思想は？", answer: "Service-Oriented Architecture（サービス指向アーキテクチャ）。業務機能を独立したサービスとして連携させる設計思想。", level: 1 },
+  { id: "mm1-queue", term: "M/M/1待ち行列：モデルと利用率", category: "テクノロジ", hint: "ランダムに到着する客を、一つの窓口で処理するモデル。", studyPrompt: "M/M/1の三つの特徴と、利用率の式を言えますか？", hardPrompt: "到着と処理時間がランダムで、窓口が一つ、利用率をλ÷μで表す待ち行列モデルは？", answer: "到着がランダム、処理時間もランダムで、窓口が一つの待ち行列モデル。利用率は到着率λ÷処理率μで求める。", level: 1, collection: "special" },
+  { id: "mm1-system-time", term: "M/M/1待ち行列：時間計算", category: "テクノロジ", hint: "待ち時間・処理時間・系内時間を式で求める計算問題。", studyPrompt: "M/M/1の時間計算を問題演習として確認しますか？", hardPrompt: "到着率λと処理率μから、平均系内時間や平均待ち時間を求める問題は？", answer: "M/M/1で平均系内時間や平均待ち時間を求める計算問題。公式の理解は別途問題演習で確認する。", level: 1, collection: "special" },
   { id: "linear-search", term: "線形探索", category: "テクノロジ", hint: "並び順に頼らず、先頭から一件ずつ確かめる。", hardPrompt: "未整列のn件を先頭から順に比較し、探す回数が件数に比例する探索法は？", answer: "先頭から順番に一件ずつ比較する探索法。整列は不要だが、最悪の場合n件を調べるため計算量はO(n)。", level: 1, collection: "special" },
-  { id: "binary-search", term: "二分探索", category: "テクノロジ", hint: "整列済みの範囲を、比較のたびに半分に絞る。", hardPrompt: "整列済みの1024件なら約10回の比較で候補を絞れる、O(log n)の探索法は？", answer: "整列済みのデータの中央と比較し、探索範囲を半分ずつ減らす。計算量はO(log₂n)。log₂1024＝10は、1024を2で10回割ると1になるイメージ。", level: 1, collection: "special", confusion: "線形探索は先頭から順に調べるためO(n)、二分探索には整列済みのデータが必要" },
+  { id: "binary-search", term: "二分探索", category: "テクノロジ", hint: "整列済みの範囲を、比較のたびに半分に絞る。", hardPrompt: "整列済みデータを半分ずつ絞り、O(log n)で探す探索法は？", answer: "整列済みデータの探索範囲を半分ずつ減らす方法。計算量はO(log n)。", level: 1, collection: "special", confusion: "線形探索は先頭から順に調べるためO(n)" },
   { id: "hash-search", term: "ハッシュ探索", category: "テクノロジ", hint: "キーから保存場所の目安を計算して探す。", hardPrompt: "キーから位置を計算する表を使い、衝突が少なければ平均O(1)で探せる方法は？", answer: "キーのハッシュ値から格納先を求めて探す方法。探索は平均O(1)だが、衝突が多いと遅くなり、常にO(1)とは限らない。", level: 1, collection: "special", confusion: "二分探索は整列済みデータを半分ずつ絞り、O(log n)で探す" },
-  { id: "parity-check", term: "パリティチェック", category: "テクノロジ", hint: "1の個数の偶数・奇数を検査する。", hardPrompt: "検査ビットを一つ加え、奇数個のビット反転を検出できるが、通常は位置の特定・訂正をしない方式は？", answer: "1の個数が偶数または奇数になるよう検査ビットを付け、受信側で誤りを検出する。奇数個のビット誤りは検出できるが、偶数個の誤りは見逃し得る。誤りの訂正はできない。", level: 1, collection: "special", confusion: "ハミング符号は誤り位置を特定して1ビットを訂正できる" },
-  { id: "crc-error-check", term: "CRC", category: "テクノロジ", hint: "連続したビットの化けを検出するのに向く。", hardPrompt: "ビット列を生成多項式で割った余りを付け、バースト誤りの検出に強い方式は？", answer: "Cyclic Redundancy Check（巡回冗長検査）。送信データを生成多項式で割った余りを検査値として付け、受信側で照合する。連続するビットの誤りの検出に強いが、訂正はしない。", level: 1, collection: "special", confusion: "パリティは単純な奇偶検査、ハミング符号は1ビット誤りの訂正ができる" },
-  { id: "hamming-code", term: "ハミング符号", category: "テクノロジ", hint: "複数の検査ビットから、誤った位置を特定する。", hardPrompt: "検査ビットの組合せで誤り位置を見つけ、1ビットの誤りを訂正できる符号は？", answer: "複数の検査ビットを加え、検査結果から誤ったビットの位置を特定する誤り訂正符号。基本的なハミング符号は1ビット誤りを訂正できる。", level: 1, collection: "special", confusion: "パリティとCRCは主に誤りを検出する方式で、通常は訂正しない" },
+  { id: "parity-check", term: "パリティチェック", category: "テクノロジ", hint: "1の個数の偶数・奇数を使って確認する。", hardPrompt: "検査ビットを加え、1の個数の偶数・奇数から誤りを検出する方式は？", answer: "1の個数が偶数または奇数になるよう検査ビットを加え、誤りを検出する方式。基本的に誤りの訂正はしない。", level: 1, confusion: "ハミング符号は1ビット誤りを訂正できる" },
+  { id: "crc-error-check", term: "CRC", category: "テクノロジ", hint: "連続したビット誤りの検出に強い。", hardPrompt: "生成多項式で割った余りを検査値として使う誤り検出方式は？", answer: "Cyclic Redundancy Check（巡回冗長検査）。生成多項式を使い、特に連続したビット誤りを検出する方式。", level: 1, confusion: "ハミング符号は誤り訂正、CRCは誤り検出に使う" },
+  { id: "hamming-code", term: "ハミング符号", category: "テクノロジ", hint: "検査ビットから、誤った位置を特定する。", hardPrompt: "検査ビットの組合せで誤り位置を見つけ、1ビット誤りを訂正できる符号は？", answer: "誤ったビットの位置を特定できる誤り訂正符号。基本的なハミング符号は1ビット誤りを訂正できる。", level: 1, confusion: "パリティとCRCは主に誤り検出に使う" },
   { id: "logic-not", term: "NOT", category: "テクノロジ", hint: "入力の0と1をひっくり返す。", hardPrompt: "一つの入力が0なら1、1なら0を出力する論理演算は？", answer: "一つの入力を反転する否定演算。0を1に、1を0に変える。", level: 1, collection: "special" },
-  { id: "logic-xor", term: "XOR", category: "テクノロジ", hint: "二つの入力が食い違う場合だけ1になる。", hardPrompt: "入力が0と1なら1、1と1なら0になる排他的な論理演算は？", answer: "排他的論理和。二つの入力が異なるときだけ1で、同じなら0。00→0、01→1、10→1、11→0。", level: 1, collection: "special", confusion: "NANDはANDの反転、NORはORの反転" },
+  { id: "logic-xor", term: "XOR", category: "テクノロジ", hint: "二つの入力が食い違う場合だけ1になる。", hardPrompt: "入力が0と1なら1、1と1なら0になる排他的な論理演算は？", answer: "二つの入力が異なるときだけ1になる排他的論理和。真理値は00→0、01→1、10→1、11→0。", level: 1, collection: "special", confusion: "NANDはANDの反転、NORはORの反転" },
   { id: "logic-nand", term: "NAND", category: "テクノロジ", hint: "二つとも1のときだけ0、それ以外は1。", hardPrompt: "二つの入力がともに1の場合だけ0となる、論理積を反転した演算は？", answer: "AND（論理積）の結果を反転する否定論理積。00→1、01→1、10→1、11→0。", level: 1, collection: "special", confusion: "NORはORの反転で、両方0のときだけ1" },
   { id: "logic-nor", term: "NOR", category: "テクノロジ", hint: "二つとも0のときだけ1、それ以外は0。", hardPrompt: "二つの入力がともに0の場合だけ1となる、論理和を反転した演算は？", answer: "OR（論理和）の結果を反転する否定論理和。00→1、01→0、10→0、11→0。", level: 1, collection: "special", confusion: "NANDはANDの反転で、両方1のときだけ0" },
-  { id: "roc-curve", term: "ROC曲線", category: "テクノロジ", hint: "二値分類の判定しきい値を動かし、検出と誤検出の関係を比べる。", studyPrompt: "横軸・縦軸と、何を比べる曲線か言えますか？", hardPrompt: "横軸を偽陽性率、縦軸を真陽性率として、判定しきい値ごとの性能を描く曲線は？", answer: "二値分類器の判定しきい値を変えたときの真陽性率（縦軸）と偽陽性率（横軸）の関係を表す曲線。左上に近いほど良く、曲線下の面積をAUCという。", level: 1, collection: "special" },
-  { id: "sampling-theorem", term: "標本化定理", category: "テクノロジ", hint: "元の波に含まれる最も速い振動を、十分な回数で測る。", studyPrompt: "最高周波数が3kHzなら、最低何kHzで標本化する？", hardPrompt: "最高周波数が3kHzの信号を標本化するには、理論上少なくとも6kHzが必要とする定理は？", answer: "最高周波数をfとすると、標本化周波数は理論上少なくとも2fが必要。これより低いと折返し雑音（エイリアシング）が生じる。実際は余裕を持って高めに設定する。", level: 1, collection: "special" },
-  { id: "signal-frequency", term: "周波数と周期", category: "テクノロジ", hint: "1秒当たりの回数と、1回にかかる秒数は互いに逆数。", studyPrompt: "f＝1/TとT＝1/fを使い、100Hzと0.02秒を相互変換できますか？", hardPrompt: "100Hzなら周期0.01秒、周期0.02秒なら50Hzとなる、互いに逆数の二つの量は？", answer: "周波数fは1秒当たりの繰返し回数で単位はHz、周期Tは1回にかかる時間で単位は秒。f＝1÷T、T＝1÷f。100Hzなら0.01秒、0.02秒なら50Hz。", level: 1, collection: "special" },
-  { id: "memory-first-fit", term: "メモリ割当て方式", category: "テクノロジ", hint: "最初に入る場所、入る中で最小の場所、入る中で最大の場所を比べる。", studyPrompt: "First Fit・Best Fit・Worst Fitの選び方を一度に説明できますか？", hardPrompt: "空き250・200・400KBへ180KBを割り当てると、順に250・200・400KBを選ぶ三方式は？", answer: "First Fit＝走査順で最初に入る領域。Best Fit＝入る中で最小の領域。Worst Fit＝入る中で最大の領域。空きが250・200・400KB、要求180KBなら、それぞれ250・200・400KBを選ぶ。", level: 1, collection: "special" },
+  { id: "roc-curve", term: "ROC曲線", category: "テクノロジ", hint: "検出できる割合と、誤検出する割合の関係を見る。", hardPrompt: "縦軸を真陽性率、横軸を偽陽性率として分類性能を表す曲線は？", answer: "二値分類で、真陽性率と偽陽性率の関係を表す曲線。左上に近いほど性能が良い。", level: 1 },
+  { id: "sampling-theorem", term: "標本化定理", category: "テクノロジ", hint: "元の信号の最高周波数に対し、十分な速さで標本化する。", studyPrompt: "最高周波数が3kHzなら、最低何kHzで標本化しますか？", hardPrompt: "標本化周波数は最高周波数の2倍以上必要とする定理は？", answer: "信号を再現するには、最高周波数の2倍以上で標本化する必要があるという定理。", level: 1, collection: "special" },
+  { id: "signal-frequency", term: "周波数と周期", category: "テクノロジ", hint: "1秒当たりの回数と、1回にかかる時間の関係。", studyPrompt: "周波数と周期の関係を言えますか？", hardPrompt: "一方が大きいほど他方が小さくなる、互いに逆数の二つの量は？", answer: "周波数は1秒当たりの繰返し回数、周期は1回にかかる時間。周波数と周期は互いに逆数になる。", level: 1, collection: "special" },
+  { id: "memory-first-fit", term: "First Fit", category: "テクノロジ", hint: "空き領域を先頭から順に調べる。", hardPrompt: "要求サイズが入る空き領域を先頭から探し、最初に見つかった領域へ割り当てる方式は？", answer: "要求サイズが入る、最初に見つかった空き領域へ割り当てる方式。", level: 1, confusion: "Best Fitは入る中で最小、Worst Fitは最大の領域を選ぶ" },
+  { id: "memory-best-fit", term: "Best Fit", category: "テクノロジ", hint: "要求が入る空き領域のうち、余りが最も小さいものを選ぶ。", hardPrompt: "要求サイズが入る空き領域のうち、最も小さい領域へ割り当てる方式は？", answer: "要求サイズが入る空き領域のうち、最も小さい領域へ割り当てる方式。", level: 1, confusion: "First Fitは最初に見つかった領域を選ぶ" },
+  { id: "memory-worst-fit", term: "Worst Fit", category: "テクノロジ", hint: "要求が入る空き領域のうち、最も大きいものを選ぶ。", hardPrompt: "要求サイズが入る空き領域のうち、最も大きい領域へ割り当てる方式は？", answer: "要求サイズが入る空き領域のうち、最も大きい領域へ割り当てる方式。", level: 1, confusion: "Best Fitは入る中で最小の領域を選ぶ" },
 ];
 
 type Progress = Record<string, { correct: number; wrong: number; unsure?: number; confident?: number; retention?: number; quizCount?: number }>;
@@ -239,15 +248,9 @@ const legacyTermMerges: Record<string, string> = {
   "ppm-problem-child": "ppm",
   "primary-db": "replication",
   "replica-db": "replication",
-  "async-replication": "sync-replication",
   "database-design": "conceptual-design",
-  "logical-design": "conceptual-design",
-  "physical-design": "conceptual-design",
   "transaction-isolation-level": "repeatable-read",
-  "read-committed": "read-uncommitted",
-  "serializable-isolation": "repeatable-read",
-  "differential-backup": "full-backup",
-  "incremental-backup": "full-backup",
+  "index-tradeoff": "database-index",
   combination: "externalization",
   socialization: "externalization",
   internalization: "externalization",
@@ -258,8 +261,15 @@ const legacyTermMerges: Record<string, string> = {
   "mm1-utilization": "mm1-queue",
   "mm1-service-time": "mm1-system-time",
   "signal-period": "signal-frequency",
-  "memory-best-fit": "memory-first-fit",
-  "memory-worst-fit": "memory-first-fit",
+};
+const legacyTermCopies: Record<string, string[]> = {
+  "sync-replication": ["async-replication"],
+  "conceptual-design": ["logical-design", "physical-design"],
+  "read-uncommitted": ["read-committed"],
+  "repeatable-read": ["serializable-isolation"],
+  "full-backup": ["differential-backup", "incremental-backup"],
+  "marketing-4p-4c": ["marketing-4c"],
+  "memory-first-fit": ["memory-best-fit", "memory-worst-fit"],
 };
 
 function mergedTermId(id: string) {
@@ -287,6 +297,13 @@ function migrateProgressRecords(savedProgress: Progress) {
     } : { ...source };
     delete migrated[sourceId];
   });
+  Object.entries(legacyTermCopies).forEach(([sourceId, targetIds]) => {
+    const source = migrated[sourceId];
+    if (!source) return;
+    targetIds.forEach((targetId) => {
+      if (!migrated[targetId]) migrated[targetId] = { ...source };
+    });
+  });
   return Object.fromEntries(Object.entries(migrated).filter(([id]) => terms.some((item) => item.id === id))) as Progress;
 }
 
@@ -307,6 +324,13 @@ function migrateQuestionStats(savedStats: QuestionStats) {
     migrated[targetId] = merged;
     delete migrated[sourceId];
   });
+  Object.entries(legacyTermCopies).forEach(([sourceId, targetIds]) => {
+    const source = migrated[sourceId];
+    if (!source) return;
+    targetIds.forEach((targetId) => {
+      if (!migrated[targetId]) migrated[targetId] = Object.fromEntries(Object.entries(source).map(([key, value]) => [key, value ? { ...value } : value]));
+    });
+  });
   return Object.fromEntries(Object.entries(migrated).filter(([id]) => terms.some((item) => item.id === id))) as QuestionStats;
 }
 
@@ -316,11 +340,20 @@ function migrateCollectionOverrides(saved: CollectionOverrides) {
     if (!migrated[targetId] && migrated[sourceId]) migrated[targetId] = migrated[sourceId];
     delete migrated[sourceId];
   });
+  Object.entries(legacyTermCopies).forEach(([sourceId, targetIds]) => {
+    targetIds.forEach((targetId) => {
+      if (!migrated[targetId] && migrated[sourceId]) migrated[targetId] = migrated[sourceId];
+    });
+  });
   return Object.fromEntries(Object.entries(migrated).filter(([id, value]) => terms.some((item) => item.id === id) && (value === "regular" || value === "special"))) as CollectionOverrides;
 }
 
 function migrateDisabledIds(ids: string[]) {
-  return [...new Set(ids.map(mergedTermId).filter((id) => terms.some((item) => item.id === id)))];
+  const migrated = ids.flatMap((id) => {
+    const targetId = mergedTermId(id);
+    return [targetId, ...(legacyTermCopies[targetId] ?? [])];
+  });
+  return [...new Set(migrated.filter((id) => terms.some((item) => item.id === id)))];
 }
 
 function getCollection(item: Term, overrides: CollectionOverrides): Collection {
@@ -415,9 +448,9 @@ const confusionGroups = [
   ["unique-constraint", "check-constraint", "referential-integrity", "foreign-key"],
   ["bplus-tree-index", "hash-index", "composite-index", "materialized-view"],
   ["replication", "sharding", "two-phase-commit", "failover"],
-  ["sync-replication", "replication", "sharding", "failover"],
-  ["conceptual-design", "conceptual-schema", "external-schema", "internal-schema"],
-  ["read-uncommitted", "repeatable-read", "dirty", "phantom"],
+  ["sync-replication", "async-replication", "replication", "sharding"],
+  ["conceptual-design", "logical-design", "physical-design", "conceptual-schema"],
+  ["read-uncommitted", "read-committed", "repeatable-read", "serializable-isolation"],
   ["primary-key", "candidate-key", "foreign-key", "unique-constraint"],
   ["one-to-many", "many-to-many", "junction-table", "er-diagram"],
   ["first-normal-form", "second-normal-form", "third-normal-form", "normalization"],
@@ -426,9 +459,9 @@ const confusionGroups = [
   ["inner-join", "left-join", "union", "subquery"],
   ["grant", "revoke", "commit", "rollback"],
   ["shared-lock", "exclusive-lock", "lock", "deadlock"],
-  ["full-backup", "checkpoint", "rollforward", "transaction-log"],
+  ["full-backup", "differential-backup", "incremental-backup", "checkpoint"],
   ["database-index", "bplus-tree-index", "hash-index", "composite-index"],
-  ["optimizer", "execution-plan", "partitioning", "index-tradeoff"],
+  ["optimizer", "execution-plan", "partitioning", "database-index"],
   ["view", "materialized-view", "not-null", "check-constraint"],
   ["two-phase-commit", "failover", "replication", "sharding"],
   ["oltp", "olap", "data-warehouse", "etl"],
@@ -445,7 +478,7 @@ const confusionGroups = [
   ["scala-language", "soa", "iot", "mes"],
   ["delphi-method", "brainstorming", "feasibility-study", "analogy-estimation"],
   ["reverse-proxy", "napt", "packet", "dmz"],
-  ["marketing-4p-4c", "segmentation", "targeting", "positioning"],
+  ["marketing-4p-4c", "marketing-4c", "segmentation", "targeting"],
   ["immersion-cooling", "warm-standby", "hot-standby", "availability-management"],
   ["soa", "erp", "scm", "crm"],
   ["mm1-queue", "mm1-system-time", "signal-frequency", "sampling-theorem"],
@@ -454,11 +487,11 @@ const confusionGroups = [
   ["logic-not", "logic-xor", "logic-nand", "logic-nor"],
   ["roc-curve", "false-positive", "false-negative", "heuristic"],
   ["sampling-theorem", "signal-frequency", "mm1-system-time", "binary-search"],
-  ["memory-first-fit", "partitioning", "database-index", "hash-index"],
+  ["memory-first-fit", "memory-best-fit", "memory-worst-fit", "partitioning"],
 ];
 
 function textBigrams(text: string) {
-  const normalized = text.toUpperCase().replace(/[\s・（）()／/＝=、。,.：:「」『』\-]/g, "");
+  const normalized = text.toUpperCase().replace(/[\s・（）()／/＝=、。,.：:「」『』-]/g, "");
   const result = new Set<string>();
   for (let index = 0; index < normalized.length - 1; index += 1) result.add(normalized.slice(index, index + 2));
   return result;
@@ -470,6 +503,12 @@ function textSimilarity(left: string, right: string) {
   if (!a.size || !b.size) return 0;
   const common = [...a].filter((part) => b.has(part)).length;
   return common / (a.size + b.size - common);
+}
+
+function stableNumber(text: string) {
+  let hash = 0;
+  for (let index = 0; index < text.length; index += 1) hash = (hash * 31 + text.charCodeAt(index)) >>> 0;
+  return hash;
 }
 
 type Difficulty = "easy" | "normal" | "hard";
@@ -512,7 +551,7 @@ function getChoices(card: Term, difficulty: Difficulty, disabledIds: string[] = 
 
 function maskAnswerTerm(text: string, card: Term) {
   const escaped = card.term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const isAsciiTerm = /^[A-Za-z0-9+&/\-]+$/.test(card.term);
+  const isAsciiTerm = /^[A-Za-z0-9+&/-]+$/.test(card.term);
   const termPattern = isAsciiTerm ? `(^|[^A-Za-z0-9])${escaped}(?=$|[^A-Za-z0-9])` : escaped;
   let masked = text.replace(new RegExp(termPattern, "gi"), isAsciiTerm ? "$1この用語" : "この用語");
   const sentences = masked.split("。");
@@ -583,6 +622,7 @@ export default function Home() {
   const [completed, setCompleted] = useState<Record<ModeKey, boolean>>({ study: false, quiz: false, priority: false, weak: false, unseen: false, lowquiz: false, special: false });
 
   useEffect(() => {
+    const initializationTimer = window.setTimeout(() => {
     let savedCollections: CollectionOverrides = {};
     try {
       const parsed = JSON.parse(localStorage.getItem(collectionStorageKey) ?? "{}");
@@ -668,6 +708,8 @@ export default function Home() {
     setLowQuizIds(buildLowQuizRound("すべて", savedProgress, [], savedCollections, savedDisabledIds));
     setSpecialIds(buildRound("すべて", savedProgress, [], false, false, false, savedCollections, "special", savedDisabledIds));
     setHydrated(true);
+    }, 0);
+    return () => window.clearTimeout(initializationTimer);
   }, []);
 
   useEffect(() => {
@@ -698,21 +740,24 @@ export default function Home() {
   const retention = card ? getRetention(card, progress) : 0;
   const retentionStatus = getRetentionStatus(retention);
   const difficulty: Difficulty = retention < 40 ? "easy" : retention >= 75 ? "hard" : "normal";
+  // 自信ボタンで定着度が変わっても、現在表示中の問題文と難易度は切り替えない。
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const questionDifficulty = useMemo(() => difficulty, [card?.id, activePosition, mode]);
   const cardRecord = card ? progress[card.id] : undefined;
-  const choices = useMemo(() => card ? getChoices(card, questionDifficulty, disabledIds) : [], [card?.id, activePosition, mode, disabledIds]);
+  const choices = useMemo(() => card ? getChoices(card, questionDifficulty, disabledIds) : [], [card, questionDifficulty, disabledIds]);
   const questionCopy = useMemo(() => {
     if (!card) return { studyLabel: "この用語を説明できますか？", quizLabel: "この説明に当てはまる用語は？", quizText: "", difficultyLabel: "標準" };
     const studyLabels = ["この用語を説明できますか？", "意味と役割を思い出せますか？", "この用語の要点を言えますか？"];
-    const useFeatureQuestion = questionDifficulty === "hard" || (questionDifficulty === "normal" && Math.random() < 0.5);
+    const copyVariant = stableNumber(`${card.id}:${activePosition}:${mode}`);
+    const useFeatureQuestion = questionDifficulty === "hard" || (questionDifficulty === "normal" && copyVariant % 2 === 0);
     const hardQuestion = maskAnswerTerm(card.hardPrompt ?? card.answer, card);
     return {
-      studyLabel: card.studyPrompt ?? studyLabels[Math.floor(Math.random() * studyLabels.length)],
+      studyLabel: card.studyPrompt ?? studyLabels[copyVariant % studyLabels.length],
       quizLabel: questionDifficulty === "hard" ? "難問：状況と違いから判断してください" : useFeatureQuestion ? "次の特徴に当てはまる用語は？" : "この説明に当てはまる用語は？",
       quizText: questionDifficulty === "hard" ? hardQuestion : maskAnswerTerm(useFeatureQuestion ? card.hint : card.answer, card),
       difficultyLabel: questionDifficulty === "easy" ? "やさしめ" : questionDifficulty === "hard" ? "定着チャレンジ" : "標準",
     };
-  }, [card?.id, activePosition, mode]);
+  }, [card, questionDifficulty, activePosition, mode]);
   const currentModeKey: ModeKey | null = mode === "list" ? null : mode;
   const isQuizView = mode === "quiz" || mode === "lowquiz" || ((mode === "priority" || mode === "weak" || mode === "unseen" || mode === "special") && focusFormat === "quiz");
   const currentResults = currentModeKey ? sessionResults[currentModeKey] : [];
@@ -1220,7 +1265,7 @@ export default function Home() {
               <div className={`retentionBox ${retention < 40 ? "low" : retention >= 75 ? "high" : ""}`}>
                 <div><span>定着度</span><strong>{retention}<small>/100</small></strong></div>
                 <div className="retentionBar"><i style={{ width: `${retention}%` }} /></div>
-                <p>言えた {cardRecord?.correct ?? 0}回　間違い {cardRecord?.wrong ?? 0}回　定着度だけで苦手・定着を判定</p>
+                <p>言えた {cardRecord?.correct ?? 0}回 / 間違い {cardRecord?.wrong ?? 0}回 / 定着度だけで苦手・定着を判定</p>
               </div>
               <div className="questionSide">
                 <p className="questionLabel">{questionCopy.studyLabel}<b className={`difficultyTag ${questionDifficulty}`}>{questionCopy.difficultyLabel}</b></p>
@@ -1256,7 +1301,7 @@ export default function Home() {
               <div className={`retentionBox ${retention < 40 ? "low" : retention >= 75 ? "high" : ""}`}>
                 <div><span>定着度</span><strong>{retention}<small>/100</small></strong></div>
                 <div className="retentionBar"><i style={{ width: `${retention}%` }} /></div>
-                <p>正解 {cardRecord?.correct ?? 0}回　間違い {cardRecord?.wrong ?? 0}回　定着度だけで苦手・定着を判定</p>
+                <p>正解 {cardRecord?.correct ?? 0}回 / 間違い {cardRecord?.wrong ?? 0}回 / 定着度だけで苦手・定着を判定</p>
               </div>
               <div className="quizQuestion">
                 <p className="questionLabel">{questionCopy.quizLabel}<b className={`difficultyTag ${questionDifficulty}`}>{questionCopy.difficultyLabel}</b></p>
@@ -1337,7 +1382,7 @@ export default function Home() {
                   <span><b className={`priority ${itemStatus.className}`}>{itemStatus.label}</b></span>
                   <span className="termName"><small>{item.category}</small>{item.term}{isDisabled && <small className="disabledBadge">出題しない</small>}<span className="termActions"><button type="button" className={`collectionToggle ${itemCollection}`} onClick={(event) => { event.stopPropagation(); toggleCollection(item); }} onKeyDown={(event) => event.stopPropagation()} aria-label={`${item.term}を${itemCollection === "special" ? "通常問題に戻す" : "特別問題に移す"}`}>{itemCollection === "special" ? "通常へ変更" : "特別へ変更"}</button><button type="button" className={`questionToggle ${isDisabled ? "disabled" : ""}`} onClick={(event) => { event.stopPropagation(); toggleDisabled(item); }} onKeyDown={(event) => event.stopPropagation()} aria-label={`${item.term}の出題を${isDisabled ? "再開" : "停止"}`}>{isDisabled ? "出題を再開" : "出題を停止"}</button></span></span>
                   <span className="termAnswer">{item.answer}</span>
-                  <span className="record retentionEdit" onClick={(event) => event.stopPropagation()}>
+                  <span className="record retentionEdit" onClickCapture={(event) => event.stopPropagation()}>
                     <label><input type="number" min="0" max="100" value={getRetention(item, progress)} onKeyDown={(event) => event.stopPropagation()} onChange={(event) => setManualRetention(item, Number(event.target.value))} aria-label={`${item.term}の定着度`} /><small>/100</small></label>
                     <small>○{itemProgress?.correct ?? 0} ×{itemProgress?.wrong ?? 0}</small>
                   </span>
