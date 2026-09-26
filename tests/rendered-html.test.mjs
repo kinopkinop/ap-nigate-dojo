@@ -63,6 +63,17 @@ test("opens the weak-only mode from the same all-category pool used by its count
   assert.match(weakButton, /buildRound\("すべて", progress, weakIds, false, false, true, collectionOverrides, "regular", disabledIds\)/);
 });
 
+test("defines priority as retention 30 or below everywhere", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+
+  assert.match(page, /const priorityRetentionMax = 30;/);
+  assert.match(page, /function isPriority\(item: Term, savedProgress: Progress\) \{\s*return getRetention\(item, savedProgress\) <= priorityRetentionMax;/);
+  assert.match(page, /!onlyPriority \|\| isPriority\(item, savedProgress\)/);
+  assert.match(page, /regularTerms\.filter\(\(item\) => isPriority\(item, progress\)\)\.length/);
+  assert.match(page, /score <= priorityRetentionMax/);
+  assert.match(page, /定着度\{priorityRetentionMax\}以下を最優先に/);
+});
+
 test("preserves existing special assignments and keeps added vocabulary regular", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   const termsBlock = page.slice(page.indexOf("const terms"), page.indexOf("type Progress"));

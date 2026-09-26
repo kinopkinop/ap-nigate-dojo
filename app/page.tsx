@@ -646,6 +646,7 @@ const collectionStorageKey = "ap-study-collections-v1";
 const disabledStorageKey = "ap-study-disabled-ids-v1";
 const backupKeys = ["ap-study-progress", "ap-study-round", "ap-study-priority-round", "ap-study-mode-stats", "ap-study-question-stats-v1", collectionStorageKey, disabledStorageKey, retentionResetKey] as const;
 const modeKeys: ModeKey[] = ["study", "quiz", "priority", "weak", "unseen", "lowquiz", "special"];
+const priorityRetentionMax = 30;
 const legacyTermMerges: Record<string, string> = {
   "ppm-problem-child": "ppm",
   "primary-db": "replication",
@@ -772,12 +773,16 @@ function isWeak(item: Term, savedProgress: Progress) {
   return getRetention(item, savedProgress) < 60;
 }
 
+function isPriority(item: Term, savedProgress: Progress) {
+  return getRetention(item, savedProgress) <= priorityRetentionMax;
+}
+
 function buildRound(selectedCategory: "すべて" | Category, savedProgress: Progress, previousRound: string[] = [], onlyPriority = false, onlyUnseen = false, onlyWeak = false, overrides: CollectionOverrides = {}, collection: Collection = "regular", disabledIds: string[] = []) {
   const pool = terms.filter((item) => {
     return (selectedCategory === "すべて" || item.category === selectedCategory)
       && getCollection(item, overrides) === collection
       && !disabledIds.includes(item.id)
-      && (!onlyPriority || getRetention(item, savedProgress) < 40)
+      && (!onlyPriority || isPriority(item, savedProgress))
       && (!onlyUnseen || isUnseen(item, savedProgress))
       && (!onlyWeak || isWeak(item, savedProgress));
   });
@@ -1115,7 +1120,7 @@ function getRetention(card: Term, savedProgress: Progress) {
 }
 
 function getRetentionStatus(score: number) {
-  if (score < 40) return { label: "最優先", level: 3, className: "level3" } as const;
+  if (score <= priorityRetentionMax) return { label: "最優先", level: 3, className: "level3" } as const;
   if (score < 60) return { label: "苦手", level: 2, className: "level2" } as const;
   if (score >= 75) return { label: "定着", level: 1, className: "mastered" } as const;
   return { label: "要確認", level: 1, className: "level1" } as const;
@@ -1234,7 +1239,7 @@ export default function Home() {
     const savedPriorityText = localStorage.getItem("ap-study-priority-round");
     try {
       const savedPriority = savedPriorityText ? JSON.parse(savedPriorityText) as { ids?: string[]; position?: number } : null;
-      const validIds = Array.isArray(savedPriority?.ids) && savedPriority.ids.length > 0 && savedPriority.ids.length <= 5 && new Set(savedPriority.ids).size === savedPriority.ids.length && savedPriority.ids.every((id) => !savedDisabledIds.includes(id) && terms.some((item) => item.id === id && getCollection(item, savedCollections) === "regular" && getRetention(item, savedProgress) < 40));
+      const validIds = Array.isArray(savedPriority?.ids) && savedPriority.ids.length > 0 && savedPriority.ids.length <= 5 && new Set(savedPriority.ids).size === savedPriority.ids.length && savedPriority.ids.every((id) => !savedDisabledIds.includes(id) && terms.some((item) => item.id === id && getCollection(item, savedCollections) === "regular" && isPriority(item, savedProgress)));
       const validPosition = validIds && typeof savedPriority?.position === "number" && savedPriority.position >= 0 && savedPriority.position < savedPriority.ids!.length;
       if (validIds && validPosition) {
         setPriorityIds(savedPriority!.ids!);
@@ -1314,7 +1319,7 @@ export default function Home() {
   const unseenCount = regularTerms.filter((item) => isUnseen(item, progress)).length;
   const weakCount = regularTerms.filter((item) => isWeak(item, progress)).length;
   const answeredCount = regularTerms.length - unseenCount;
-  const priorityCount = regularTerms.filter((item) => getRetention(item, progress) < 40).length;
+  const priorityCount = regularTerms.filter((item) => isPriority(item, progress)).length;
   const sessionGoal = mode === "special"
     ? Math.min(5, terms.filter((item) => getCollection(item, collectionOverrides) === "special" && !disabledIds.includes(item.id) && (category === "すべて" || item.category === category)).length)
     : 5;
@@ -1723,7 +1728,7 @@ export default function Home() {
         <div>
           <p className="eyebrow">WEAKNESS-FIRST LEARNING</p>
           <h1>思い出せない言葉から、<br /><em>つぶしていく。</em></h1>
-          <p className="heroText">「3回出てこなかった」を最優先に。正解するまで、苦手な言葉が何度でも前に出てきます。</p>
+          <p className="heroText">定着度{priorityRetentionMax}以下を最優先に。正解するまで、苦手な言葉が何度でも前に出てきます。</p>
         </div>
         <div className="stats" aria-label="学習状況">
           <div><strong>{mastered}<small>語</small></strong><span>定着度75以上</span></div>
@@ -1731,7 +1736,7 @@ export default function Home() {
           <div><strong>{answeredCount}<small>語</small></strong><span>回答済み</span></div>
           <div><strong>{weakCount}<small>語</small></strong><span>苦手問題</span></div>
           <div><strong>{unseenCount}<small>語</small></strong><span>未出題</span></div>
-          <div><strong>{priorityCount}<small>語</small></strong><span>最優先</span></div>
+          <div><strong>{priorityCount}<small>語</small></strong><span>最優先（{priorityRetentionMax}以下）</span></div>
         </div>
       </section>
 
@@ -1935,8 +1940,8 @@ export default function Home() {
           </div>
         ) : (
           <div className="emptyRound">
-            <strong>{mode === "special" ? "この分野に出題中の特別問題はありません。" : mode === "weak" ? "この分野に苦手問題はありません。" : mode === "unseen" ? "この分野の未出題問題はありません。" : "この分野に出題中の通常問題はありません。"}</strong>
-            <p>{disabledIds.length > 0 ? "出題を停止した問題は、用語一覧から再開できます。" : mode === "special" ? "用語一覧から問題ごとに特別問題へ移せます。" : mode === "weak" ? "定着度60未満の問題が対象です。" : "別の分野を選ぶか、用語一覧で区分を変更できます。"}</p>
+            <strong>{mode === "special" ? "この分野に出題中の特別問題はありません。" : mode === "priority" ? "最優先の問題はありません。" : mode === "weak" ? "この分野に苦手問題はありません。" : mode === "unseen" ? "この分野の未出題問題はありません。" : "この分野に出題中の通常問題はありません。"}</strong>
+            <p>{disabledIds.length > 0 ? "出題を停止した問題は、用語一覧から再開できます。" : mode === "special" ? "用語一覧から問題ごとに特別問題へ移せます。" : mode === "priority" ? `定着度${priorityRetentionMax}以下の問題が対象です。` : mode === "weak" ? "定着度60未満の問題が対象です。" : "別の分野を選ぶか、用語一覧で区分を変更できます。"}</p>
             <button onClick={() => { setCategory("すべて"); setCollectionFilter(disabledIds.length > 0 ? "disabled" : "all"); setMode("list"); }}>用語一覧へ</button>
           </div>
         )}
