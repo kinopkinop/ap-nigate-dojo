@@ -33,7 +33,7 @@ test("server-renders the AP study tool", async () => {
   assert.match(html, /応用情報/);
   assert.match(html, /用語チェック/);
   assert.match(html, /4択クイズ/);
-  assert.match(html, /586<small>語<\/small>/);
+  assert.match(html, /602<small>語<\/small>/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape/i);
 });
 
@@ -43,7 +43,7 @@ test("keeps question data stable and fully grouped", async () => {
   const ids = [...termsBlock.matchAll(/id: "([^"]+)"/g)].map((match) => match[1]);
   const groupsBlock = page.slice(page.indexOf("const confusionGroups"), page.indexOf("function textBigrams"));
 
-  assert.equal(ids.length, 597);
+  assert.equal(ids.length, 613);
   assert.equal(new Set(ids).size, ids.length);
   assert.ok((termsBlock.match(/hardPrompt:/g) ?? []).length >= 30);
   for (const id of ["conceptual-schema", "internal-schema", "false-positive", "hot-standby", "cold-standby", "conceptual-design", "externalization", "initiating-process-group"]) {
@@ -89,11 +89,11 @@ test("adds broad AP vocabulary coverage without duplicate detail cards", async (
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   const termsBlock = page.slice(page.indexOf("const terms"), page.indexOf("type Progress"));
   const importantIds = [
-    "binary-number", "stack", "quick-sort", "cpu", "virtual-memory", "raid5",
+    "binary-number", "set-theory", "big-o-constant", "stack", "quick-sort", "cpu", "virtual-memory", "raid5",
     "osi-model", "tcp", "dns", "waf", "authentication", "aes", "digital-certificate",
     "sql-injection", "zero-trust", "relational-database", "atomicity", "right-join",
     "requirements-definition", "scrum", "uml", "boundary-value-analysis", "wbs",
-    "critical-path", "service-desk", "system-audit", "internal-control", "dx", "saas",
+    "critical-path", "cost-performance-index", "service-desk", "system-audit", "internal-control", "dx", "saas",
     "machine-learning", "five-forces", "kgi", "break-even-point", "npv", "copyright",
     "subcontract-transaction-act", "rfc",
   ];
