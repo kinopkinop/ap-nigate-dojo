@@ -33,7 +33,7 @@ test("server-renders the AP study tool", async () => {
   assert.match(html, /応用情報/);
   assert.match(html, /用語チェック/);
   assert.match(html, /4択クイズ/);
-  assert.match(html, /200<small>語<\/small>/);
+  assert.match(html, /586<small>語<\/small>/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape/i);
 });
 
@@ -43,7 +43,7 @@ test("keeps question data stable and fully grouped", async () => {
   const ids = [...termsBlock.matchAll(/id: "([^"]+)"/g)].map((match) => match[1]);
   const groupsBlock = page.slice(page.indexOf("const confusionGroups"), page.indexOf("function textBigrams"));
 
-  assert.equal(ids.length, 211);
+  assert.equal(ids.length, 597);
   assert.equal(new Set(ids).size, ids.length);
   assert.ok((termsBlock.match(/hardPrompt:/g) ?? []).length >= 30);
   for (const id of ["conceptual-schema", "internal-schema", "false-positive", "hot-standby", "cold-standby", "conceptual-design", "externalization", "initiating-process-group"]) {
@@ -63,11 +63,15 @@ test("opens the weak-only mode from the same all-category pool used by its count
   assert.match(weakButton, /buildRound\("すべて", progress, weakIds, false, false, true, collectionOverrides, "regular", disabledIds\)/);
 });
 
-test("keeps calculation-oriented cards special and term cards regular", async () => {
+test("preserves existing special assignments and keeps added vocabulary regular", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   const termsBlock = page.slice(page.indexOf("const terms"), page.indexOf("type Progress"));
   const specialIds = ["mm1-queue", "mm1-system-time", "linear-search", "binary-search", "hash-search", "logic-not", "logic-xor", "logic-nand", "logic-nor", "sampling-theorem", "signal-frequency"];
-  const regularIds = ["tuckman-model", "mes", "scala-language", "delphi-method", "brainstorming", "feasibility-study", "reverse-proxy", "marketing-4p-4c", "marketing-4c", "immersion-cooling", "iot", "soa", "parity-check", "crc-error-check", "hamming-code", "roc-curve", "memory-first-fit", "memory-best-fit", "memory-worst-fit"];
+  const actualSpecialIds = termsBlock.split("\n")
+    .filter((line) => /collection: "special"/.test(line))
+    .map((line) => line.match(/id: "([^"]+)"/)?.[1]);
+  const regularIds = ["cpu", "osi-model", "authentication", "relational-database", "scrum", "wbs", "system-audit", "cloud-computing", "five-forces", "break-even-point", "copyright"];
+  assert.deepEqual(actualSpecialIds, specialIds);
   for (const id of specialIds) assert.match(page, new RegExp(`id: "${id}"[^\\n]+collection: "special"`));
   for (const id of regularIds) {
     const line = termsBlock.split("\n").find((candidate) => candidate.includes(`id: "${id}"`)) ?? "";
@@ -79,6 +83,24 @@ test("keeps calculation-oriented cards special and term cards regular", async ()
   assert.match(page, /const collectionStorageKey = "ap-study-collections-v1"/);
   assert.match(page, /function toggleCollection\(item: Term\)/);
   assert.match(page, /getCollection\(item, overrides\) === collection/);
+});
+
+test("adds broad AP vocabulary coverage without duplicate detail cards", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const termsBlock = page.slice(page.indexOf("const terms"), page.indexOf("type Progress"));
+  const importantIds = [
+    "binary-number", "stack", "quick-sort", "cpu", "virtual-memory", "raid5",
+    "osi-model", "tcp", "dns", "waf", "authentication", "aes", "digital-certificate",
+    "sql-injection", "zero-trust", "relational-database", "atomicity", "right-join",
+    "requirements-definition", "scrum", "uml", "boundary-value-analysis", "wbs",
+    "critical-path", "service-desk", "system-audit", "internal-control", "dx", "saas",
+    "machine-learning", "five-forces", "kgi", "break-even-point", "npv", "copyright",
+    "subcontract-transaction-act", "rfc",
+  ];
+  for (const id of importantIds) assert.match(termsBlock, new RegExp(`id: "${id}"`), `missing important term: ${id}`);
+  for (const id of ["product", "price", "place", "promotion", "ppm-star", "evm-cpi", "evm-spi"]) {
+    assert.doesNotMatch(termsBlock, new RegExp(`id: "${id}"`), `duplicate detail card should not be added: ${id}`);
+  }
 });
 
 test("splits overloaded cards and migrates their saved progress", async () => {
