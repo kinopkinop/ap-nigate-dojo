@@ -358,3 +358,18 @@ test("keeps the revealed answer actions reachable on a phone", async () => {
   assert.match(mobileCss, /env\(safe-area-inset-bottom\)/);
   assert.match(mobileCss, /grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
 });
+
+test("keeps follow-up question text as large as the main question", async () => {
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  const mobileStart = css.indexOf("@media (max-width: 520px)");
+  const mobileCss = css.slice(mobileStart, css.indexOf("@media (prefers-reduced-motion", mobileStart));
+
+  assert.match(css, /\.situationBox > p \{[^}]*font-size: 17px;/);
+  assert.match(css, /\.followUpSituation \{[^}]*font-size: 17px;/);
+  assert.match(css, /\.understandingQuestion h2 \{[^}]*font-size: clamp\(21px, 3vw, 30px\);/);
+  assert.match(css, /\.followUpCard > h3 \{[^}]*font-size: clamp\(21px, 3vw, 30px\);/);
+  assert.doesNotMatch(css, /\.followUpChoices button \{[^}]*font-size:/);
+  assert.match(mobileCss, /\.understandingQuestion h2 \{[^}]*font-size: 20px;/);
+  assert.match(mobileCss, /\.followUpCard > h3 \{ font-size: 20px;/);
+  assert.match(mobileCss, /\.followUpSituation \{[^}]*font-size: 15px;/);
+});
