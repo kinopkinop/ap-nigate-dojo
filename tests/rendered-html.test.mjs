@@ -60,6 +60,11 @@ test("adds exactly three separate understanding-dojo prototype questions", async
   assert.doesNotMatch(component, /followUpVisible|確認問題へ/);
   assert.match(component, /question\.followUp && <section className="followUpCard"/);
   assert.match(component, /ここまで理解できた？/);
+  assert.match(component, /function shuffleChoices\(choices: string\[\]\)/);
+  assert.match(component, /const mainChoices = useMemo\(\(\) => shuffleChoices\(question\.choices\), \[question\]\)/);
+  assert.match(component, /const followUpChoices = useMemo\(\(\) => question\.followUp \? shuffleChoices\(question\.followUp\.choices\) : \[\], \[question\]\)/);
+  assert.match(component, /chooseAnswer\(choice\.originalIndex\)/);
+  assert.match(component, /chooseFollowUp\(choice\.originalIndex\)/);
   assert.match(page, /activeDojo === "understanding"/);
   assert.match(page, /className="dojoSwitcher"/);
 });

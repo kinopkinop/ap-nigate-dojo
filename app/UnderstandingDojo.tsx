@@ -34,6 +34,15 @@ const ratingLabels: Record<UnderstandingRating, string> = {
 };
 const ratingOrder: UnderstandingRating[] = ["unclear", "unsure", "understood"];
 
+function shuffleChoices(choices: string[]) {
+  const shuffled = choices.map((text, originalIndex) => ({ text, originalIndex }));
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
+  }
+  return shuffled;
+}
+
 function readProgress(): UnderstandingProgress {
   try {
     const parsed = JSON.parse(localStorage.getItem(understandingProgressKey) ?? "{}");
@@ -52,6 +61,8 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
   const [sessionAnswers, setSessionAnswers] = useState<Record<string, SessionAnswer>>({});
   const [completed, setCompleted] = useState(false);
   const question = understandingQuestions[position];
+  const mainChoices = useMemo(() => shuffleChoices(question.choices), [question]);
+  const followUpChoices = useMemo(() => question.followUp ? shuffleChoices(question.followUp.choices) : [], [question]);
 
   const completedThemes = useMemo(
     () => Object.values(sessionAnswers).filter((answer) => answer.correct && answer.followUpCorrect !== false).length,
@@ -211,10 +222,10 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
           <span>質問</span>
           <h2 id="understanding-question-title">{question.question}</h2>
           <div className="understandingChoices" role="group" aria-label="選択肢">
-            {question.choices.map((choice, index) => {
-              const state = selectedIndex === null ? "" : index === question.correctIndex ? "correct" : index === selectedIndex ? "wrong" : "muted";
-              return <button key={choice} className={state} onClick={() => chooseAnswer(index)} disabled={selectedIndex !== null}>
-                <span>{String.fromCharCode(65 + index)}</span>{choice}
+            {mainChoices.map((choice, displayIndex) => {
+              const state = selectedIndex === null ? "" : choice.originalIndex === question.correctIndex ? "correct" : choice.originalIndex === selectedIndex ? "wrong" : "muted";
+              return <button key={choice.originalIndex} className={state} onClick={() => chooseAnswer(choice.originalIndex)} disabled={selectedIndex !== null}>
+                <span>{String.fromCharCode(65 + displayIndex)}</span>{choice.text}
               </button>;
             })}
           </div>
@@ -239,10 +250,10 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
             </div>}
             <h3 id="follow-up-title">{question.followUp.question}</h3>
             <div className="understandingChoices followUpChoices" role="group" aria-label="確認問題の選択肢">
-              {question.followUp.choices.map((choice, index) => {
-                const state = followUpSelectedIndex === null ? "" : index === question.followUp!.correctIndex ? "correct" : index === followUpSelectedIndex ? "wrong" : "muted";
-                return <button key={choice} className={state} onClick={() => chooseFollowUp(index)} disabled={followUpSelectedIndex !== null}>
-                  <span>{String.fromCharCode(65 + index)}</span>{choice}
+              {followUpChoices.map((choice, displayIndex) => {
+                const state = followUpSelectedIndex === null ? "" : choice.originalIndex === question.followUp!.correctIndex ? "correct" : choice.originalIndex === followUpSelectedIndex ? "wrong" : "muted";
+                return <button key={choice.originalIndex} className={state} onClick={() => chooseFollowUp(choice.originalIndex)} disabled={followUpSelectedIndex !== null}>
+                  <span>{String.fromCharCode(65 + displayIndex)}</span>{choice.text}
                 </button>;
               })}
             </div>
