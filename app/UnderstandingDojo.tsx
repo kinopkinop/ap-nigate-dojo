@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { understandingQuestions } from "./understandingQuestions";
+import { understandingQuestions, type UnderstandingCategory } from "./understandingQuestions";
 
 type UnderstandingRating = "understood" | "unsure" | "unclear";
 type AttemptRecord = {
@@ -33,6 +33,8 @@ const ratingLabels: Record<UnderstandingRating, string> = {
   unclear: "まだ分からない",
 };
 const ratingOrder: UnderstandingRating[] = ["unclear", "unsure", "understood"];
+const categoryOrder: UnderstandingCategory[] = ["セキュリティ", "データベース", "ネットワーク", "マネジメント", "ストラテジ", "テクノロジ"];
+type CategoryChoice = "すべて" | UnderstandingCategory;
 
 function shuffleChoices(choices: string[]) {
   const shuffled = choices.map((text, originalIndex) => ({ text, originalIndex }));
@@ -53,6 +55,7 @@ function readProgress(): UnderstandingProgress {
 }
 
 export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
+  const [selectedCategory, setSelectedCategory] = useState<CategoryChoice | null>(null);
   const [position, setPosition] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [followUpSelectedIndex, setFollowUpSelectedIndex] = useState<number | null>(null);
@@ -60,7 +63,13 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
   const [progress, setProgress] = useState<UnderstandingProgress>(() => typeof window === "undefined" ? {} : readProgress());
   const [sessionAnswers, setSessionAnswers] = useState<Record<string, SessionAnswer>>({});
   const [completed, setCompleted] = useState(false);
-  const question = understandingQuestions[position];
+  const availableCategories = useMemo(() => categoryOrder
+    .map((category) => ({ category, count: understandingQuestions.filter((item) => item.category === category).length }))
+    .filter((item) => item.count > 0), []);
+  const activeQuestions = useMemo(() => selectedCategory === "すべて"
+    ? understandingQuestions
+    : understandingQuestions.filter((item) => item.category === selectedCategory), [selectedCategory]);
+  const question = activeQuestions[position] ?? understandingQuestions[0];
   const mainChoices = useMemo(() => shuffleChoices(question.choices), [question]);
   const followUpChoices = useMemo(() => question.followUp ? shuffleChoices(question.followUp.choices) : [], [question]);
 
@@ -137,7 +146,7 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
 
   function nextQuestion() {
     if (!rating) return;
-    if (position >= understandingQuestions.length - 1) {
+    if (position >= activeQuestions.length - 1) {
       setCompleted(true);
       window.scrollTo({ top: 0 });
       return;
@@ -159,16 +168,46 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
     window.scrollTo({ top: 0 });
   }
 
+  function chooseCategory(nextCategory: CategoryChoice) {
+    setSelectedCategory(nextCategory);
+    restart();
+  }
+
+  function returnToCategorySelection() {
+    setSelectedCategory(null);
+    restart();
+  }
+
+  if (selectedCategory === null) {
+    return <main className="understandingPage">
+      <UnderstandingHeader onBack={onBack} />
+      <section className="understandingCategorySelect" aria-labelledby="understanding-category-title">
+        <p className="understandingEyebrow">CHOOSE A FIELD</p>
+        <h1 id="understanding-category-title">解く分野を選ぶ</h1>
+        <p>苦手だけ道場と同じ分野で絞り込めます。各テーマはメイン問題と確認問題の2段階です。</p>
+        <div className="understandingCategoryGrid">
+          <button className="allCategories" onClick={() => chooseCategory("すべて")}>
+            <span>すべて</span><strong>{understandingQuestions.length}<small>テーマ</small></strong><em>全分野を通して解く</em>
+          </button>
+          {availableCategories.map(({ category, count }) => <button key={category} onClick={() => chooseCategory(category)}>
+            <span>{category}</span><strong>{count}<small>テーマ</small></strong><em>この分野だけ解く</em>
+          </button>)}
+        </div>
+      </section>
+    </main>;
+  }
+
   if (completed) {
     return <main className="understandingPage">
       <UnderstandingHeader onBack={onBack} />
       <section className="understandingResult" aria-labelledby="understanding-result-title">
         <p className="understandingEyebrow">SESSION COMPLETE</p>
-        <h1 id="understanding-result-title">{understandingQuestions.length}問、おつかれさまでした。</h1>
+        <h1 id="understanding-result-title">{activeQuestions.length}問、おつかれさまでした。</h1>
+        <p className="understandingResultCategory">選択した分野：<strong>{selectedCategory}</strong></p>
         <p>正解数だけでなく、自己評価を次の復習優先度に使える形で保存しました。</p>
-        <div className="understandingScore"><strong>{completedThemes}<small>/{understandingQuestions.length}</small></strong><span>メイン・確認ともに正解</span></div>
+        <div className="understandingScore"><strong>{completedThemes}<small>/{activeQuestions.length}</small></strong><span>メイン・確認ともに正解</span></div>
         <div className="understandingResultList">
-          {understandingQuestions.map((item, index) => {
+          {activeQuestions.map((item, index) => {
             const answer = sessionAnswers[item.id];
             return <div key={item.id}>
               <span className={answer?.correct && answer?.followUpCorrect ? "resultOk" : "resultNg"}>{answer?.correct && answer?.followUpCorrect ? "○" : "△"}</span>
@@ -180,9 +219,10 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
           })}
         </div>
         <div className="understandingResultActions">
-          <button className="secondary" onClick={onBack}>苦手だけ道場へ戻る</button>
-          <button onClick={restart}>{understandingQuestions.length}問をもう一度 →</button>
+          <button className="secondary" onClick={returnToCategorySelection}>分野を選び直す</button>
+          <button onClick={restart}>{activeQuestions.length}問をもう一度 →</button>
         </div>
+        <button className="understandingBackToVocabulary" onClick={onBack}>苦手だけ道場へ戻る</button>
       </section>
     </main>;
   }
@@ -196,10 +236,11 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
         <div>
           <p className="understandingEyebrow">AP UNDERSTANDING DOJO</p>
           <h1>「知ってる」を、<em>「使える」に。</em></h1>
-          <p>短い状況から判断し、理由と似た概念の違いまで確認するミニ応用問題です。</p>
+          <p><strong>{selectedCategory}</strong>のミニ応用問題。短い状況から判断し、理由と似た概念の違いまで確認します。</p>
+          <button className="understandingChangeCategory" onClick={returnToCategorySelection}>分野を変更</button>
         </div>
-        <div className="understandingSteps" aria-label={`${understandingQuestions.length}問中${position + 1}問目`}>
-          <strong>{position + 1}</strong><span>/ {understandingQuestions.length}</span>
+        <div className="understandingSteps" aria-label={`${activeQuestions.length}問中${position + 1}問目`}>
+          <strong>{position + 1}</strong><span>/ {activeQuestions.length}</span>
         </div>
       </div>
 
@@ -276,7 +317,7 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
                 {ratingOrder.map((value) => <button key={value} className={rating === value ? `selected ${value}` : ""} onClick={() => rateUnderstanding(value)} aria-pressed={rating === value}>{ratingLabels[value]}</button>)}
               </div>
             </div>
-            {rating ? <button className="understandingNext" onClick={nextQuestion}>{position === understandingQuestions.length - 1 ? "3問の結果を見る" : "次のテーマへ"} <span>→</span></button> : <p className="ratingPrompt">自己評価を選ぶと次へ進めます。</p>}
+            {rating ? <button className="understandingNext" onClick={nextQuestion}>{position === activeQuestions.length - 1 ? `${activeQuestions.length}問の結果を見る` : "次のテーマへ"} <span>→</span></button> : <p className="ratingPrompt">自己評価を選ぶと次へ進めます。</p>}
           </>}
         </section>}
       </article>

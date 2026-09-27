@@ -142,8 +142,12 @@ test("keeps the understanding-dojo question set structured and scenario based", 
   assert.doesNotMatch(component, /className="understandingMeta"|className="understandingTheme"/);
   assert.match(component, /question\.conditions\.map/);
   assert.match(component, /question\.followUp\.comparison\.map/);
-  assert.match(component, /<strong>\{position \+ 1\}<\/strong><span>\/ \{understandingQuestions\.length\}<\/span>/);
+  assert.match(component, /<strong>\{position \+ 1\}<\/strong><span>\/ \{activeQuestions\.length\}<\/span>/);
   assert.match(component, /\{understandingQuestions\.length\}テーマ/);
+  assert.match(component, /解く分野を選ぶ/);
+  assert.match(component, /understandingQuestions\.filter\(\(item\) => item\.category === selectedCategory\)/);
+  assert.match(component, /availableCategories\.map/);
+  assert.match(component, /分野を選び直す/);
   assert.doesNotMatch(component, /3問のプロトタイプ|3問をもう一度|<small>\/3<\/small>/);
   assert.match(page, /activeDojo === "understanding"/);
   assert.match(page, /className="dojoSwitcher"/);
@@ -188,30 +192,28 @@ test("opens the weak-only mode from the same all-category pool used by its count
   assert.match(weakButton, /buildRound\("すべて", progress, weakIds, false, false, true, collectionOverrides, "regular", disabledIds\)/);
 });
 
-test("lets the priority mode filter questions by category", async () => {
+test("replaces priority and low-quiz tabs with review and mastered category modes", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
-  const priorityButtonStart = page.indexOf('<button className={mode === "priority"');
-  const priorityButtonEnd = page.indexOf("</button>", priorityButtonStart);
-  const priorityButton = page.slice(priorityButtonStart, priorityButtonEnd);
-
-  assert.ok(priorityButtonStart >= 0, "priority navigation button is missing");
-  assert.match(priorityButton, /setCategory\("すべて"\)/);
-  assert.doesNotMatch(page, /mode !== "priority" && <div className="filters"/);
-  assert.match(page, /if \(mode === "priority"\) \{ setPriorityIds\(buildRound\(name, progress, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds\)\)/);
-  assert.match(page, /setPriorityIds\(buildRound\(category, next, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds\)\)/);
-  assert.match(page, /setPriorityIds\(buildRound\(category, progress, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds\)\)/);
-  assert.match(page, /この分野に最優先の問題はありません/);
+  assert.doesNotMatch(page, />最優先だけ/);
+  assert.doesNotMatch(page, />出題少なめ/);
+  assert.match(page, />要確認だけ <span className="navCount">\{reviewCount\}<\/span>/);
+  assert.match(page, />定着済み <span className="navCount">\{mastered\}<\/span>/);
+  assert.match(page, /mode === "review"\) \{ setReviewIds\(buildRound\(name, progress, reviewIds, true, false, false, collectionOverrides, "regular", disabledIds\)\)/);
+  assert.match(page, /mode === "mastered"\) \{ setMasteredIds\(buildRound\(name, progress, masteredIds, false, false, false, collectionOverrides, "regular", disabledIds, true\)\)/);
+  assert.match(page, /mode === "weak" \|\| mode === "review" \|\| mode === "mastered"/);
 });
 
-test("defines priority as retention 30 or below everywhere", async () => {
+test("classifies answered terms into weak, review, and mastered ranges", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 
-  assert.match(page, /const priorityRetentionMax = 30;/);
-  assert.match(page, /function isPriority\(item: Term, savedProgress: Progress\) \{\s*return getRetention\(item, savedProgress\) <= priorityRetentionMax;/);
-  assert.match(page, /!onlyPriority \|\| isPriority\(item, savedProgress\)/);
-  assert.match(page, /regularTerms\.filter\(\(item\) => isPriority\(item, progress\)\)\.length/);
-  assert.match(page, /score <= priorityRetentionMax/);
-  assert.match(page, /定着度\{priorityRetentionMax\}以下を最優先に/);
+  assert.match(page, /function isWeak[\s\S]*?isUnseen\(item, savedProgress\)[\s\S]*?getRetention\(item, savedProgress\) < 60;/);
+  assert.match(page, /function needsReview[\s\S]*?retention >= 60 && retention < 75;/);
+  assert.match(page, /function isMastered[\s\S]*?!isUnseen\(item, savedProgress\) && getRetention\(item, savedProgress\) >= 75;/);
+  assert.match(page, /!onlyWeak \|\| isWeak\(item, savedProgress\)/);
+  assert.match(page, /!onlyReview \|\| needsReview\(item, savedProgress\)/);
+  assert.match(page, /!onlyMastered \|\| isMastered\(item, savedProgress\)/);
+  assert.match(page, /定着度60未満を「苦手だけ」にまとめて復習/);
+  assert.doesNotMatch(page, /label: "最優先"/);
 });
 
 test("preserves existing special assignments and keeps added vocabulary regular", async () => {
