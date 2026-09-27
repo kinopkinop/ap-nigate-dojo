@@ -15,6 +15,7 @@ type AttemptRecord = {
   followUpWrong?: number;
   lastFollowUpResult?: "correct" | "wrong";
   selfRating?: UnderstandingRating;
+  retention?: number;
   updatedAt: string;
 };
 type UnderstandingProgress = Record<string, AttemptRecord>;
@@ -33,8 +34,47 @@ const ratingLabels: Record<UnderstandingRating, string> = {
   unclear: "まだ分からない",
 };
 const ratingOrder: UnderstandingRating[] = ["unclear", "unsure", "understood"];
+const ratingAdjustment: Record<UnderstandingRating, number> = { understood: 10, unsure: -5, unclear: -12 };
 const categoryOrder: UnderstandingCategory[] = ["セキュリティ", "データベース", "ネットワーク", "マネジメント", "ストラテジ", "テクノロジ"];
 type CategoryChoice = "すべて" | UnderstandingCategory;
+type UnderstandingMode = "all" | "weak" | "review" | "mastered" | "unseen";
+
+const modeLabels: Record<UnderstandingMode, string> = {
+  all: "全問題",
+  weak: "苦手だけ",
+  review: "要確認だけ",
+  mastered: "定着済み",
+  unseen: "未出題だけ",
+};
+
+function getRetention(record?: AttemptRecord) {
+  if (typeof record?.retention === "number") return Math.max(0, Math.min(100, record.retention));
+  return Math.max(0, Math.min(100,
+    35 + (record?.correct ?? 0) * 8 - (record?.wrong ?? 0) * 12
+      + (record?.followUpCorrect ?? 0) * 12 - (record?.followUpWrong ?? 0) * 18,
+  ));
+}
+
+function isUnseen(record?: AttemptRecord) {
+  return (record?.attempts ?? 0) === 0;
+}
+
+function matchesMode(mode: UnderstandingMode, record?: AttemptRecord) {
+  if (mode === "all") return true;
+  if (mode === "unseen") return isUnseen(record);
+  if (isUnseen(record)) return false;
+  const retention = getRetention(record);
+  if (mode === "weak") return retention < 60;
+  if (mode === "review") return retention >= 60 && retention < 75;
+  return retention >= 75;
+}
+
+function retentionStatus(retention: number, unseen: boolean) {
+  if (unseen) return { label: "未出題", className: "unseen" };
+  if (retention < 60) return { label: "苦手", className: "weak" };
+  if (retention < 75) return { label: "要確認", className: "review" };
+  return { label: "定着済み", className: "mastered" };
+}
 
 function shuffleChoices(choices: string[]) {
   const shuffled = choices.map((text, originalIndex) => ({ text, originalIndex }));
@@ -43,6 +83,14 @@ function shuffleChoices(choices: string[]) {
     [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
   }
   return shuffled;
+}
+
+function buildUnderstandingRound(mode: UnderstandingMode, category: CategoryChoice, progress: UnderstandingProgress, previousIds: string[] = []) {
+  const candidates = understandingQuestions.filter((item) => (category === "すべて" || item.category === category) && matchesMode(mode, progress[item.id]));
+  const shuffled = shuffleChoices(candidates.map((item) => item.id)).map((item) => item.text);
+  const fresh = shuffled.filter((id) => !previousIds.includes(id));
+  const repeated = shuffled.filter((id) => previousIds.includes(id));
+  return [...fresh, ...repeated].slice(0, 5);
 }
 
 function readProgress(): UnderstandingProgress {
@@ -55,7 +103,9 @@ function readProgress(): UnderstandingProgress {
 }
 
 export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
-  const [selectedCategory, setSelectedCategory] = useState<CategoryChoice | null>(null);
+  const [selectedMode, setSelectedMode] = useState<UnderstandingMode>("all");
+  const [selectedCategory, setSelectedCategory] = useState<CategoryChoice>("すべて");
+  const [roundIds, setRoundIds] = useState<string[]>([]);
   const [position, setPosition] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [followUpSelectedIndex, setFollowUpSelectedIndex] = useState<number | null>(null);
@@ -63,12 +113,14 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
   const [progress, setProgress] = useState<UnderstandingProgress>(() => typeof window === "undefined" ? {} : readProgress());
   const [sessionAnswers, setSessionAnswers] = useState<Record<string, SessionAnswer>>({});
   const [completed, setCompleted] = useState(false);
+  const modeCounts = useMemo(() => Object.fromEntries((Object.keys(modeLabels) as UnderstandingMode[])
+    .map((mode) => [mode, understandingQuestions.filter((item) => matchesMode(mode, progress[item.id])).length])) as Record<UnderstandingMode, number>, [progress]);
   const availableCategories = useMemo(() => categoryOrder
-    .map((category) => ({ category, count: understandingQuestions.filter((item) => item.category === category).length }))
-    .filter((item) => item.count > 0), []);
-  const activeQuestions = useMemo(() => selectedCategory === "すべて"
-    ? understandingQuestions
-    : understandingQuestions.filter((item) => item.category === selectedCategory), [selectedCategory]);
+    .map((category) => ({ category, count: understandingQuestions.filter((item) => item.category === category && matchesMode(selectedMode, progress[item.id])).length }))
+    .filter((item) => item.count > 0), [selectedMode, progress]);
+  const activeQuestions = useMemo(() => roundIds
+    .map((id) => understandingQuestions.find((item) => item.id === id))
+    .filter((item): item is (typeof understandingQuestions)[number] => Boolean(item)), [roundIds]);
   const question = activeQuestions[position] ?? understandingQuestions[0];
   const mainChoices = useMemo(() => shuffleChoices(question.choices), [question]);
   const followUpChoices = useMemo(() => question.followUp ? shuffleChoices(question.followUp.choices) : [], [question]);
@@ -77,6 +129,9 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
     () => Object.values(sessionAnswers).filter((answer) => answer.correct && answer.followUpCorrect !== false).length,
     [sessionAnswers],
   );
+  const questionRecord = progress[question.id];
+  const questionRetention = getRetention(questionRecord);
+  const questionStatus = retentionStatus(questionRetention, isUnseen(questionRecord));
 
   function saveProgress(next: UnderstandingProgress) {
     setProgress(next);
@@ -101,6 +156,7 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
         lastChoice: choiceIndex,
         lastResult: isCorrect ? "correct" : "wrong",
         selfRating: oldRecord?.selfRating,
+        retention: Math.max(0, Math.min(100, getRetention(oldRecord) + (isCorrect ? 8 : -12))),
         updatedAt: new Date().toISOString(),
       },
     });
@@ -108,6 +164,7 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
 
   function rateUnderstanding(nextRating: UnderstandingRating) {
     if (selectedIndex === null || (question.followUp && followUpSelectedIndex === null)) return;
+    const previousAdjustment = rating ? ratingAdjustment[rating] : 0;
     setRating(nextRating);
     setSessionAnswers((old) => ({
       ...old,
@@ -117,7 +174,12 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
     if (!oldRecord) return;
     saveProgress({
       ...progress,
-      [question.id]: { ...oldRecord, selfRating: nextRating, updatedAt: new Date().toISOString() },
+      [question.id]: {
+        ...oldRecord,
+        selfRating: nextRating,
+        retention: Math.max(0, Math.min(100, getRetention(oldRecord) - previousAdjustment + ratingAdjustment[nextRating])),
+        updatedAt: new Date().toISOString(),
+      },
     });
   }
 
@@ -139,6 +201,7 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
         followUpCorrect: (oldRecord.followUpCorrect ?? 0) + (isCorrect ? 1 : 0),
         followUpWrong: (oldRecord.followUpWrong ?? 0) + (isCorrect ? 0 : 1),
         lastFollowUpResult: isCorrect ? "correct" : "wrong",
+        retention: Math.max(0, Math.min(100, getRetention(oldRecord) + (isCorrect ? 12 : -18))),
         updatedAt: new Date().toISOString(),
       },
     });
@@ -170,29 +233,55 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
 
   function chooseCategory(nextCategory: CategoryChoice) {
     setSelectedCategory(nextCategory);
+    setRoundIds(buildUnderstandingRound(selectedMode, nextCategory, progress, roundIds));
     restart();
   }
 
   function returnToCategorySelection() {
-    setSelectedCategory(null);
+    setRoundIds([]);
     restart();
   }
 
-  if (selectedCategory === null) {
+  function chooseMode(nextMode: UnderstandingMode) {
+    setSelectedMode(nextMode);
+    setSelectedCategory("すべて");
+    setRoundIds([]);
+    restart();
+  }
+
+  function startNextRound() {
+    setRoundIds(buildUnderstandingRound(selectedMode, selectedCategory, progress, roundIds));
+    restart();
+  }
+
+  if (roundIds.length === 0) {
     return <main className="understandingPage">
       <UnderstandingHeader onBack={onBack} />
       <section className="understandingCategorySelect" aria-labelledby="understanding-category-title">
-        <p className="understandingEyebrow">CHOOSE A FIELD</p>
-        <h1 id="understanding-category-title">解く分野を選ぶ</h1>
-        <p>苦手だけ道場と同じ分野で絞り込めます。各テーマはメイン問題と確認問題の2段階です。</p>
+        <p className="understandingEyebrow">CHOOSE YOUR FOCUS</p>
+        <h1 id="understanding-category-title">理解度から問題を選ぶ</h1>
+        <p>苦手だけ道場と同じ定着度区分で、各テーマをメイン問題と確認問題の2段階で復習します。</p>
+        <nav className="understandingModeNav" aria-label="理解度で問題を選ぶ">
+          {(Object.keys(modeLabels) as UnderstandingMode[]).map((mode) => <button key={mode} className={selectedMode === mode ? "selected" : ""} onClick={() => chooseMode(mode)}>
+            {modeLabels[mode]} <span>{modeCounts[mode]}</span>
+          </button>)}
+        </nav>
+        <div className="understandingModeStats" aria-label="理解道場の学習状況">
+          <div><strong>{modeCounts.mastered}</strong><span>定着済み・75以上</span></div>
+          <div><strong>{modeCounts.review}</strong><span>要確認・60〜74</span></div>
+          <div><strong>{modeCounts.weak}</strong><span>苦手・60未満</span></div>
+          <div><strong>{modeCounts.unseen}</strong><span>未出題</span></div>
+        </div>
+        <h2>{modeLabels[selectedMode]}をジャンルで絞る</h2>
         <div className="understandingCategoryGrid">
-          <button className="allCategories" onClick={() => chooseCategory("すべて")}>
-            <span>すべて</span><strong>{understandingQuestions.length}<small>テーマ</small></strong><em>全分野を通して解く</em>
+          <button className="allCategories" onClick={() => chooseCategory("すべて")} disabled={modeCounts[selectedMode] === 0}>
+            <span>すべて</span><strong>{modeCounts[selectedMode]}<small>テーマ</small></strong><em>最大5テーマを出題</em>
           </button>
           {availableCategories.map(({ category, count }) => <button key={category} onClick={() => chooseCategory(category)}>
-            <span>{category}</span><strong>{count}<small>テーマ</small></strong><em>この分野だけ解く</em>
+            <span>{category}</span><strong>{count}<small>テーマ</small></strong><em>最大5テーマを出題</em>
           </button>)}
         </div>
+        {modeCounts[selectedMode] === 0 && <p className="understandingEmptyMode">この区分の問題はまだありません。別の区分を選んでください。</p>}
       </section>
     </main>;
   }
@@ -203,7 +292,7 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
       <section className="understandingResult" aria-labelledby="understanding-result-title">
         <p className="understandingEyebrow">SESSION COMPLETE</p>
         <h1 id="understanding-result-title">{activeQuestions.length}問、おつかれさまでした。</h1>
-        <p className="understandingResultCategory">選択した分野：<strong>{selectedCategory}</strong></p>
+        <p className="understandingResultCategory"><strong>{modeLabels[selectedMode]}</strong>・選択した分野：<strong>{selectedCategory}</strong></p>
         <p>正解数だけでなく、自己評価を次の復習優先度に使える形で保存しました。</p>
         <div className="understandingScore"><strong>{completedThemes}<small>/{activeQuestions.length}</small></strong><span>メイン・確認ともに正解</span></div>
         <div className="understandingResultList">
@@ -213,14 +302,14 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
               <span className={answer?.correct && answer?.followUpCorrect ? "resultOk" : "resultNg"}>{answer?.correct && answer?.followUpCorrect ? "○" : "△"}</span>
               <p><small>{item.category}</small><strong>{item.theme}</strong></p>
               <b className="resultChecks">メイン {answer?.correct ? "○" : "×"}・確認 {answer?.followUpCorrect ? "○" : "×"}</b>
-              <b>{answer?.rating ? ratingLabels[answer.rating] : "未評価"}</b>
+              <b>{answer?.rating ? ratingLabels[answer.rating] : "未評価"}・定着度 {getRetention(progress[item.id])}</b>
               <em>Q{index + 1}</em>
             </div>;
           })}
         </div>
         <div className="understandingResultActions">
           <button className="secondary" onClick={returnToCategorySelection}>分野を選び直す</button>
-          <button onClick={restart}>{activeQuestions.length}問をもう一度 →</button>
+          <button onClick={startNextRound}>次の{Math.min(5, modeCounts[selectedMode])}問へ →</button>
         </div>
         <button className="understandingBackToVocabulary" onClick={onBack}>苦手だけ道場へ戻る</button>
       </section>
@@ -236,12 +325,18 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
         <div>
           <p className="understandingEyebrow">AP UNDERSTANDING DOJO</p>
           <h1>「知ってる」を、<em>「使える」に。</em></h1>
-          <p><strong>{selectedCategory}</strong>のミニ応用問題。短い状況から判断し、理由と似た概念の違いまで確認します。</p>
-          <button className="understandingChangeCategory" onClick={returnToCategorySelection}>分野を変更</button>
+          <p><strong>{modeLabels[selectedMode]}・{selectedCategory}</strong>のミニ応用問題。短い状況から判断し、理由と似た概念の違いまで確認します。</p>
+          <button className="understandingChangeCategory" onClick={returnToCategorySelection}>問題の区分・分野を変更</button>
         </div>
         <div className="understandingSteps" aria-label={`${activeQuestions.length}問中${position + 1}問目`}>
           <strong>{position + 1}</strong><span>/ {activeQuestions.length}</span>
         </div>
+      </div>
+
+      <div className={`understandingRetention ${questionStatus.className}`} aria-label={`定着度${questionRetention}` }>
+        <div><span>{questionStatus.label}</span><strong>{questionRetention}<small>/100</small></strong></div>
+        <div className="understandingRetentionBar"><i style={{ width: `${questionRetention}%` }} /></div>
+        <p>メイン正解 +8／確認正解 +12／自己評価でも調整</p>
       </div>
 
       <article className="understandingCard">

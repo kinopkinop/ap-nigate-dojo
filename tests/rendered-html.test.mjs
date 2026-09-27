@@ -88,19 +88,33 @@ test("keeps the understanding-dojo question set structured and scenario based", 
     "critical-path-project-duration",
     "mes-factory-progress-control",
     "marketing-4p-place-to-4c",
+    "authn-authz-access-control",
+    "mfa-independent-factors",
+    "sql-injection-placeholder",
+    "csrf-token-validation",
+    "directory-traversal-path-control",
+    "ids-ips-automatic-block",
+    "tcp-udp-reliability-latency",
+    "router-l2-cross-network",
+    "vlan-logical-separation",
+    "dhcp-client-network-config",
+    "dns-record-mail-routing",
+    "tcp-three-way-handshake",
+    "default-gateway-off-subnet",
+    "arp-same-lan-mac-resolution",
   ]);
   assert.match(data, /category: "セキュリティ"/);
   assert.match(data, /category: "データベース"/);
   assert.match(data, /category: "ネットワーク"/);
   assert.match(data, /category: "マネジメント"/);
   assert.match(data, /category: "ストラテジ"/);
-  assert.equal((data.match(/^\s+followUp: \{/gm) ?? []).length, 23);
-  assert.equal((data.match(/^\s+correctIndex: \d,/gm) ?? []).length, 46);
-  assert.equal((data.match(/^\s+choices: \[/gm) ?? []).length, 46);
-  assert.equal((data.match(/^\s+skill: "/gm) ?? []).length, 46);
-  assert.equal((data.match(/^\s+conditions: \[/gm) ?? []).length, 46);
-  assert.equal((data.match(/^\s+clues: \[/gm) ?? []).length, 46);
-  assert.equal((data.match(/^\s+comparison: \[/gm) ?? []).length, 46);
+  assert.equal((data.match(/^\s+followUp: \{/gm) ?? []).length, 37);
+  assert.equal((data.match(/^\s+correctIndex: \d,/gm) ?? []).length, 74);
+  assert.equal((data.match(/^\s+choices: \[/gm) ?? []).length, 74);
+  assert.equal((data.match(/^\s+skill: "/gm) ?? []).length, 74);
+  assert.equal((data.match(/^\s+conditions: \[/gm) ?? []).length, 74);
+  assert.equal((data.match(/^\s+clues: \[/gm) ?? []).length, 74);
+  assert.equal((data.match(/^\s+comparison: \[/gm) ?? []).length, 74);
   assert.ok(questionArray, "understanding question array is missing");
   for (const element of questionArray.elements) {
     assert.ok(ts.isObjectLiteralExpression(element), "question must be an object");
@@ -144,10 +158,17 @@ test("keeps the understanding-dojo question set structured and scenario based", 
   assert.match(component, /question\.followUp\.comparison\.map/);
   assert.match(component, /<strong>\{position \+ 1\}<\/strong><span>\/ \{activeQuestions\.length\}<\/span>/);
   assert.match(component, /\{understandingQuestions\.length\}テーマ/);
-  assert.match(component, /解く分野を選ぶ/);
-  assert.match(component, /understandingQuestions\.filter\(\(item\) => item\.category === selectedCategory\)/);
+  assert.match(component, /理解度から問題を選ぶ/);
+  assert.match(component, /buildUnderstandingRound\(selectedMode, nextCategory, progress, roundIds\)/);
   assert.match(component, /availableCategories\.map/);
   assert.match(component, /分野を選び直す/);
+  assert.match(component, /type UnderstandingMode = "all" \| "weak" \| "review" \| "mastered" \| "unseen"/);
+  assert.match(component, /retention >= 60 && retention < 75/);
+  assert.match(component, /return retention >= 75/);
+  assert.match(component, /getRetention\(oldRecord\) \+ \(isCorrect \? 8 : -12\)/);
+  assert.match(component, /getRetention\(oldRecord\) \+ \(isCorrect \? 12 : -18\)/);
+  assert.match(component, /ratingAdjustment\[nextRating\]/);
+  assert.match(component, /\.slice\(0, 5\)/);
   assert.doesNotMatch(component, /3問のプロトタイプ|3問をもう一度|<small>\/3<\/small>/);
   assert.match(page, /activeDojo === "understanding"/);
   assert.match(page, /className="dojoSwitcher"/);
@@ -299,6 +320,7 @@ test("paused questions stay out of rounds and choices, with settings in backups"
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   assert.match(page, /const disabledStorageKey = "ap-study-disabled-ids-v1"/);
   assert.match(page, /const backupKeys = \[[^\n]+disabledStorageKey/);
+  assert.match(page, /const backupKeys = \[[^\n]+"ap-understanding-progress-v1"/);
   assert.match(page, /function toggleDisabled\(item: Term\)/);
   assert.match(page, /!disabledIds\.includes\(item\.id\)/);
   assert.match(page, /getChoices\(card, questionDifficulty, disabledIds\)/);
