@@ -33,8 +33,28 @@ test("server-renders the AP study tool", async () => {
   assert.match(html, /応用情報/);
   assert.match(html, /用語チェック/);
   assert.match(html, /4択クイズ/);
+  assert.match(html, /AP理解道場/);
   assert.match(html, /602<small>語<\/small>/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape/i);
+});
+
+test("adds exactly three separate understanding-dojo prototype questions", async () => {
+  const data = await readFile(new URL("../app/understandingQuestions.ts", import.meta.url), "utf8");
+  const component = await readFile(new URL("../app/UnderstandingDojo.tsx", import.meta.url), "utf8");
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const ids = [...data.matchAll(/\n\s+id: "([^"]+)"/g)].map((match) => match[1]);
+
+  assert.deepEqual(ids, ["web-defense-waf", "transaction-non-repeatable-read", "evm-schedule-cost-status"]);
+  assert.match(data, /category: "セキュリティ"/);
+  assert.match(data, /category: "データベース"/);
+  assert.match(data, /category: "マネジメント"/);
+  assert.equal((data.match(/^\s+correctIndex: \d,/gm) ?? []).length, 3);
+  assert.equal((data.match(/^\s+choices: \[/gm) ?? []).length, 3);
+  assert.match(component, /ap-understanding-progress-v1/);
+  assert.match(component, /"understood" \| "unsure" \| "unclear"/);
+  assert.match(component, /ここまで理解できた？/);
+  assert.match(page, /activeDojo === "understanding"/);
+  assert.match(page, /3問のプロトタイプを試す/);
 });
 
 test("keeps question data stable and fully grouped", async () => {

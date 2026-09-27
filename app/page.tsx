@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import UnderstandingDojo from "./UnderstandingDojo";
 
 type Category = "セキュリティ" | "データベース" | "ネットワーク" | "マネジメント" | "ストラテジ" | "テクノロジ";
 type Term = {
@@ -1127,6 +1128,7 @@ function getRetentionStatus(score: number) {
 }
 
 export default function Home() {
+  const [activeDojo, setActiveDojo] = useState<"vocabulary" | "understanding">("vocabulary");
   const [mode, setMode] = useState<ModeKey | "list">("study");
   const [category, setCategory] = useState<"すべて" | Category>("すべて");
   const [collectionFilter, setCollectionFilter] = useState<"all" | Collection | "disabled">("all");
@@ -1167,6 +1169,13 @@ export default function Home() {
   const [questionStats, setQuestionStats] = useState<QuestionStats>({});
   const [sessionResults, setSessionResults] = useState<Record<ModeKey, SessionAnswer[]>>({ study: [], quiz: [], priority: [], weak: [], unseen: [], lowquiz: [], special: [] });
   const [completed, setCompleted] = useState<Record<ModeKey, boolean>>({ study: false, quiz: false, priority: false, weak: false, unseen: false, lowquiz: false, special: false });
+
+  useEffect(() => {
+    const syncDojoFromHash = () => setActiveDojo(window.location.hash === "#understanding" ? "understanding" : "vocabulary");
+    syncDojoFromHash();
+    window.addEventListener("hashchange", syncDojoFromHash);
+    return () => window.removeEventListener("hashchange", syncDojoFromHash);
+  }, []);
 
   useEffect(() => {
     const initializationTimer = window.setTimeout(() => {
@@ -1704,6 +1713,20 @@ export default function Home() {
     setQuizConfident(false);
   }
 
+  function openUnderstandingDojo() {
+    setActiveDojo("understanding");
+    window.location.hash = "understanding";
+    window.scrollTo({ top: 0 });
+  }
+
+  function closeUnderstandingDojo() {
+    setActiveDojo("vocabulary");
+    window.location.hash = "top";
+    window.scrollTo({ top: 0 });
+  }
+
+  if (activeDojo === "understanding") return <UnderstandingDojo onBack={closeUnderstandingDojo} />;
+
   return (
     <main>
       <header className="topbar">
@@ -1738,6 +1761,15 @@ export default function Home() {
           <div><strong>{unseenCount}<small>語</small></strong><span>未出題</span></div>
           <div><strong>{priorityCount}<small>語</small></strong><span>最優先（{priorityRetentionMax}以下）</span></div>
         </div>
+      </section>
+
+      <section className="dojoBridge" aria-labelledby="understanding-dojo-title">
+        <div className="dojoRoles">
+          <p><small>AP苦手だけ道場</small><strong>「知らない」を「ちょっと知ってる」に</strong></p>
+          <span>→</span>
+          <p><small>次の学習フェーズ</small><strong id="understanding-dojo-title">AP理解道場</strong><em>「知ってる」を「使える」に</em></p>
+        </div>
+        <button onClick={openUnderstandingDojo}>3問のプロトタイプを試す <span>→</span></button>
       </section>
 
       <section className="workspace">
