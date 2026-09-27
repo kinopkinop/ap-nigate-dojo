@@ -633,7 +633,7 @@ const terms: Term[] = [
   { id: "rfc", term: "RFC", category: "ストラテジ", hint: "インターネット技術の仕様や提案を公開する文書群。", answer: "Request for Comments。インターネット技術の仕様や運用方法などを記した文書。", level: 1 },
 ];
 
-type Progress = Record<string, { correct: number; wrong: number; unsure?: number; confident?: number; retention?: number; quizCount?: number }>;
+type Progress = Record<string, { correct: number; wrong: number; unsure?: number; confident?: number; retention?: number; quizCount?: number; attempts?: number }>;
 type ModeKey = "study" | "quiz" | "weak" | "review" | "mastered" | "unseen" | "special";
 type Collection = "regular" | "special";
 type CollectionOverrides = Record<string, Collection>;
@@ -697,6 +697,7 @@ function migrateProgressRecords(savedProgress: Progress) {
       unsure: (target.unsure ?? 0) + (source.unsure ?? 0),
       confident: (target.confident ?? 0) + (source.confident ?? 0),
       quizCount: (target.quizCount ?? 0) + (source.quizCount ?? 0),
+      attempts: recordAttempts(target) + recordAttempts(source),
       retention: Math.min(recordRetention(target), recordRetention(source)),
     } : { ...source };
     delete migrated[sourceId];
@@ -708,7 +709,9 @@ function migrateProgressRecords(savedProgress: Progress) {
       if (!migrated[targetId]) migrated[targetId] = { ...source };
     });
   });
-  return Object.fromEntries(Object.entries(migrated).filter(([id]) => terms.some((item) => item.id === id))) as Progress;
+  return Object.fromEntries(Object.entries(migrated)
+    .filter(([id]) => terms.some((item) => item.id === id))
+    .map(([id, record]) => [id, { ...record, attempts: recordAttempts(record) }])) as Progress;
 }
 
 function migrateQuestionStats(savedStats: QuestionStats) {
@@ -764,9 +767,17 @@ function getCollection(item: Term, overrides: CollectionOverrides): Collection {
   return overrides[item.id] ?? (item.collection === "special" ? "special" : "regular");
 }
 
+function recordAttempts(record: Progress[string] | undefined) {
+  if (!record) return 0;
+  if (typeof record.attempts === "number") return Math.max(0, record.attempts);
+  const scoredAttempts = Math.max((record.correct ?? 0) + (record.wrong ?? 0), record.quizCount ?? 0);
+  if (scoredAttempts > 0) return scoredAttempts;
+  // 旧版の「自信なし」は正誤数を増やさず定着度だけを変えていたため、履歴を補完する。
+  return typeof record.retention === "number" && record.retention !== 35 ? 1 : 0;
+}
+
 function isUnseen(item: Term, savedProgress: Progress) {
-  const record = savedProgress[item.id];
-  return !record || (record.correct ?? 0) + (record.wrong ?? 0) === 0;
+  return recordAttempts(savedProgress[item.id]) === 0;
 }
 
 function isWeak(item: Term, savedProgress: Progress) {
@@ -1361,6 +1372,7 @@ export default function Home() {
         correct: (progress[card.id]?.correct ?? 0) + (result === "correct" ? 1 : 0),
         wrong: (progress[card.id]?.wrong ?? 0) + (result === "wrong" ? 1 : 0),
         quizCount: progress[card.id]?.quizCount ?? 0,
+        attempts: recordAttempts(progress[card.id]) + 1,
         retention: Math.max(0, Math.min(100, retention + (result === "correct" ? 15 : result === "wrong" ? -20 : -12))),
       },
     };
@@ -1528,6 +1540,7 @@ export default function Home() {
         correct: (progress[card.id]?.correct ?? 0) + (result === "correct" ? 1 : 0),
         wrong: (progress[card.id]?.wrong ?? 0) + (result === "wrong" ? 1 : 0),
         quizCount: (progress[card.id]?.quizCount ?? 0) + 1,
+        attempts: recordAttempts(progress[card.id]) + 1,
         retention: Math.max(0, Math.min(100, retention + (result === "correct" ? 15 : -20))),
       },
       ...(mistakenChoice ? {
@@ -1535,6 +1548,7 @@ export default function Home() {
           correct: progress[mistakenChoice.id]?.correct ?? 0,
           wrong: progress[mistakenChoice.id]?.wrong ?? 0,
           quizCount: progress[mistakenChoice.id]?.quizCount ?? 0,
+          attempts: recordAttempts(progress[mistakenChoice.id]),
           retention: Math.max(0, getRetention(mistakenChoice, progress) - 10),
         },
       } : {}),
@@ -1556,6 +1570,7 @@ export default function Home() {
         correct: progress[card.id]?.correct ?? 0,
         wrong: progress[card.id]?.wrong ?? 0,
         quizCount: progress[card.id]?.quizCount ?? 0,
+        attempts: recordAttempts(progress[card.id]),
         retention: Math.max(0, retention - 12),
       },
     };
@@ -1572,6 +1587,7 @@ export default function Home() {
         correct: progress[card.id]?.correct ?? 0,
         wrong: progress[card.id]?.wrong ?? 0,
         quizCount: progress[card.id]?.quizCount ?? 0,
+        attempts: recordAttempts(progress[card.id]),
         retention: Math.min(100, retention + 8),
       },
     };
@@ -1634,6 +1650,7 @@ export default function Home() {
         correct: progress[item.id]?.correct ?? 0,
         wrong: progress[item.id]?.wrong ?? 0,
         quizCount: progress[item.id]?.quizCount ?? 0,
+        attempts: recordAttempts(progress[item.id]),
         retention: bounded,
       },
     };

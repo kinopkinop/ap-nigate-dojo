@@ -226,6 +226,12 @@ test("replaces priority and low-quiz tabs with review and mastered category mode
 
 test("classifies answered terms into weak, review, and mastered ranges", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const helperStart = page.indexOf("function recordAttempts");
+  const helperEnd = page.indexOf("function isWeak", helperStart);
+  const helperSource = page.slice(helperStart, helperEnd)
+    .replace("function recordAttempts(record: Progress[string] | undefined)", "function recordAttempts(record)")
+    .replace("function isUnseen(item: Term, savedProgress: Progress)", "function isUnseen(item, savedProgress)");
+  const isUnseen = Function(`${helperSource}\nreturn isUnseen;`)();
 
   assert.match(page, /function isWeak[\s\S]*?isUnseen\(item, savedProgress\)[\s\S]*?getRetention\(item, savedProgress\) < 60;/);
   assert.match(page, /function needsReview[\s\S]*?retention >= 60 && retention < 75;/);
@@ -235,6 +241,12 @@ test("classifies answered terms into weak, review, and mastered ranges", async (
   assert.match(page, /!onlyMastered \|\| isMastered\(item, savedProgress\)/);
   assert.match(page, /定着度60未満を「苦手だけ」にまとめて復習/);
   assert.doesNotMatch(page, /label: "最優先"/);
+  assert.equal(isUnseen({ id: "term" }, {}), true);
+  assert.equal(isUnseen({ id: "term" }, { term: { correct: 0, wrong: 0, attempts: 1, retention: 23 } }), false);
+  assert.equal(isUnseen({ id: "term" }, { term: { correct: 0, wrong: 0, attempts: 0, retention: 25 } }), true);
+  assert.equal(isUnseen({ id: "term" }, { term: { correct: 0, wrong: 0, retention: 23 } }), false);
+  assert.equal(isUnseen({ id: "term" }, { term: { correct: 0, wrong: 0, retention: 35 } }), true);
+  assert.match(page, /attempts: recordAttempts\(progress\[card\.id\]\) \+ 1/);
 });
 
 test("preserves existing special assignments and keeps added vocabulary regular", async () => {
