@@ -44,6 +44,13 @@ test("adds exactly three separate understanding-dojo prototype questions", async
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   const designGuide = await readFile(new URL("../docs/understanding-question-design.md", import.meta.url), "utf8");
   const ids = [...data.matchAll(/\n\s+id: "([^"]+)"/g)].map((match) => match[1]);
+  const followUpPromptFor = (id) => {
+    const questionStart = data.indexOf(`id: "${id}"`);
+    const followUpStart = data.indexOf("followUp: {", questionStart);
+    const promptStart = data.indexOf("situation:", followUpStart);
+    const promptEnd = data.indexOf("correctIndex:", promptStart);
+    return data.slice(promptStart, promptEnd);
+  };
 
   assert.deepEqual(ids, ["web-defense-waf", "transaction-non-repeatable-read", "evm-schedule-cost-status"]);
   assert.match(data, /category: "セキュリティ"/);
@@ -82,6 +89,10 @@ test("adds exactly three separate understanding-dojo prototype questions", async
   assert.match(designGuide, /具体的な状況 → 条件を読み取る → 知識を適用する → 選択する/);
   assert.match(designGuide, /themeもskillもほぼ同じなら追加しない/);
   assert.match(designGuide, /数字だけ、選択肢の順番だけを変えた同一問題/);
+  assert.match(designGuide, /メイン問題の正解用語は、原則として確認問題の状況・条件・質問・選択肢に出さない/);
+  assert.doesNotMatch(followUpPromptFor("web-defense-waf"), /WAF/);
+  assert.doesNotMatch(followUpPromptFor("transaction-non-repeatable-read"), /ダーティリード|ノンリピータブルリード|ファントムリード|デッドロック/);
+  assert.doesNotMatch(followUpPromptFor("evm-schedule-cost-status"), /\b(?:SPI|CPI|PV|EV|AC)\b/);
 });
 
 test("keeps question data stable and fully grouped", async () => {
