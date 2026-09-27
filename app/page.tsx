@@ -1730,10 +1730,10 @@ export default function Home() {
   return (
     <main>
       <header className="topbar">
-        <a className="brand" href="#top" aria-label="ホーム">
-          <span className="brandMark">AP</span>
-          <span><strong>応用情報</strong><small>苦手だけ道場</small></span>
-        </a>
+        <div className="dojoSwitcher" role="group" aria-label="道場を切り替える">
+          <button className="active" aria-current="page">苦手だけ</button>
+          <button onClick={openUnderstandingDojo}>理解</button>
+        </div>
         <nav aria-label="メインメニュー">
           <button className={mode === "study" ? "active" : ""} onClick={() => { setMode("study"); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>用語チェック</button>
           <button className={mode === "quiz" ? "active" : ""} onClick={() => { setMode("quiz"); setRevealed(false); }}>4択クイズ</button>
@@ -1761,15 +1761,6 @@ export default function Home() {
           <div><strong>{unseenCount}<small>語</small></strong><span>未出題</span></div>
           <div><strong>{priorityCount}<small>語</small></strong><span>最優先（{priorityRetentionMax}以下）</span></div>
         </div>
-      </section>
-
-      <section className="dojoBridge" aria-labelledby="understanding-dojo-title">
-        <div className="dojoRoles">
-          <p><small>AP苦手だけ道場</small><strong>「知らない」を「ちょっと知ってる」に</strong></p>
-          <span>→</span>
-          <p><small>次の学習フェーズ</small><strong id="understanding-dojo-title">AP理解道場</strong><em>「知ってる」を「使える」に</em></p>
-        </div>
-        <button onClick={openUnderstandingDojo}>3問のプロトタイプを試す <span>→</span></button>
       </section>
 
       <section className="workspace">

@@ -33,7 +33,7 @@ test("server-renders the AP study tool", async () => {
   assert.match(html, /応用情報/);
   assert.match(html, /用語チェック/);
   assert.match(html, /4択クイズ/);
-  assert.match(html, /AP理解道場/);
+  assert.match(html, /道場を切り替える/);
   assert.match(html, /602<small>語<\/small>/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape/i);
 });
@@ -48,13 +48,18 @@ test("adds exactly three separate understanding-dojo prototype questions", async
   assert.match(data, /category: "セキュリティ"/);
   assert.match(data, /category: "データベース"/);
   assert.match(data, /category: "マネジメント"/);
-  assert.equal((data.match(/^\s+correctIndex: \d,/gm) ?? []).length, 3);
-  assert.equal((data.match(/^\s+choices: \[/gm) ?? []).length, 3);
+  assert.equal((data.match(/^\s+followUp: \{/gm) ?? []).length, 3);
+  assert.equal((data.match(/^\s+correctIndex: \d,/gm) ?? []).length, 6);
+  assert.equal((data.match(/^\s+choices: \[/gm) ?? []).length, 6);
+  assert.match(data, /followUp\?: UnderstandingFollowUp/);
   assert.match(component, /ap-understanding-progress-v1/);
   assert.match(component, /"understood" \| "unsure" \| "unclear"/);
+  assert.match(component, /const ratingOrder: UnderstandingRating\[\] = \["unclear", "unsure", "understood"\]/);
+  assert.match(component, /followUpSelectedIndex !== null/);
+  assert.match(component, /確認問題/);
   assert.match(component, /ここまで理解できた？/);
   assert.match(page, /activeDojo === "understanding"/);
-  assert.match(page, /3問のプロトタイプを試す/);
+  assert.match(page, /className="dojoSwitcher"/);
 });
 
 test("keeps question data stable and fully grouped", async () => {

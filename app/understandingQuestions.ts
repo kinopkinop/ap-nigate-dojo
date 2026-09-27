@@ -1,5 +1,15 @@
 export type UnderstandingCategory = "セキュリティ" | "データベース" | "マネジメント";
 
+export type UnderstandingFollowUp = {
+  situation?: string;
+  question: string;
+  choices: string[];
+  correctIndex: number;
+  explanation: string;
+  keyPoint: string;
+  metrics?: Array<{ label: string; value: string }>;
+};
+
 export type UnderstandingQuestion = {
   id: string;
   category: UnderstandingCategory;
@@ -12,6 +22,7 @@ export type UnderstandingQuestion = {
   comparison: Array<{ label: string; detail: string }>;
   keyPoint: string;
   metrics?: Array<{ label: string; value: string }>;
+  followUp?: UnderstandingFollowUp;
 };
 
 export const understandingQuestions: UnderstandingQuestion[] = [
@@ -30,6 +41,18 @@ export const understandingQuestions: UnderstandingQuestion[] = [
       { label: "IPS", detail: "不正な通信を検知して遮断するが、WAFほどWebアプリのHTTP内容に特化していない。" },
     ],
     keyPoint: "「SQLインジェクション」「XSS」「HTTPの中身」がそろったら、まずWAFを疑う。",
+    followUp: {
+      question: "WAFとファイアウォールの違いとして、最も適切なものはどれ？",
+      choices: [
+        "WAFは主にHTTPの内容を検査し、ファイアウォールは主にIPアドレスやポート番号で制御する",
+        "WAFはIPアドレスだけを確認する",
+        "ファイアウォールだけがSQLインジェクションを検査する",
+        "両者の役割に違いはない",
+      ],
+      correctIndex: 0,
+      explanation: "WAFはWebアプリへ届くHTTP通信の内容を検査します。ファイアウォールは主にIPアドレス、ポート番号、プロトコルなどを基準に通信を制御します。",
+      keyPoint: "HTTPの中身を見るのがWAF。通信相手や入口を見るのがファイアウォール。",
+    },
   },
   {
     id: "transaction-non-repeatable-read",
@@ -46,6 +69,14 @@ export const understandingQuestions: UnderstandingQuestion[] = [
       { label: "デッドロック", detail: "互いに相手のロック解除を待ち、処理が進まなくなる。" },
     ],
     keyPoint: "同じ「行」の値が変わるならノンリピータブル。検索結果の「行数」が変わるならファントム。",
+    followUp: {
+      situation: "Aが「在庫ありの商品」を検索すると10行だった。別トランザクションが条件に合う商品を追加してCOMMIT後、Aが同じ検索をすると11行になった。",
+      question: "この場合に起きている現象はどれ？",
+      choices: ["ダーティリード", "ノンリピータブルリード", "ファントムリード", "デッドロック"],
+      correctIndex: 2,
+      explanation: "同じ検索を再実行したとき、別トランザクションが追加した行が現れています。値の変化ではなく検索結果の行数が変わるため、ファントムリードです。",
+      keyPoint: "同じ行の値が変わるならノンリピータブル。条件に合う行が増減するならファントム。",
+    },
   },
   {
     id: "evm-schedule-cost-status",
@@ -71,5 +102,22 @@ export const understandingQuestions: UnderstandingQuestion[] = [
       { label: "CPI", detail: "コスト効率を見る指標。EVとACを比べ、1未満なら効率が悪い。" },
     ],
     keyPoint: "SPIはスケジュール、CPIはコスト。どちらも1を基準に、未満なら悪いと判断する。",
+    followUp: {
+      situation: "進捗とコスト効率を、次の二つの指標から判断する。",
+      question: "このプロジェクトの状態として最も適切なものはどれ？",
+      choices: [
+        "予定より遅れ、コスト効率も悪い",
+        "予定より遅れ、コスト効率は良い",
+        "予定より進み、コスト効率は悪い",
+        "予定より進み、コスト効率も良い",
+      ],
+      correctIndex: 2,
+      metrics: [
+        { label: "SPI", value: "1.2" },
+        { label: "CPI", value: "0.8" },
+      ],
+      explanation: "SPIは1より大きいので予定より進んでいます。CPIは1より小さいのでコスト効率は悪い状態です。",
+      keyPoint: "SPIとCPIを別々に1と比較する。SPI＞1は進捗良好、CPI＜1はコスト効率不良。",
+    },
   },
 ];
