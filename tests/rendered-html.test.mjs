@@ -187,11 +187,11 @@ test("keeps the understanding-dojo question set structured and scenario based", 
   assert.doesNotMatch(followUpPromptFor("evm-schedule-cost-status"), /\b(?:SPI|CPI|PV|EV|AC)\b/);
 });
 
-test("keeps question data stable and fully grouped", async () => {
+test("keeps question data stable and fully covered by confusion pools", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   const termsBlock = page.slice(page.indexOf("const terms"), page.indexOf("type Progress"));
   const ids = [...termsBlock.matchAll(/id: "([^"]+)"/g)].map((match) => match[1]);
-  const groupsBlock = page.slice(page.indexOf("const confusionGroups"), page.indexOf("function textBigrams"));
+  const poolsBlock = page.slice(page.indexOf("const confusionPools"), page.indexOf("function textBigrams"));
 
   assert.equal(ids.length, 613);
   assert.equal(new Set(ids).size, ids.length);
@@ -199,7 +199,52 @@ test("keeps question data stable and fully grouped", async () => {
   for (const id of ["conceptual-schema", "internal-schema", "false-positive", "hot-standby", "cold-standby", "conceptual-design", "externalization", "initiating-process-group"]) {
     assert.ok(ids.includes(id), `missing term: ${id}`);
   }
-  for (const id of ids) assert.match(groupsBlock, new RegExp(`"${id}"`), `term has no confusion group: ${id}`);
+  for (const id of ids) assert.match(poolsBlock, new RegExp(`"${id}"`), `term has no confusion pool: ${id}`);
+});
+
+test("resolves overlapping confusion pools into per-question choice profiles", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const profilesBlock = page.slice(page.indexOf("const confusionProfiles"), page.indexOf("function textBigrams"));
+  const poolsBlock = page.slice(page.indexOf("const confusionPools"), page.indexOf("const confusionProfiles"));
+  const choicesBlock = page.slice(page.indexOf("function getConfusionIds"), page.indexOf("function maskAnswerTerm"));
+
+  assert.match(profilesBlock, /"candidate-key": \["superkey", "primary-key", "composite-key", "foreign-key"\]/);
+  assert.match(profilesBlock, /crl: \["ocsp", "digital-certificate", "ca", "pki"\]/);
+  assert.match(profilesBlock, /napt: \["nat", "proxy-server", "reverse-proxy"\]/);
+  for (const id of ["candidate-key", "crl", "napt"]) {
+    assert.equal([...poolsBlock.matchAll(new RegExp(`"${id}"`, "g"))].length, 1, `${id} should belong to one semantic pool`);
+  }
+  assert.match(poolsBlock, /\["superkey", "candidate-key", "primary-key", "composite-key", "foreign-key"\]/);
+  assert.match(poolsBlock, /\["digital-certificate", "ca", "pki", "crl", "ocsp"\]/);
+  assert.match(poolsBlock, /\["nat", "napt", "proxy-server", "reverse-proxy"\]/);
+  assert.doesNotMatch(poolsBlock, /\["oauth", "sso", "account-lock", "crl"\]/);
+  assert.doesNotMatch(poolsBlock, /\["napt", "dhcp", "spf", "packet"\]/);
+  assert.match(choicesBlock, /for \(const pool of confusionPools\)/);
+  assert.match(choicesBlock, /overlapCounts\.set/);
+  assert.match(choicesBlock, /const confusionIds = getConfusionIds\(card\)/);
+  assert.doesNotMatch(choicesBlock, /confusionPools\.find/);
+});
+
+test("keeps corrected database and NAPT definitions aligned with their choices", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const termsBlock = page.slice(page.indexOf("const terms"), page.indexOf("type Progress"));
+
+  assert.match(termsBlock, /id: "bcnf"[^\n]+全ての非自明な関数従属[^\n]+決定項がスーパーキー/);
+  assert.doesNotMatch(termsBlock.match(/id: "bcnf"[^\n]+/)?.[0] ?? "", /決定項が候補キー/);
+  assert.match(termsBlock, /id: "partial-functional-dependency"[^\n]+複合候補キー/);
+  assert.match(termsBlock, /id: "second-normal-form"[^\n]+複合候補キー/);
+  assert.match(termsBlock, /id: "candidate-key"[^\n]+スーパーキーは余分な属性を含んでもよい/);
+  assert.match(termsBlock, /id: "napt"[^\n]+category: "ネットワーク"[^\n]+NATは主にIPアドレスを変換/);
+});
+
+test("shows the situation-style hard label only when a hardPrompt exists", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const questionCopyBlock = page.slice(page.indexOf("const questionCopy"), page.indexOf("const currentModeKey"));
+
+  assert.match(questionCopyBlock, /const useHardPrompt = questionDifficulty === "hard" && Boolean\(card\.hardPrompt\)/);
+  assert.match(questionCopyBlock, /quizLabel: useHardPrompt \? "難問：状況と違いから判断してください"/);
+  assert.match(questionCopyBlock, /questionDifficulty === "hard" \? "定義を確認"/);
+  assert.doesNotMatch(questionCopyBlock, /card\.hardPrompt \?\? card\.answer/);
 });
 
 test("opens the weak-only mode from the same all-category pool used by its count", async () => {

@@ -35,7 +35,7 @@ const terms: Term[] = [
   { id: "keydelivery", term: "鍵配送問題", category: "セキュリティ", hint: "金庫は安全。でも、その金庫を開ける鍵を相手へ届けるには？", answer: "暗号化に使う共通鍵を、盗聴されず安全に相手へ渡さなければならない問題。", level: 2 },
   { id: "publickey", term: "公開鍵暗号", category: "セキュリティ", hint: "誰でも閉められるが、持ち主だけが開けられる南京錠を想像する。", answer: "受信者の公開鍵で暗号化し、受信者が自分の秘密鍵で復号する。", level: 2 },
   { id: "ca", term: "CA（認証局）", category: "セキュリティ", hint: "Webサイトなどの身元を第三者として保証する。", answer: "デジタル証明書を発行し、公開鍵と所有者の結び付きを保証する信頼された機関。", level: 2, confusion: "デジタル証明書は、CAが発行する身元確認用の電子的な証明書" },
-  { id: "napt", term: "NAPT", category: "セキュリティ", hint: "同じ建物の住所を共有するなら、部屋番号も必要になる。", answer: "IPアドレスだけでなくポート番号も変換し、複数端末で一つのグローバルIPを共有する。", level: 2 },
+  { id: "napt", term: "NAPT", category: "ネットワーク", hint: "一つのグローバルIPを複数端末で共有するとき、端末を見分ける情報にも注目する。", answer: "IPアドレスとポート番号を変換し、複数端末で一つのグローバルIPを共有する方式。", level: 2, confusion: "NATは主にIPアドレスを変換する。NAPTはポート番号も使って複数端末を区別する。" },
   { id: "password-list", term: "パスワードリスト攻撃", category: "セキュリティ", hint: "人は複数サービスで同じ合鍵を使い回しがち。そこを狙う。", answer: "他サービスから漏えいしたID・パスワードの組合せを、別サービスで試す。", level: 2 },
   { id: "account-lock", term: "アカウントロック", category: "セキュリティ", hint: "暗証番号を何度も間違えたキャッシュカードを想像する。", answer: "一定回数ログインに失敗したアカウントを一時的または恒久的に利用停止する。", level: 2 },
   { id: "spray", term: "パスワードスプレー攻撃", category: "セキュリティ", hint: "一つの鍵で同じ扉を何度も試すと警報が鳴る。なら、多くの扉へ薄く広く試す。", answer: "よく使われる少数のパスワードを多数のIDに試し、アカウントロックを避ける。", level: 2, confusion: "パスワードリスト攻撃との違いに注意" },
@@ -126,7 +126,7 @@ const terms: Term[] = [
   { id: "pest", term: "PEST分析", category: "ストラテジ", hint: "企業を取り巻く大きな外部環境を、四つの頭文字で見る。", answer: "Politics（政治）、Economy（経済）、Society（社会）、Technology（技術）の観点でマクロ環境を分析する手法。", level: 1 },
   { id: "product-life-cycle", term: "プロダクトライフサイクル", category: "ストラテジ", hint: "製品にも、生まれて伸び、安定し、衰える流れがある。", answer: "製品が市場へ導入されてから、導入期・成長期・成熟期・衰退期をたどる考え方。", level: 1 },
   { id: "functional-dependency", term: "関数従属", category: "データベース", hint: "ある列の値が決まれば、別の列の値も一つに決まる関係。", hardPrompt: "社員番号が決まると社員名が一意に決まる。この属性間の関係を何という？", answer: "属性Aの値を決めると属性Bの値が一意に決まる関係。A→Bと表し、正規化を考える基礎になる。", level: 1 },
-  { id: "partial-functional-dependency", term: "部分関数従属", category: "データベース", hint: "複合主キーの全部ではなく、その一部分だけで決まってしまう属性がある。", hardPrompt: "主キーが学生番号と科目番号の組合せなのに、学生名が学生番号だけで決まる依存関係は？", answer: "非キー属性が複合主キーの一部だけに関数従属する状態。これを取り除くのが第2正規形。", level: 1, confusion: "推移的関数従属を取り除くのは第3正規形" },
+  { id: "partial-functional-dependency", term: "部分関数従属", category: "データベース", hint: "複数属性からなる候補キーの全部ではなく、一部分だけで決まる非キー属性がある。", hardPrompt: "候補キーが学生番号と科目番号の組合せなのに、学生名が学生番号だけで決まる依存関係は？", answer: "非キー属性が、複数属性からなる候補キー全体ではなく、その一部だけに関数従属する状態。これを取り除くのが第2正規形。", level: 1, confusion: "主キーだけでなく複合候補キーを基準に考える。推移的関数従属を取り除くのは第3正規形。" },
   { id: "transitive-functional-dependency", term: "推移的関数従属", category: "データベース", hint: "主キーから直接ではなく、別の非キー属性を経由して決まる。", hardPrompt: "社員番号から部署番号が決まり、部署番号から部署名が決まる。この部署名の依存関係は？", answer: "主キー→非キー属性A→非キー属性Bのように、非キー属性を経由して依存する状態。これを取り除くのが第3正規形。", level: 1, confusion: "部分関数従属を取り除くのは第2正規形" },
   { id: "unique-constraint", term: "UNIQUE制約", category: "データベース", hint: "主キーではない列でも、同じ値の重複を許したくない。", answer: "指定した列または列の組合せで値の重複を禁止する制約。主キーと異なり、DBMSによってはNULLを許容する。", level: 1 },
   { id: "check-constraint", term: "CHECK制約", category: "データベース", hint: "年齢は0以上など、保存できる値にルールを設ける。", answer: "列へ入力・更新できる値が指定した条件を満たすように制限する制約。", level: 1 },
@@ -147,13 +147,13 @@ const terms: Term[] = [
   { id: "repeatable-read", term: "REPEATABLE READ", category: "データベース", hint: "同じ行を読み直しても、同じ値になるようにする。", hardPrompt: "同じトランザクション内で、同じ行の再読結果を保つ分離レベルは？", answer: "同じ行を再び読んでも同じ値を保証する分離レベル。ノンリピータブルリードを防ぐ。", level: 1 },
   { id: "serializable-isolation", term: "SERIALIZABLE", category: "データベース", hint: "同時実行でも、一つずつ順番に処理した結果にする。", hardPrompt: "直列実行と同等の結果を保証する、最も高いトランザクション分離レベルは？", answer: "直列実行と同等の結果を保証する、最も高い分離レベル。ファントムリードも防ぐ。", level: 1 },
   { id: "primary-key", term: "主キー", category: "データベース", hint: "各行を一つに特定する代表のキー。", answer: "テーブルの各行を一意に識別するキー。重複とNULLは許されない。", level: 1 },
-  { id: "candidate-key", term: "候補キー", category: "データベース", hint: "行を一意に特定できる、主キーの候補。", answer: "行を一意に識別でき、余分な属性を含まない最小のキー。候補キーの一つが主キーとして選ばれる。", level: 1, confusion: "外部キーは別テーブルのキーを参照する" },
+  { id: "candidate-key", term: "候補キー", category: "データベース", hint: "行を一意に識別できる組合せから、余分な属性を取り除いて考える。", answer: "行を一意に識別でき、余分な属性を含まない最小のキー。候補キーの一つが主キーとして選ばれる。", level: 1, confusion: "スーパーキーは余分な属性を含んでもよい。その中で最小のものが候補キー。" },
   { id: "one-to-many", term: "1対多", category: "データベース", hint: "一人の顧客が複数の注文を持つような関係。", answer: "一方の1行に対して、もう一方の複数行が対応する関係。通常は「多」側に外部キーを置く。", level: 1 },
   { id: "many-to-many", term: "多対多", category: "データベース", hint: "学生は複数科目を取り、科目にも複数学生がいる。", answer: "双方の1行が相手側の複数行と対応する関係。リレーショナルDBでは中間テーブルを使って二つの1対多に分ける。", level: 1 },
   { id: "junction-table", term: "中間テーブル", category: "データベース", hint: "多対多の二者の間に置き、組合せを記録する。", answer: "多対多の関係を表現するため、両テーブルの主キーを外部キーとして保持するテーブル。関連テーブルとも呼ぶ。", level: 1 },
   { id: "er-diagram", term: "ER図", category: "データベース", hint: "実体と、その間の関係を図で表す。", answer: "Entity Relationship Diagram。エンティティ、属性、リレーションシップを図示し、データ構造を整理する。", level: 1 },
   { id: "first-normal-form", term: "第1正規形", category: "データベース", hint: "一つのセルに複数の値を詰め込まない。", hardPrompt: "一つのセルに電話番号をカンマ区切りで複数保存している表が、まず満たしていない正規形は？", answer: "各列の値を単一の値にし、繰返し項目をなくした形。表の各セルが原子的な値を持つ。", level: 1 },
-  { id: "second-normal-form", term: "第2正規形", category: "データベース", hint: "複合主キーの一部だけで決まる項目を分ける。", hardPrompt: "第1正規形の表から、複合主キーの一部だけに依存する非キー属性を分離した形は？", answer: "第1正規形を満たし、非キー属性の部分関数従属を取り除いた形。", level: 1, confusion: "第3正規形は推移的関数従属を取り除く" },
+  { id: "second-normal-form", term: "第2正規形", category: "データベース", hint: "複数属性からなる候補キーの一部だけで決まる非キー属性を分ける。", hardPrompt: "第1正規形の表から、複合候補キーの一部だけに依存する非キー属性を分離した形は？", answer: "第1正規形を満たし、非キー属性が複合候補キーの一部だけに依存しない形。", level: 1, confusion: "第2正規形は部分関数従属をなくす。第3正規形は推移的関数従属をなくす。" },
   { id: "third-normal-form", term: "第3正規形", category: "データベース", hint: "主キー以外の項目を経由して決まる項目を分ける。", hardPrompt: "第2正規形の表から、非キー属性を経由する依存関係を分離した形は？", answer: "第2正規形を満たし、非キー属性間の推移的関数従属を取り除いた形。", level: 1, confusion: "第2正規形は部分関数従属を取り除く" },
   { id: "why-split-tables", term: "更新異常", category: "データベース", hint: "同じ事実を複数行に持つと、一部だけ直して食い違うことがある。", hardPrompt: "同じ顧客住所を複数の注文行に重複保存し、一部の行だけ住所を変更したため内容が不一致になった。この問題は？", answer: "正規化されていない表で、同じ事実の重複により挿入・更新・削除時に不整合が起こること。テーブルを適切に分けて防ぐ。", level: 1, confusion: "正規化は、更新異常を防ぐためにテーブルを整理・分割する手法" },
   { id: "select-sql", term: "SELECT", category: "データベース", hint: "テーブルから必要な列や行を取り出す。", answer: "テーブルからデータを検索・取得するDML。SELECT 列名 FROM 表名の形で使う。", level: 1 },
@@ -446,7 +446,7 @@ const terms: Term[] = [
   { id: "relationship", term: "リレーションシップ", category: "データベース", hint: "二つの管理対象のつながりを表す。", answer: "エンティティ同士の関連。ER図では線などで表す。", level: 1 },
   { id: "cardinality", term: "カーディナリティ", category: "データベース", hint: "一方の実体に他方がいくつ対応するか。", answer: "エンティティ間の対応数を表す考え方。1対1、1対多、多対多などがある。", level: 1 },
   { id: "unnormalized-form", term: "非正規形", category: "データベース", hint: "一つの項目に繰返しや複数の値が残っている。", answer: "繰返し項目などを含み、第1正規形を満たしていないデータの形。", level: 1 },
-  { id: "bcnf", term: "BCNF", category: "データベース", hint: "決定項が必ず候補キーになるようにする。", answer: "全ての関数従属で、決定項が候補キーとなるようにした正規形。", level: 1 },
+  { id: "bcnf", term: "BCNF", category: "データベース", hint: "全ての非自明な関数従属について、決定項が何であるかを確認する。", hardPrompt: "非自明な関数従属 X → Y があるたびに、決定項Xがスーパーキーとなる正規形は？", answer: "全ての非自明な関数従属で、決定項がスーパーキーとなる正規形。第3正規形より厳しい。", level: 1, confusion: "第3正規形は一定条件で非キー属性が従属側にあることを許すが、BCNFは非自明な関数従属の決定項を必ずスーパーキーにする。" },
   { id: "database-redundancy", term: "データの冗長性", category: "データベース", hint: "同じ事実を複数の場所へ重複して持つ。", answer: "同じ内容のデータを複数箇所に重複して保持している状態。更新異常の原因になる。", level: 1 },
   { id: "atomicity", term: "原子性", category: "データベース", hint: "一連の処理を全て行うか、全く行わない。", answer: "トランザクションの処理を、全て成功させるか全て取り消す性質。ACIDのA。", level: 1 },
   { id: "isolation", term: "独立性（分離性）", category: "データベース", hint: "同時実行中の処理同士が不適切に影響しない。", answer: "複数のトランザクションが互いに不適切な影響を与えず実行される性質。ACIDのI。", level: 1 },
@@ -829,13 +829,16 @@ function shuffle<T>(items: T[]) {
   return shuffled;
 }
 
-const confusionGroups = [
+// A pool expresses a semantic neighborhood. Pools may overlap; an overlapping
+// term is resolved from every pool below instead of whichever array appears first.
+const confusionPools = [
   ["cc", "rootkit", "ransomware", "honeypot"],
   ["traversal", "prepared", "csrf", "httponly"],
   ["password-list", "spray", "dictionary-attack", "phishing"],
+  ["account-lock", "multi-factor-authentication", "password-authentication", "biometric-authentication", "sso"],
   ["hijack", "fixation", "csrf", "httponly"],
   ["https", "publickey", "signature", "ca", "keydelivery"],
-  ["oauth", "sso", "account-lock", "crl"],
+  ["oauth", "authorization", "sso", "authentication", "access-control"],
   ["ipsec", "tunnel", "esp", "dmz", "packet"],
   ["heuristic", "polymorphic", "rootkit", "ransomware", "sandbox", "honeypot"],
   ["mitm", "mitb", "non-repudiation", "integrity"],
@@ -860,7 +863,6 @@ const confusionGroups = [
   ["crm", "scm", "erp", "bpr"],
   ["segmentation", "targeting", "positioning", "product-life-cycle"],
   ["fp-method", "analogy-estimation", "evm-cost", "feasibility-study"],
-  ["napt", "dhcp", "spf", "packet"],
   ["functional-dependency", "partial-functional-dependency", "transitive-functional-dependency", "normalization"],
   ["unique-constraint", "check-constraint", "referential-integrity", "foreign-key"],
   ["bplus-tree-index", "hash-index", "composite-index", "materialized-view"],
@@ -868,7 +870,6 @@ const confusionGroups = [
   ["sync-replication", "async-replication", "replication", "sharding"],
   ["conceptual-design", "logical-design", "physical-design", "conceptual-schema"],
   ["read-uncommitted", "read-committed", "repeatable-read", "serializable-isolation"],
-  ["primary-key", "candidate-key", "foreign-key", "unique-constraint"],
   ["one-to-many", "many-to-many", "junction-table", "er-diagram"],
   ["first-normal-form", "second-normal-form", "third-normal-form", "normalization"],
   ["select-sql", "insert-sql", "update-sql", "delete-sql"],
@@ -894,7 +895,7 @@ const confusionGroups = [
   ["mes", "erp", "scm", "iot"],
   ["scala-language", "soa", "iot", "mes"],
   ["delphi-method", "brainstorming", "feasibility-study", "analogy-estimation"],
-  ["reverse-proxy", "napt", "packet", "dmz"],
+  ["reverse-proxy", "proxy-server", "load-balancing", "cdn"],
   ["marketing-4p-4c", "marketing-4c", "segmentation", "targeting"],
   ["immersion-cooling", "warm-standby", "hot-standby", "availability-management"],
   ["soa", "erp", "scm", "crm"],
@@ -1047,6 +1048,19 @@ const confusionGroups = [
   ["iso", "jis", "ieee", "rfc"],
 ];
 
+// Cards that need a particularly deliberate comparison get an ordered,
+// per-question profile. The values are distractors, not another membership list.
+const confusionProfiles: Partial<Record<string, readonly string[]>> = {
+  "candidate-key": ["superkey", "primary-key", "composite-key", "foreign-key"],
+  superkey: ["candidate-key", "primary-key", "composite-key", "foreign-key"],
+  crl: ["ocsp", "digital-certificate", "ca", "pki"],
+  napt: ["nat", "proxy-server", "reverse-proxy"],
+  nat: ["napt", "proxy-server", "reverse-proxy"],
+  bcnf: ["third-normal-form", "second-normal-form", "first-normal-form", "normalization"],
+  "second-normal-form": ["first-normal-form", "third-normal-form", "bcnf", "partial-functional-dependency"],
+  "partial-functional-dependency": ["transitive-functional-dependency", "functional-dependency", "second-normal-form", "third-normal-form"],
+};
+
 function textBigrams(text: string) {
   const normalized = text.toUpperCase().replace(/[\s・（）()／/＝=、。,.：:「」『』-]/g, "");
   const result = new Set<string>();
@@ -1068,13 +1082,49 @@ function stableNumber(text: string) {
   return hash;
 }
 
+function getConfusionIds(card: Term) {
+  const explicitProfile = confusionProfiles[card.id];
+  if (explicitProfile) return explicitProfile.filter((id) => terms.some((item) => item.id === id));
+
+  // Count every semantic pool that connects this card with another card. This
+  // makes overlapping pools useful evidence instead of silently ignoring all
+  // but the first match.
+  const overlapCounts = new Map<string, number>();
+  for (const pool of confusionPools) {
+    if (!pool.includes(card.id)) continue;
+    for (const id of pool) {
+      if (id === card.id) continue;
+      overlapCounts.set(id, (overlapCounts.get(id) ?? 0) + 1);
+    }
+  }
+
+  return [...overlapCounts]
+    .map(([id, overlapCount]) => ({
+      item: terms.find((term) => term.id === id),
+      overlapCount,
+    }))
+    .filter((candidate): candidate is { item: Term; overlapCount: number } => Boolean(candidate.item))
+    .sort((left, right) => {
+      const overlapDifference = right.overlapCount - left.overlapCount;
+      if (overlapDifference) return overlapDifference;
+      const categoryDifference = Number(right.item.category === card.category) - Number(left.item.category === card.category);
+      if (categoryDifference) return categoryDifference;
+      const similarityDifference = textSimilarity(card.term, right.item.term) - textSimilarity(card.term, left.item.term);
+      if (similarityDifference) return similarityDifference;
+      return stableNumber(`${card.id}:${left.item.id}`) - stableNumber(`${card.id}:${right.item.id}`);
+    })
+    .slice(0, 8)
+    .map(({ item }) => item.id);
+}
+
 type Difficulty = "easy" | "normal" | "hard";
 
 function getChoices(card: Term, difficulty: Difficulty, disabledIds: string[] = []) {
-  const group = confusionGroups.find((ids) => ids.includes(card.id)) ?? [];
+  const confusionIds = getConfusionIds(card);
   const candidates = terms.filter((item) => item.id !== card.id && !disabledIds.includes(item.id)).map((item) => {
-    const sameConfusionGroup = group.includes(item.id);
-    const score = (sameConfusionGroup ? 100 : 0)
+    const confusionRank = confusionIds.indexOf(item.id);
+    const sameConfusionGroup = confusionRank >= 0;
+    const score = (sameConfusionGroup ? 140 - confusionRank * 5 : 0)
       + (item.category === card.category ? 4 : 0)
       + textSimilarity(card.term, item.term) * 18
       + textSimilarity(card.answer, item.answer) * 6
@@ -1093,11 +1143,13 @@ function getChoices(card: Term, difficulty: Difficulty, disabledIds: string[] = 
       && !picked.some(({ item }) => item.id === candidate.item.id)).slice(0, 18));
     picked.push(...ordinaryPool.slice(0, 2));
   } else {
-    const primaryPool = difficulty === "hard"
-      ? candidates.filter((candidate) => candidate.sameConfusionGroup || (candidate.sameCategory && candidate.score >= 5))
-      : candidates.filter((candidate) => candidate.sameCategory);
-    const orderedPool = difficulty === "hard" ? primaryPool : shuffle(primaryPool.slice(0, 14));
-    picked = orderedPool.slice(0, 3);
+    const closePool = candidates.filter((candidate) => candidate.sameConfusionGroup);
+    picked = closePool.slice(0, difficulty === "hard" ? 3 : 2);
+    if (difficulty === "normal" && picked.length < 3) {
+      const sameCategoryPool = shuffle(candidates.filter((candidate) => candidate.sameCategory
+        && !candidate.sameConfusionGroup).slice(0, 14));
+      picked.push(...sameCategoryPool.slice(0, 3 - picked.length));
+    }
   }
   for (const candidate of candidates) {
     if (picked.length >= 3) break;
@@ -1296,13 +1348,14 @@ export default function Home() {
     if (!card) return { studyLabel: "この用語を説明できますか？", quizLabel: "この説明に当てはまる用語は？", quizText: "", difficultyLabel: "標準" };
     const studyLabels = ["この用語を説明できますか？", "意味と役割を思い出せますか？", "この用語の要点を言えますか？"];
     const copyVariant = stableNumber(`${card.id}:${activePosition}:${mode}`);
-    const useFeatureQuestion = questionDifficulty === "hard" || (questionDifficulty === "normal" && copyVariant % 2 === 0);
-    const hardQuestion = maskAnswerTerm(card.hardPrompt ?? card.answer, card);
+    const useHardPrompt = questionDifficulty === "hard" && Boolean(card.hardPrompt);
+    const useFeatureQuestion = useHardPrompt || (questionDifficulty === "normal" && copyVariant % 2 === 0);
+    const quizSource = useHardPrompt ? card.hardPrompt as string : useFeatureQuestion ? card.hint : card.answer;
     return {
       studyLabel: card.studyPrompt ?? studyLabels[copyVariant % studyLabels.length],
-      quizLabel: questionDifficulty === "hard" ? "難問：状況と違いから判断してください" : useFeatureQuestion ? "次の特徴に当てはまる用語は？" : "この説明に当てはまる用語は？",
-      quizText: questionDifficulty === "hard" ? hardQuestion : maskAnswerTerm(useFeatureQuestion ? card.hint : card.answer, card),
-      difficultyLabel: questionDifficulty === "easy" ? "やさしめ" : questionDifficulty === "hard" ? "定着チャレンジ" : "標準",
+      quizLabel: useHardPrompt ? "難問：状況と違いから判断してください" : useFeatureQuestion ? "次の特徴に当てはまる用語は？" : "この説明に当てはまる用語は？",
+      quizText: maskAnswerTerm(quizSource, card),
+      difficultyLabel: questionDifficulty === "easy" ? "やさしめ" : useHardPrompt ? "定着チャレンジ" : questionDifficulty === "hard" ? "定義を確認" : "標準",
     };
   }, [card, questionDifficulty, activePosition, mode]);
   const currentModeKey: ModeKey | null = mode === "list" ? null : mode;
