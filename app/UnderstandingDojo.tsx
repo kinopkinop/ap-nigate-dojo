@@ -46,7 +46,6 @@ function readProgress(): UnderstandingProgress {
 export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
   const [position, setPosition] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [followUpVisible, setFollowUpVisible] = useState(false);
   const [followUpSelectedIndex, setFollowUpSelectedIndex] = useState<number | null>(null);
   const [rating, setRating] = useState<UnderstandingRating | null>(null);
   const [progress, setProgress] = useState<UnderstandingProgress>(() => typeof window === "undefined" ? {} : readProgress());
@@ -134,7 +133,6 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
     }
     setPosition((old) => old + 1);
     setSelectedIndex(null);
-    setFollowUpVisible(false);
     setFollowUpSelectedIndex(null);
     setRating(null);
     window.scrollTo({ top: 0 });
@@ -143,7 +141,6 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
   function restart() {
     setPosition(0);
     setSelectedIndex(null);
-    setFollowUpVisible(false);
     setFollowUpSelectedIndex(null);
     setRating(null);
     setSessionAnswers({});
@@ -234,9 +231,7 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
             <section className="keyPoint"><h3>判断ポイント</h3><p>{question.keyPoint}</p></section>
           </div>
 
-          {question.followUp && !followUpVisible && <button className="followUpStart" onClick={() => setFollowUpVisible(true)}>解説を理解できたか、確認問題へ <span>→</span></button>}
-
-          {question.followUp && followUpVisible && <section className="followUpCard" aria-labelledby="follow-up-title">
+          {question.followUp && <section className="followUpCard" aria-labelledby="follow-up-title">
             <div className="followUpHeading"><span>確認問題</span><small>5〜30秒で判断</small></div>
             {question.followUp.situation && <p className="followUpSituation">{question.followUp.situation}</p>}
             {question.followUp.metrics && <div className="understandingMetrics followUpMetrics">

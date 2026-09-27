@@ -1388,7 +1388,7 @@ export default function Home() {
     }
     if (mode === "priority") {
       if (priorityPosition >= priorityIds.length - 1) {
-        setPriorityIds(buildRound("すべて", next, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds));
+        setPriorityIds(buildRound(category, next, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds));
         setPriorityPosition(0);
       } else {
         setPriorityPosition((old) => old + 1);
@@ -1434,7 +1434,7 @@ export default function Home() {
     setProgress({});
     setRoundIds(buildRound(category, {}, [], false, false, false, collectionOverrides, "regular", disabledIds));
     setRoundPosition(0);
-    setPriorityIds(buildRound("すべて", {}, [], true, false, false, collectionOverrides, "regular", disabledIds));
+    setPriorityIds(buildRound(category, {}, [], true, false, false, collectionOverrides, "regular", disabledIds));
     setPriorityPosition(0);
     setUnseenIds(buildRound("すべて", {}, [], false, true, false, collectionOverrides, "regular", disabledIds));
     setUnseenPosition(0);
@@ -1600,7 +1600,7 @@ export default function Home() {
     }
     if (mode === "priority") {
       if (priorityPosition >= priorityIds.length - 1) {
-        setPriorityIds(buildRound("すべて", progress, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds));
+        setPriorityIds(buildRound(category, progress, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds));
         setPriorityPosition(0);
       } else setPriorityPosition((old) => old + 1);
     } else if (mode === "weak") {
@@ -1669,7 +1669,7 @@ export default function Home() {
   function refreshRounds(nextOverrides: CollectionOverrides, nextDisabledIds: string[]) {
     setRoundIds(buildRound(category, progress, [], false, false, false, nextOverrides, "regular", nextDisabledIds));
     setRoundPosition(0);
-    setPriorityIds(buildRound("すべて", progress, [], true, false, false, nextOverrides, "regular", nextDisabledIds));
+    setPriorityIds(buildRound(category, progress, [], true, false, false, nextOverrides, "regular", nextDisabledIds));
     setPriorityPosition(0);
     setWeakIds(buildRound("すべて", progress, [], false, false, true, nextOverrides, "regular", nextDisabledIds));
     setWeakPosition(0);
@@ -1685,7 +1685,7 @@ export default function Home() {
 
   function startNextSession(key: ModeKey) {
     if (key === "priority") {
-      setPriorityIds(buildRound("すべて", progress, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds));
+      setPriorityIds(buildRound(category, progress, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds));
       setPriorityPosition(0);
     } else if (key === "weak") {
       setWeakIds(buildRound(category, progress, weakIds, false, false, true, collectionOverrides, "regular", disabledIds));
@@ -1737,7 +1737,7 @@ export default function Home() {
         <nav aria-label="メインメニュー">
           <button className={mode === "study" ? "active" : ""} onClick={() => { setMode("study"); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>用語チェック</button>
           <button className={mode === "quiz" ? "active" : ""} onClick={() => { setMode("quiz"); setRevealed(false); }}>4択クイズ</button>
-          <button className={mode === "priority" ? "active" : ""} onClick={() => { setMode("priority"); setPriorityIds(buildRound("すべて", progress, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds)); setPriorityPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>最優先だけ <span className="navCount">{priorityCount}</span></button>
+          <button className={mode === "priority" ? "active" : ""} onClick={() => { setMode("priority"); setCategory("すべて"); setPriorityIds(buildRound("すべて", progress, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds)); setPriorityPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>最優先だけ <span className="navCount">{priorityCount}</span></button>
           <button className={mode === "weak" ? "active" : ""} onClick={() => { setMode("weak"); setCategory("すべて"); setWeakIds(buildRound("すべて", progress, weakIds, false, false, true, collectionOverrides, "regular", disabledIds)); setWeakPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>苦手だけ <span className="navCount">{weakCount}</span></button>
           <button className={mode === "unseen" ? "active" : ""} onClick={() => { setMode("unseen"); setUnseenIds(buildRound(category, progress, unseenIds, false, true, false, collectionOverrides, "regular", disabledIds)); setUnseenPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>未出題だけ <span className="navCount">{unseenCount}</span></button>
           <button className={mode === "lowquiz" ? "active" : ""} onClick={() => { setMode("lowquiz"); setLowQuizIds(buildLowQuizRound(category, progress, lowQuizIds, collectionOverrides, disabledIds)); setLowQuizPosition(0); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>出題少なめ</button>
@@ -1769,11 +1769,11 @@ export default function Home() {
             <span className="sectionNumber">01</span>
             <h2>{mode === "study" ? "用語を説明できるか確認" : mode === "quiz" ? "説明から用語を当てる" : mode === "priority" ? "最優先だけを集中復習" : mode === "weak" ? "苦手問題だけをまとめて復習" : mode === "unseen" ? "まだ解いていない用語に挑戦" : mode === "lowquiz" ? "4択の出題回数が少ない問題" : mode === "special" ? "特別問題を集中復習" : "用語一覧"}</h2>
           </div>
-          {mode !== "priority" && <div className="filters" role="group" aria-label="分野を絞り込む">
+          <div className="filters" role="group" aria-label="分野を絞り込む">
             {categoryNames.map((name) => (
-              <button key={name} className={category === name ? "selected" : ""} onClick={() => { setCategory(name); if (mode === "weak") { setWeakIds(buildRound(name, progress, weakIds, false, false, true, collectionOverrides, "regular", disabledIds)); setWeakPosition(0); } else if (mode === "unseen") { setUnseenIds(buildRound(name, progress, unseenIds, false, true, false, collectionOverrides, "regular", disabledIds)); setUnseenPosition(0); } else if (mode === "lowquiz") { setLowQuizIds(buildLowQuizRound(name, progress, lowQuizIds, collectionOverrides, disabledIds)); setLowQuizPosition(0); } else if (mode === "special") { setSpecialIds(buildRound(name, progress, specialIds, false, false, false, collectionOverrides, "special", disabledIds)); setSpecialPosition(0); } else { setRoundIds(buildRound(name, progress, [], false, false, false, collectionOverrides, "regular", disabledIds)); setRoundPosition(0); } setSession([]); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); if (currentModeKey) { setSessionResults((old) => ({ ...old, [currentModeKey]: [] })); setCompleted((old) => ({ ...old, [currentModeKey]: false })); } }}>{name}</button>
+              <button key={name} className={category === name ? "selected" : ""} onClick={() => { setCategory(name); if (mode === "priority") { setPriorityIds(buildRound(name, progress, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds)); setPriorityPosition(0); } else if (mode === "weak") { setWeakIds(buildRound(name, progress, weakIds, false, false, true, collectionOverrides, "regular", disabledIds)); setWeakPosition(0); } else if (mode === "unseen") { setUnseenIds(buildRound(name, progress, unseenIds, false, true, false, collectionOverrides, "regular", disabledIds)); setUnseenPosition(0); } else if (mode === "lowquiz") { setLowQuizIds(buildLowQuizRound(name, progress, lowQuizIds, collectionOverrides, disabledIds)); setLowQuizPosition(0); } else if (mode === "special") { setSpecialIds(buildRound(name, progress, specialIds, false, false, false, collectionOverrides, "special", disabledIds)); setSpecialPosition(0); } else { setRoundIds(buildRound(name, progress, [], false, false, false, collectionOverrides, "regular", disabledIds)); setRoundPosition(0); } setSession([]); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); if (currentModeKey) { setSessionResults((old) => ({ ...old, [currentModeKey]: [] })); setCompleted((old) => ({ ...old, [currentModeKey]: false })); } }}>{name}</button>
             ))}
-          </div>}
+          </div>
           {(mode === "priority" || mode === "weak" || mode === "unseen" || mode === "special") && <div className="formatSwitch" role="group" aria-label="問題形式を選ぶ">
             <button className={focusFormat === "term" ? "selected" : ""} onClick={() => { setFocusFormat("term"); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>用語チェック</button>
             <button className={focusFormat === "quiz" ? "selected" : ""} onClick={() => { setFocusFormat("quiz"); setRevealed(false); setQuizChoice(null); setQuizResult(null); setQuizUnsure(false); setQuizConfident(false); }}>4択問題</button>
@@ -1963,7 +1963,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="emptyRound">
-            <strong>{mode === "special" ? "この分野に出題中の特別問題はありません。" : mode === "priority" ? "最優先の問題はありません。" : mode === "weak" ? "この分野に苦手問題はありません。" : mode === "unseen" ? "この分野の未出題問題はありません。" : "この分野に出題中の通常問題はありません。"}</strong>
+            <strong>{mode === "special" ? "この分野に出題中の特別問題はありません。" : mode === "priority" ? "この分野に最優先の問題はありません。" : mode === "weak" ? "この分野に苦手問題はありません。" : mode === "unseen" ? "この分野の未出題問題はありません。" : "この分野に出題中の通常問題はありません。"}</strong>
             <p>{disabledIds.length > 0 ? "出題を停止した問題は、用語一覧から再開できます。" : mode === "special" ? "用語一覧から問題ごとに特別問題へ移せます。" : mode === "priority" ? `定着度${priorityRetentionMax}以下の問題が対象です。` : mode === "weak" ? "定着度60未満の問題が対象です。" : "別の分野を選ぶか、用語一覧で区分を変更できます。"}</p>
             <button onClick={() => { setCategory("すべて"); setCollectionFilter(disabledIds.length > 0 ? "disabled" : "all"); setMode("list"); }}>用語一覧へ</button>
           </div>

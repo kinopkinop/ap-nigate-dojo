@@ -57,6 +57,8 @@ test("adds exactly three separate understanding-dojo prototype questions", async
   assert.match(component, /const ratingOrder: UnderstandingRating\[\] = \["unclear", "unsure", "understood"\]/);
   assert.match(component, /followUpSelectedIndex !== null/);
   assert.match(component, /確認問題/);
+  assert.doesNotMatch(component, /followUpVisible|確認問題へ/);
+  assert.match(component, /question\.followUp && <section className="followUpCard"/);
   assert.match(component, /ここまで理解できた？/);
   assert.match(page, /activeDojo === "understanding"/);
   assert.match(page, /className="dojoSwitcher"/);
@@ -86,6 +88,21 @@ test("opens the weak-only mode from the same all-category pool used by its count
   assert.ok(weakButtonStart >= 0, "weak-only navigation button is missing");
   assert.match(weakButton, /setCategory\("すべて"\)/);
   assert.match(weakButton, /buildRound\("すべて", progress, weakIds, false, false, true, collectionOverrides, "regular", disabledIds\)/);
+});
+
+test("lets the priority mode filter questions by category", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const priorityButtonStart = page.indexOf('<button className={mode === "priority"');
+  const priorityButtonEnd = page.indexOf("</button>", priorityButtonStart);
+  const priorityButton = page.slice(priorityButtonStart, priorityButtonEnd);
+
+  assert.ok(priorityButtonStart >= 0, "priority navigation button is missing");
+  assert.match(priorityButton, /setCategory\("すべて"\)/);
+  assert.doesNotMatch(page, /mode !== "priority" && <div className="filters"/);
+  assert.match(page, /if \(mode === "priority"\) \{ setPriorityIds\(buildRound\(name, progress, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds\)\)/);
+  assert.match(page, /setPriorityIds\(buildRound\(category, next, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds\)\)/);
+  assert.match(page, /setPriorityIds\(buildRound\(category, progress, priorityIds, true, false, false, collectionOverrides, "regular", disabledIds\)\)/);
+  assert.match(page, /この分野に最優先の問題はありません/);
 });
 
 test("defines priority as retention 30 or below everywhere", async () => {
