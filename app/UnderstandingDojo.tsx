@@ -204,12 +204,6 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
       </div>
 
       <article className="understandingCard">
-        <div className="understandingMeta">
-          <span>{question.category}</span>
-          <b>Q{position + 1} / {understandingQuestions.length}</b>
-        </div>
-        <p className="understandingTheme">{question.theme}</p>
-
         <section className="situationBox" aria-labelledby="situation-title">
           <span id="situation-title">状況</span>
           <p>{question.situation}</p>
@@ -242,7 +236,6 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
           </div>
           <div className="explanationGrid">
             <section><h3>なぜ？</h3><p>{question.explanation}</p></section>
-            <section className="cluePanel"><h3>問題文の手掛かり</h3><ul className="clueList">{question.clues.map((clue) => <li key={clue}>{clue}</li>)}</ul></section>
             <section><h3>混同注意</h3><div className="comparisonList">{question.comparison.map((item) => <p key={item.label}><b>{item.label}</b><span>{item.detail}</span></p>)}</div></section>
             <section className="keyPoint"><h3>判断ポイント</h3><p>{question.keyPoint}</p></section>
           </div>
@@ -270,7 +263,6 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
               <strong>{followUpCorrect ? "正解！" : `正解は「${question.followUp.choices[question.followUp.correctIndex]}」`}</strong>
               <div className="followUpDetails">
                 <section><h4>なぜ？</h4><p>{question.followUp.explanation}</p></section>
-                <section><h4>問題文の手掛かり</h4><ul className="clueList">{question.followUp.clues.map((clue) => <li key={clue}>{clue}</li>)}</ul></section>
                 <section><h4>混同注意</h4><div className="comparisonList">{question.followUp.comparison.map((item) => <p key={item.label}><b>{item.label}</b><span>{item.detail}</span></p>)}</div></section>
                 <section className="followUpKey"><h4>判断ポイント</h4><p>{question.followUp.keyPoint}</p></section>
               </div>

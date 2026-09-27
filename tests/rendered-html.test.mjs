@@ -81,7 +81,8 @@ test("adds exactly three separate understanding-dojo prototype questions", async
   assert.match(component, /const followUpChoices = useMemo\(\(\) => question\.followUp \? shuffleChoices\(question\.followUp\.choices\) : \[\], \[question\]\)/);
   assert.match(component, /chooseAnswer\(choice\.originalIndex\)/);
   assert.match(component, /chooseFollowUp\(choice\.originalIndex\)/);
-  assert.match(component, /問題文の手掛かり/);
+  assert.doesNotMatch(component, /問題文の手掛かり|question\.clues\.map|question\.followUp\.clues\.map/);
+  assert.doesNotMatch(component, /className="understandingMeta"|className="understandingTheme"/);
   assert.match(component, /question\.conditions\.map/);
   assert.match(component, /question\.followUp\.comparison\.map/);
   assert.match(page, /activeDojo === "understanding"/);
