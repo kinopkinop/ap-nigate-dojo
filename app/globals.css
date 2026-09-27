@@ -74,6 +74,8 @@ h2 { margin: 0; font-size: 26px; letter-spacing: -.04em; }
 .flashcard.level3::before { background: var(--red); }.flashcard.level2::before { background: var(--yellow); }
 .cardMeta { display: flex; align-items: center; justify-content: space-between; font-size: 10px; letter-spacing: .08em; color: #81858d; }
 .cardMetaLeft { display: flex; align-items: center; gap: 15px; }
+.cardMetaRight { display: flex; align-items: center; gap: 8px; }
+.questionQuickActions { display: flex; align-items: center; gap: 2px; padding-left: 6px; border-left: 1px solid var(--line); letter-spacing: 0; }.questionQuickActions button { padding: 4px 5px; border: 0; background: transparent; color: #8a8e96; font-size: 9px; font-weight: 700; cursor: pointer; text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 3px; }.questionQuickActions button:hover, .questionQuickActions button:focus-visible { color: var(--ink); text-decoration-color: currentColor; }.questionQuickActions button:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
 .cardNavigation { display: flex; align-items: center; border-right: 1px solid var(--line); padding-right: 13px; }
 .backButton, .forwardButton { border: 0; background: transparent; padding: 3px 9px; color: var(--ink); font-size: 10px; font-weight: 800; cursor: pointer; letter-spacing: .04em; }
 .backButton { padding-left: 0; }
@@ -229,7 +231,7 @@ footer span { font-weight: 800; } footer p { margin: 0; color: #aeb4c5; }
   .formatSwitch { width: 100%; margin-top: 14px; }.formatSwitch button { flex: 1; min-height: 44px; font-size: 11px; }
   .studyGrid { box-shadow: 0 10px 28px rgba(23,32,58,.1); }.priorityPanel { padding: 18px 20px; }.panelLabel { margin-bottom: 8px; }.priorityPanel h3 { font-size: 17px; line-height: 1.4; }.priorityPanel h3 br { display: none; }.meter { margin-top: 15px; }.meterText { margin: 7px 0 0; }
   .flashcard { min-height: 540px; padding: 25px 18px 22px; }.flashcard::before, .resultCard::before { width: 5px; }
-  .cardMeta { align-items: flex-start; }.cardMetaLeft { min-width: 0; }.cardNavigation { padding-right: 0; border-right: 0; }.backButton, .forwardButton { min-height: 38px; padding: 3px 8px; font-size: 10px; }.cardMeta b { padding: 7px 8px; font-size: 9px; white-space: nowrap; }
+  .cardMeta { align-items: flex-start; }.cardMetaLeft { min-width: 0; }.cardMetaRight { flex-direction: column; align-items: flex-end; gap: 3px; }.questionQuickActions { gap: 0; padding-left: 0; border-left: 0; }.questionQuickActions button { padding: 3px 4px; font-size: 8px; }.cardNavigation { padding-right: 0; border-right: 0; }.backButton, .forwardButton { min-height: 38px; padding: 3px 8px; font-size: 10px; }.cardMeta b { padding: 7px 8px; font-size: 9px; white-space: nowrap; }
   .cardMetaLeft > span { display: none; }.cardCount { top: 70px; right: 18px; }
   .retentionBox { grid-template-columns: 1fr; gap: 8px; margin-top: 18px; padding: 11px 13px; }.retentionBox > div:first-child { grid-row: auto; }.retentionBox p { font-size: 10px; line-height: 1.55; }
   .questionSide { padding-top: 29px; }.questionSide h3 { margin: 10px 0 20px; font-size: 36px; overflow-wrap: anywhere; }.hint { padding: 8px 14px; font-size: 14px; line-height: 1.75; }.hint span { display: block; margin: 0 0 2px; }

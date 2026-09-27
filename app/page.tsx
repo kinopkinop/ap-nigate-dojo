@@ -1641,25 +1641,35 @@ export default function Home() {
     localStorage.setItem("ap-study-progress", JSON.stringify(next));
   }
 
-  function toggleCollection(item: Term) {
+  function resetQuestionView() {
+    setRevealed(false);
+    setQuizChoice(null);
+    setQuizResult(null);
+    setQuizUnsure(false);
+    setQuizConfident(false);
+  }
+
+  function toggleCollection(item: Term, preserveSession = false) {
     const nextCollection: Collection = getCollection(item, collectionOverrides) === "special" ? "regular" : "special";
     const nextOverrides = { ...collectionOverrides, [item.id]: nextCollection };
     if (nextCollection === (item.collection === "special" ? "special" : "regular")) delete nextOverrides[item.id];
     setCollectionOverrides(nextOverrides);
     localStorage.setItem(collectionStorageKey, JSON.stringify(nextOverrides));
-    refreshRounds(nextOverrides, disabledIds);
+    refreshRounds(nextOverrides, disabledIds, !preserveSession);
+    resetQuestionView();
   }
 
-  function toggleDisabled(item: Term) {
+  function toggleDisabled(item: Term, preserveSession = false) {
     const nextDisabledIds = disabledIds.includes(item.id)
       ? disabledIds.filter((id) => id !== item.id)
       : [...disabledIds, item.id];
     setDisabledIds(nextDisabledIds);
     localStorage.setItem(disabledStorageKey, JSON.stringify(nextDisabledIds));
-    refreshRounds(collectionOverrides, nextDisabledIds);
+    refreshRounds(collectionOverrides, nextDisabledIds, !preserveSession);
+    resetQuestionView();
   }
 
-  function refreshRounds(nextOverrides: CollectionOverrides, nextDisabledIds: string[]) {
+  function refreshRounds(nextOverrides: CollectionOverrides, nextDisabledIds: string[], resetSession = true) {
     setRoundIds(buildRound(category, progress, [], false, false, false, nextOverrides, "regular", nextDisabledIds));
     setRoundPosition(0);
     setWeakIds(buildRound("すべて", progress, [], false, false, true, nextOverrides, "regular", nextDisabledIds));
@@ -1672,8 +1682,18 @@ export default function Home() {
     setUnseenPosition(0);
     setSpecialIds(buildRound("すべて", progress, [], false, false, false, nextOverrides, "special", nextDisabledIds));
     setSpecialPosition(0);
-    setSessionResults({ study: [], quiz: [], weak: [], review: [], mastered: [], unseen: [], special: [] });
-    setCompleted({ study: false, quiz: false, weak: false, review: false, mastered: false, unseen: false, special: false });
+    if (resetSession) {
+      setSessionResults({ study: [], quiz: [], weak: [], review: [], mastered: [], unseen: [], special: [] });
+      setCompleted({ study: false, quiz: false, weak: false, review: false, mastered: false, unseen: false, special: false });
+    }
+  }
+
+  function renderQuestionQuickActions(item: Term) {
+    const itemCollection = getCollection(item, collectionOverrides);
+    return <div className="questionQuickActions" role="group" aria-label={`${item.term}の問題設定`}>
+      <button type="button" onClick={() => toggleCollection(item, true)}>{itemCollection === "special" ? "通常へ変更" : "特別へ変更"}</button>
+      <button type="button" onClick={() => toggleDisabled(item, true)}>出題を停止</button>
+    </div>;
   }
 
   function startNextSession(key: ModeKey) {
@@ -1823,7 +1843,7 @@ export default function Home() {
                   </div>
                   <span>{card.category}</span>
                 </div>
-                <b>{retentionStatus.label}</b>
+                <div className="cardMetaRight"><b>{retentionStatus.label}</b>{renderQuestionQuickActions(card)}</div>
               </div>
               <div className={`retentionBox ${retention < 40 ? "low" : retention >= 75 ? "high" : ""}`}>
                 <div><span>定着度</span><strong>{retention}<small>/100</small></strong></div>
@@ -1859,7 +1879,7 @@ export default function Home() {
                   </div>
                   <span>{card.category}</span>
                 </div>
-                <b>4択・出題 {cardRecord?.quizCount ?? 0}回</b>
+                <div className="cardMetaRight"><b>4択・出題 {cardRecord?.quizCount ?? 0}回</b>{renderQuestionQuickActions(card)}</div>
               </div>
               <div className={`retentionBox ${retention < 40 ? "low" : retention >= 75 ? "high" : ""}`}>
                 <div><span>定着度</span><strong>{retention}<small>/100</small></strong></div>

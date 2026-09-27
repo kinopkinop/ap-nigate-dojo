@@ -255,7 +255,7 @@ test("preserves existing special assignments and keeps added vocabulary regular"
   assert.match(page, /id: "signal-frequency"[^\n]+周波数と周期は互いに逆数/);
   assert.match(page, /studyLabel: card\.studyPrompt \?\?/);
   assert.match(page, /const collectionStorageKey = "ap-study-collections-v1"/);
-  assert.match(page, /function toggleCollection\(item: Term\)/);
+  assert.match(page, /function toggleCollection\(item: Term, preserveSession = false\)/);
   assert.match(page, /getCollection\(item, overrides\) === collection/);
 });
 
@@ -318,13 +318,20 @@ test("keeps every answer concise and every hint from revealing the exact term", 
 
 test("paused questions stay out of rounds and choices, with settings in backups", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
   assert.match(page, /const disabledStorageKey = "ap-study-disabled-ids-v1"/);
   assert.match(page, /const backupKeys = \[[^\n]+disabledStorageKey/);
   assert.match(page, /const backupKeys = \[[^\n]+"ap-understanding-progress-v1"/);
-  assert.match(page, /function toggleDisabled\(item: Term\)/);
+  assert.match(page, /function toggleDisabled\(item: Term, preserveSession = false\)/);
   assert.match(page, /!disabledIds\.includes\(item\.id\)/);
   assert.match(page, /getChoices\(card, questionDifficulty, disabledIds\)/);
   assert.match(page, /collectionFilter === "disabled"/);
+  assert.match(page, /function renderQuestionQuickActions\(item: Term\)/);
+  assert.equal((page.match(/\{renderQuestionQuickActions\(card\)\}/g) ?? []).length, 2);
+  assert.match(page, /toggleCollection\(item, true\)/);
+  assert.match(page, /toggleDisabled\(item, true\)/);
+  assert.match(page, /refreshRounds\(nextOverrides, disabledIds, !preserveSession\)/);
+  assert.match(css, /\.questionQuickActions button \{[^}]*background: transparent;[^}]*font-size: 9px;/);
   for (const line of page.split("\n").filter((line) => line.includes("buildRound(") && !line.includes("function buildRound("))) {
     assert.match(line, /(?:disabledIds|savedDisabledIds|nextDisabledIds)/, `round ignores paused questions: ${line}`);
   }
