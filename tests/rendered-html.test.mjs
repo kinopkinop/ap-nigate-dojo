@@ -42,6 +42,7 @@ test("adds exactly three separate understanding-dojo prototype questions", async
   const data = await readFile(new URL("../app/understandingQuestions.ts", import.meta.url), "utf8");
   const component = await readFile(new URL("../app/UnderstandingDojo.tsx", import.meta.url), "utf8");
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const designGuide = await readFile(new URL("../docs/understanding-question-design.md", import.meta.url), "utf8");
   const ids = [...data.matchAll(/\n\s+id: "([^"]+)"/g)].map((match) => match[1]);
 
   assert.deepEqual(ids, ["web-defense-waf", "transaction-non-repeatable-read", "evm-schedule-cost-status"]);
@@ -51,7 +52,15 @@ test("adds exactly three separate understanding-dojo prototype questions", async
   assert.equal((data.match(/^\s+followUp: \{/gm) ?? []).length, 3);
   assert.equal((data.match(/^\s+correctIndex: \d,/gm) ?? []).length, 6);
   assert.equal((data.match(/^\s+choices: \[/gm) ?? []).length, 6);
+  assert.equal((data.match(/^\s+skill: "/gm) ?? []).length, 6);
+  assert.equal((data.match(/^\s+conditions: \[/gm) ?? []).length, 6);
+  assert.equal((data.match(/^\s+clues: \[/gm) ?? []).length, 6);
+  assert.equal((data.match(/^\s+comparison: \[/gm) ?? []).length, 6);
+  assert.doesNotMatch(data, /question: "[^"]*(とは|違い)[^"]*"/);
   assert.match(data, /followUp\?: UnderstandingFollowUp/);
+  assert.match(data, /skill: string/);
+  assert.match(data, /conditions: string\[\]/);
+  assert.match(data, /clues: string\[\]/);
   assert.match(component, /ap-understanding-progress-v1/);
   assert.match(component, /"understood" \| "unsure" \| "unclear"/);
   assert.match(component, /const ratingOrder: UnderstandingRating\[\] = \["unclear", "unsure", "understood"\]/);
@@ -65,8 +74,14 @@ test("adds exactly three separate understanding-dojo prototype questions", async
   assert.match(component, /const followUpChoices = useMemo\(\(\) => question\.followUp \? shuffleChoices\(question\.followUp\.choices\) : \[\], \[question\]\)/);
   assert.match(component, /chooseAnswer\(choice\.originalIndex\)/);
   assert.match(component, /chooseFollowUp\(choice\.originalIndex\)/);
+  assert.match(component, /問題文の手掛かり/);
+  assert.match(component, /question\.conditions\.map/);
+  assert.match(component, /question\.followUp\.comparison\.map/);
   assert.match(page, /activeDojo === "understanding"/);
   assert.match(page, /className="dojoSwitcher"/);
+  assert.match(designGuide, /具体的な状況 → 条件を読み取る → 知識を適用する → 選択する/);
+  assert.match(designGuide, /themeもskillもほぼ同じなら追加しない/);
+  assert.match(designGuide, /数字だけ、選択肢の順番だけを変えた同一問題/);
 });
 
 test("keeps question data stable and fully grouped", async () => {

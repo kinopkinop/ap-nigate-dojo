@@ -213,6 +213,10 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
         <section className="situationBox" aria-labelledby="situation-title">
           <span id="situation-title">状況</span>
           <p>{question.situation}</p>
+          <div className="conditionList">
+            <strong>条件</strong>
+            <ul>{question.conditions.map((condition) => <li key={condition}>{condition}</li>)}</ul>
+          </div>
           {question.metrics && <div className="understandingMetrics">
             {question.metrics.map((metric) => <div key={metric.label}><small>{metric.label}</small><strong>{metric.value}</strong></div>)}
           </div>}
@@ -238,13 +242,18 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
           </div>
           <div className="explanationGrid">
             <section><h3>なぜ？</h3><p>{question.explanation}</p></section>
+            <section className="cluePanel"><h3>問題文の手掛かり</h3><ul className="clueList">{question.clues.map((clue) => <li key={clue}>{clue}</li>)}</ul></section>
             <section><h3>混同注意</h3><div className="comparisonList">{question.comparison.map((item) => <p key={item.label}><b>{item.label}</b><span>{item.detail}</span></p>)}</div></section>
             <section className="keyPoint"><h3>判断ポイント</h3><p>{question.keyPoint}</p></section>
           </div>
 
           {question.followUp && <section className="followUpCard" aria-labelledby="follow-up-title">
             <div className="followUpHeading"><span>確認問題</span><small>5〜30秒で判断</small></div>
-            {question.followUp.situation && <p className="followUpSituation">{question.followUp.situation}</p>}
+            <p className="followUpSituation">{question.followUp.situation}</p>
+            <div className="conditionList followUpConditions">
+              <strong>条件</strong>
+              <ul>{question.followUp.conditions.map((condition) => <li key={condition}>{condition}</li>)}</ul>
+            </div>
             {question.followUp.metrics && <div className="understandingMetrics followUpMetrics">
               {question.followUp.metrics.map((metric) => <div key={metric.label}><small>{metric.label}</small><strong>{metric.value}</strong></div>)}
             </div>}
@@ -259,8 +268,12 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
             </div>
             {followUpSelectedIndex !== null && <div className={`followUpExplanation ${followUpCorrect ? "correct" : "wrong"}`} aria-live="polite">
               <strong>{followUpCorrect ? "正解！" : `正解は「${question.followUp.choices[question.followUp.correctIndex]}」`}</strong>
-              <p>{question.followUp.explanation}</p>
-              <p><b>判断ポイント</b>{question.followUp.keyPoint}</p>
+              <div className="followUpDetails">
+                <section><h4>なぜ？</h4><p>{question.followUp.explanation}</p></section>
+                <section><h4>問題文の手掛かり</h4><ul className="clueList">{question.followUp.clues.map((clue) => <li key={clue}>{clue}</li>)}</ul></section>
+                <section><h4>混同注意</h4><div className="comparisonList">{question.followUp.comparison.map((item) => <p key={item.label}><b>{item.label}</b><span>{item.detail}</span></p>)}</div></section>
+                <section className="followUpKey"><h4>判断ポイント</h4><p>{question.followUp.keyPoint}</p></section>
+              </div>
             </div>}
           </section>}
 
