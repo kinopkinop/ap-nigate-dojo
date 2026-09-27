@@ -163,10 +163,10 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
     return <main className="understandingPage">
       <UnderstandingHeader onBack={onBack} />
       <section className="understandingResult" aria-labelledby="understanding-result-title">
-        <p className="understandingEyebrow">PROTOTYPE COMPLETE</p>
-        <h1 id="understanding-result-title">3問、おつかれさまでした。</h1>
+        <p className="understandingEyebrow">SESSION COMPLETE</p>
+        <h1 id="understanding-result-title">{understandingQuestions.length}問、おつかれさまでした。</h1>
         <p>正解数だけでなく、自己評価を次の復習優先度に使える形で保存しました。</p>
-        <div className="understandingScore"><strong>{completedThemes}<small>/3</small></strong><span>メイン・確認ともに正解</span></div>
+        <div className="understandingScore"><strong>{completedThemes}<small>/{understandingQuestions.length}</small></strong><span>メイン・確認ともに正解</span></div>
         <div className="understandingResultList">
           {understandingQuestions.map((item, index) => {
             const answer = sessionAnswers[item.id];
@@ -181,7 +181,7 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
         </div>
         <div className="understandingResultActions">
           <button className="secondary" onClick={onBack}>苦手だけ道場へ戻る</button>
-          <button onClick={restart}>3問をもう一度 →</button>
+          <button onClick={restart}>{understandingQuestions.length}問をもう一度 →</button>
         </div>
       </section>
     </main>;
@@ -196,10 +196,10 @@ export default function UnderstandingDojo({ onBack }: { onBack: () => void }) {
         <div>
           <p className="understandingEyebrow">AP UNDERSTANDING DOJO</p>
           <h1>「知ってる」を、<em>「使える」に。</em></h1>
-          <p>短い状況から判断し、理由と似た概念の違いまで確認する3問のプロトタイプです。</p>
+          <p>短い状況から判断し、理由と似た概念の違いまで確認するミニ応用問題です。</p>
         </div>
-        <div className="understandingSteps" aria-label={`3問中${position + 1}問目`}>
-          {understandingQuestions.map((item, index) => <span key={item.id} className={index === position ? "current" : index < position ? "done" : ""}>{index + 1}</span>)}
+        <div className="understandingSteps" aria-label={`${understandingQuestions.length}問中${position + 1}問目`}>
+          <strong>{position + 1}</strong><span>/ {understandingQuestions.length}</span>
         </div>
       </div>
 
@@ -291,6 +291,6 @@ function UnderstandingHeader({ onBack }: { onBack: () => void }) {
       <button className="active" aria-current="page">理解</button>
     </div>
     <div className="understandingBrand"><span className="brandMark">AP</span><span><strong>応用情報</strong><small>理解道場</small></span></div>
-    <span className="prototypeBadge">3問プロトタイプ</span>
+    <span className="prototypeBadge">{understandingQuestions.length}テーマ</span>
   </header>;
 }

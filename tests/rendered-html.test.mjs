@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import ts from "typescript";
 
 async function render() {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
@@ -38,7 +39,7 @@ test("server-renders the AP study tool", async () => {
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape/i);
 });
 
-test("adds exactly three separate understanding-dojo prototype questions", async () => {
+test("keeps the understanding-dojo question set structured and scenario based", async () => {
   const data = await readFile(new URL("../app/understandingQuestions.ts", import.meta.url), "utf8");
   const component = await readFile(new URL("../app/UnderstandingDojo.tsx", import.meta.url), "utf8");
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
@@ -51,18 +52,74 @@ test("adds exactly three separate understanding-dojo prototype questions", async
     const promptEnd = data.indexOf("correctIndex:", promptStart);
     return data.slice(promptStart, promptEnd);
   };
+  const sourceFile = ts.createSourceFile("understandingQuestions.ts", data, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const property = (object, name) => object.properties.find((item) => ts.isPropertyAssignment(item) && item.name.getText(sourceFile) === name)?.initializer;
+  const textValue = (node) => node && ts.isStringLiteral(node) ? node.text : "";
+  const textArray = (node) => node && ts.isArrayLiteralExpression(node) ? node.elements.map(textValue) : [];
+  let questionArray;
+  sourceFile.forEachChild((node) => {
+    if (!ts.isVariableStatement(node)) return;
+    for (const declaration of node.declarationList.declarations) {
+      if (declaration.name.getText(sourceFile) === "understandingQuestions" && declaration.initializer && ts.isArrayLiteralExpression(declaration.initializer)) questionArray = declaration.initializer;
+    }
+  });
 
-  assert.deepEqual(ids, ["web-defense-waf", "transaction-non-repeatable-read", "evm-schedule-cost-status"]);
+  assert.deepEqual(ids, [
+    "web-defense-waf",
+    "transaction-non-repeatable-read",
+    "evm-schedule-cost-status",
+    "crypto-recipient-key-application",
+    "digital-signature-authenticity-integrity",
+    "certificate-ca-identity-binding",
+    "web-attack-xss-identification",
+    "password-hash-salt-storage",
+    "dmz-public-server-isolation",
+    "vpn-remote-access-tunnel",
+    "normalization-update-anomaly",
+    "join-customer-orders",
+    "lock-deadlock-prevention",
+    "index-bplus-range-search",
+    "napt-shared-global-address",
+    "dns-name-to-ip-resolution",
+    "subnet-smallest-prefix",
+    "rto-rpo-recovery-requirements",
+    "backup-incremental-restore-chain",
+    "availability-mtbf-mttr",
+    "critical-path-project-duration",
+    "mes-factory-progress-control",
+    "marketing-4p-place-to-4c",
+  ]);
   assert.match(data, /category: "セキュリティ"/);
   assert.match(data, /category: "データベース"/);
+  assert.match(data, /category: "ネットワーク"/);
   assert.match(data, /category: "マネジメント"/);
-  assert.equal((data.match(/^\s+followUp: \{/gm) ?? []).length, 3);
-  assert.equal((data.match(/^\s+correctIndex: \d,/gm) ?? []).length, 6);
-  assert.equal((data.match(/^\s+choices: \[/gm) ?? []).length, 6);
-  assert.equal((data.match(/^\s+skill: "/gm) ?? []).length, 6);
-  assert.equal((data.match(/^\s+conditions: \[/gm) ?? []).length, 6);
-  assert.equal((data.match(/^\s+clues: \[/gm) ?? []).length, 6);
-  assert.equal((data.match(/^\s+comparison: \[/gm) ?? []).length, 6);
+  assert.match(data, /category: "ストラテジ"/);
+  assert.equal((data.match(/^\s+followUp: \{/gm) ?? []).length, 23);
+  assert.equal((data.match(/^\s+correctIndex: \d,/gm) ?? []).length, 46);
+  assert.equal((data.match(/^\s+choices: \[/gm) ?? []).length, 46);
+  assert.equal((data.match(/^\s+skill: "/gm) ?? []).length, 46);
+  assert.equal((data.match(/^\s+conditions: \[/gm) ?? []).length, 46);
+  assert.equal((data.match(/^\s+clues: \[/gm) ?? []).length, 46);
+  assert.equal((data.match(/^\s+comparison: \[/gm) ?? []).length, 46);
+  assert.ok(questionArray, "understanding question array is missing");
+  for (const element of questionArray.elements) {
+    assert.ok(ts.isObjectLiteralExpression(element), "question must be an object");
+    const id = textValue(property(element, "id"));
+    const mainChoices = textArray(property(element, "choices"));
+    const mainCorrectIndex = Number(property(element, "correctIndex")?.getText(sourceFile));
+    const followUp = property(element, "followUp");
+    assert.equal(mainChoices.length, 4, `${id}: main question must have four choices`);
+    assert.ok(Number.isInteger(mainCorrectIndex) && mainCorrectIndex >= 0 && mainCorrectIndex < 4, `${id}: invalid main correctIndex`);
+    assert.ok(followUp && ts.isObjectLiteralExpression(followUp), `${id}: follow-up is missing`);
+    const followUpChoices = textArray(property(followUp, "choices"));
+    const followUpCorrectIndex = Number(property(followUp, "correctIndex")?.getText(sourceFile));
+    const followUpPrompt = [textValue(property(followUp, "situation")), ...textArray(property(followUp, "conditions")), textValue(property(followUp, "question")), ...followUpChoices].join(" ");
+    assert.equal(followUpChoices.length, 4, `${id}: follow-up must have four choices`);
+    assert.ok(Number.isInteger(followUpCorrectIndex) && followUpCorrectIndex >= 0 && followUpCorrectIndex < 4, `${id}: invalid follow-up correctIndex`);
+    assert.notDeepEqual([...followUpChoices].sort(), [...mainChoices].sort(), `${id}: follow-up reuses the main choice set`);
+    assert.ok(!followUpPrompt.includes(mainChoices[mainCorrectIndex]), `${id}: follow-up exposes the main correct answer`);
+    assert.notEqual(textValue(property(element, "skill")), textValue(property(followUp, "skill")), `${id}: follow-up must reverse or deepen the reasoning direction`);
+  }
   assert.doesNotMatch(data, /question: "[^"]*(とは|違い)[^"]*"/);
   assert.match(data, /followUp\?: UnderstandingFollowUp/);
   assert.match(data, /skill: string/);
@@ -85,6 +142,9 @@ test("adds exactly three separate understanding-dojo prototype questions", async
   assert.doesNotMatch(component, /className="understandingMeta"|className="understandingTheme"/);
   assert.match(component, /question\.conditions\.map/);
   assert.match(component, /question\.followUp\.comparison\.map/);
+  assert.match(component, /<strong>\{position \+ 1\}<\/strong><span>\/ \{understandingQuestions\.length\}<\/span>/);
+  assert.match(component, /\{understandingQuestions\.length\}テーマ/);
+  assert.doesNotMatch(component, /3問のプロトタイプ|3問をもう一度|<small>\/3<\/small>/);
   assert.match(page, /activeDojo === "understanding"/);
   assert.match(page, /className="dojoSwitcher"/);
   assert.match(designGuide, /具体的な状況 → 条件を読み取る → 知識を適用する → 選択する/);
