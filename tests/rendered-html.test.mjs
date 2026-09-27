@@ -91,8 +91,14 @@ test("adds exactly three separate understanding-dojo prototype questions", async
   assert.match(designGuide, /themeもskillもほぼ同じなら追加しない/);
   assert.match(designGuide, /数字だけ、選択肢の順番だけを変えた同一問題/);
   assert.match(designGuide, /メイン問題の正解用語は、原則として確認問題の状況・条件・質問・選択肢に出さない/);
+  assert.match(designGuide, /特徴的な一文を、そのまま正解選択肢として再利用しない/);
+  assert.match(designGuide, /思考方向を変える/);
   assert.doesNotMatch(followUpPromptFor("web-defense-waf"), /WAF/);
+  assert.match(followUpPromptFor("web-defense-waf"), /ポート番号だけでは区別できない/);
+  assert.doesNotMatch(followUpPromptFor("web-defense-waf"), /詳しく検査すべき情報/);
   assert.doesNotMatch(followUpPromptFor("transaction-non-repeatable-read"), /ダーティリード|ノンリピータブルリード|ファントムリード|デッドロック/);
+  assert.match(followUpPromptFor("transaction-non-repeatable-read"), /最も低いトランザクション分離レベル/);
+  assert.match(followUpPromptFor("transaction-non-repeatable-read"), /REPEATABLE READ/);
   assert.doesNotMatch(followUpPromptFor("evm-schedule-cost-status"), /\b(?:SPI|CPI|PV|EV|AC)\b/);
 });
 
