@@ -241,10 +241,131 @@ test("shows the situation-style hard label only when a hardPrompt exists", async
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   const questionCopyBlock = page.slice(page.indexOf("const questionCopy"), page.indexOf("const currentModeKey"));
 
-  assert.match(questionCopyBlock, /const useHardPrompt = questionDifficulty === "hard" && Boolean\(card\.hardPrompt\)/);
+  assert.match(questionCopyBlock, /const useHardPrompt = questionDifficulty === "hard" && Boolean\(currentCard\.hardPrompt\)/);
   assert.match(questionCopyBlock, /quizLabel: useHardPrompt \? "難問：状況と違いから判断してください"/);
   assert.match(questionCopyBlock, /questionDifficulty === "hard" \? "定義を確認"/);
-  assert.doesNotMatch(questionCopyBlock, /card\.hardPrompt \?\? card\.answer/);
+  assert.doesNotMatch(questionCopyBlock, /currentCard\.hardPrompt \?\? currentCard\.answer/);
+});
+
+test("schedules mastered vocabulary with the requested spaced-review intervals", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const helperSource = [
+    'const reviewIntervals = [1, 3, 7, 14, 30];',
+    page.slice(page.indexOf("function addReviewDays"), page.indexOf("function migrateMasteredReviewSchedules")),
+  ].join("\n");
+  const javascript = ts.transpileModule(helperSource, {
+    compilerOptions: { module: ts.ModuleKind.None, target: ts.ScriptTarget.ES2020 },
+  }).outputText;
+  const { scheduleAfterAnswer } = Function(`${javascript}\nreturn { scheduleAfterAnswer };`)();
+  const masteredAt = new Date("2026-09-29T00:00:00.000Z");
+
+  const firstMastery = scheduleAfterAnswer({ correct: 2, wrong: 1, retention: 89 }, 74, 89, "correct", false, masteredAt);
+  assert.equal(firstMastery.reviewStage, 0);
+  assert.equal(firstMastery.lastReviewedAt, "2026-09-29T00:00:00.000Z");
+  assert.equal(firstMastery.nextReviewAt, "2026-09-30T00:00:00.000Z");
+
+  const stageOne = scheduleAfterAnswer(firstMastery, 89, 100, "correct", true, new Date("2026-09-30T00:00:00.000Z"));
+  assert.equal(stageOne.reviewStage, 1);
+  assert.equal(stageOne.nextReviewAt, "2026-10-03T00:00:00.000Z");
+  const stageTwo = scheduleAfterAnswer(stageOne, 100, 100, "correct", true, new Date("2026-10-03T00:00:00.000Z"));
+  assert.equal(stageTwo.reviewStage, 2);
+  assert.equal(stageTwo.nextReviewAt, "2026-10-10T00:00:00.000Z");
+  const stageThree = scheduleAfterAnswer(stageTwo, 100, 100, "correct", true, new Date("2026-10-10T00:00:00.000Z"));
+  assert.equal(stageThree.reviewStage, 3);
+  assert.equal(stageThree.nextReviewAt, "2026-10-24T00:00:00.000Z");
+  const stageFour = scheduleAfterAnswer(stageThree, 100, 100, "correct", true, new Date("2026-10-24T00:00:00.000Z"));
+  assert.equal(stageFour.reviewStage, 4);
+  assert.equal(stageFour.nextReviewAt, "2026-11-23T00:00:00.000Z");
+  const unsure = scheduleAfterAnswer({ ...stageTwo, reviewStage: 2 }, 100, 88, "unsure", true, masteredAt);
+  assert.equal(unsure.reviewStage, 2);
+  assert.equal(unsure.nextReviewAt, "2026-09-30T00:00:00.000Z");
+  const wrong = scheduleAfterAnswer({ ...stageTwo, reviewStage: 3 }, 100, 80, "wrong", true, masteredAt);
+  assert.equal(wrong.reviewStage, 0);
+  assert.equal(wrong.nextReviewAt, "2026-09-30T00:00:00.000Z");
+  const monthly = scheduleAfterAnswer({ ...stageTwo, reviewStage: 4 }, 100, 100, "correct", true, masteredAt);
+  assert.equal(monthly.reviewStage, 4);
+  assert.equal(monthly.nextReviewAt, "2026-10-29T00:00:00.000Z");
+  const restarted = scheduleAfterAnswer({ ...stageTwo, reviewStage: 3 }, 60, 75, "correct", false, masteredAt);
+  assert.equal(restarted.reviewStage, 0);
+  assert.equal(restarted.nextReviewAt, "2026-09-30T00:00:00.000Z");
+  const ordinaryPractice = scheduleAfterAnswer(stageTwo, 100, 100, "correct", false, masteredAt);
+  assert.equal(ordinaryPractice.reviewStage, 2);
+  assert.equal(ordinaryPractice.nextReviewAt, "2026-10-10T00:00:00.000Z");
+});
+
+test("builds today's full review queue by due date, retention, and wrong count", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const helperSource = page.slice(page.indexOf("function isScheduledReviewDue"), page.indexOf("function buildRound"));
+  const javascript = ts.transpileModule(helperSource, {
+    compilerOptions: { module: ts.ModuleKind.None, target: ts.ScriptTarget.ES2020 },
+  }).outputText;
+  const terms = [
+    { id: "a", category: "DB" }, { id: "b", category: "DB" }, { id: "c", category: "DB" },
+    { id: "d", category: "DB" }, { id: "e", category: "DB" }, { id: "f", category: "DB" },
+    { id: "g", category: "DB" }, { id: "h", category: "DB" }, { id: "i", category: "DB" },
+    { id: "j", category: "DB" },
+  ];
+  const getRetention = (item, progress) => progress[item.id].retention;
+  const isMastered = (item, progress) => getRetention(item, progress) >= 75;
+  const getCollection = (item, overrides) => overrides[item.id] ?? "regular";
+  const stableNumber = (id) => id.charCodeAt(0);
+  const { buildScheduledReviewQueue } = Function("terms", "getRetention", "isMastered", "getCollection", "stableNumber", `${javascript}\nreturn { buildScheduledReviewQueue };`)(terms, getRetention, isMastered, getCollection, stableNumber);
+  const progress = {
+    a: { correct: 1, wrong: 0, retention: 90, nextReviewAt: "2026-09-26T00:00:00.000Z" },
+    b: { correct: 1, wrong: 1, retention: 95, nextReviewAt: "2026-09-25T00:00:00.000Z" },
+    c: { correct: 1, wrong: 1, retention: 80, nextReviewAt: "2026-09-26T00:00:00.000Z" },
+    d: { correct: 1, wrong: 3, retention: 80, nextReviewAt: "2026-09-26T00:00:00.000Z" },
+    e: { correct: 1, wrong: 0, retention: 90, nextReviewAt: "2026-09-27T00:00:00.000Z" },
+    f: { correct: 1, wrong: 0, retention: 90, nextReviewAt: "2026-09-27T00:00:00.000Z" },
+    g: { correct: 1, wrong: 0, retention: 90, nextReviewAt: "2026-10-01T00:00:00.000Z" },
+    h: { correct: 1, wrong: 0, retention: 74, nextReviewAt: "2026-09-25T00:00:00.000Z" },
+    i: { correct: 1, wrong: 0, retention: 90, nextReviewAt: "2026-09-28T00:00:00.000Z" },
+    j: { correct: 1, wrong: 0, retention: 90, nextReviewAt: "2026-09-29T00:00:00.000Z" },
+  };
+  const queue = buildScheduledReviewQueue("すべて", progress, { e: "special" }, ["f"], new Date("2026-09-29T00:00:00.000Z"));
+
+  assert.deepEqual(queue, ["b", "d", "c", "a", "i", "j"]);
+  assert.equal(queue.length, 6);
+  assert.doesNotMatch(helperSource, /\.slice\(0, 5\)/);
+});
+
+test("migrates existing mastered records across today through six days later once", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const helperSource = [
+    page.slice(page.indexOf("function addReviewDays"), page.indexOf("function scheduleAfterAnswer")),
+    page.slice(page.indexOf("function migrateMasteredReviewSchedules"), page.indexOf("function migrateProgressRecords")),
+  ].join("\n");
+  const javascript = ts.transpileModule(helperSource, {
+    compilerOptions: { module: ts.ModuleKind.None, target: ts.ScriptTarget.ES2020 },
+  }).outputText;
+  const terms = Array.from({ length: 8 }, (_, index) => ({ id: `term-${index}` }));
+  const isMastered = (item, progress) => (progress[item.id]?.retention ?? 35) >= 75;
+  const stableNumber = (id) => Number(id.split("-").at(-1));
+  const { migrateMasteredReviewSchedules } = Function("terms", "isMastered", "stableNumber", `${javascript}\nreturn { migrateMasteredReviewSchedules };`)(terms, isMastered, stableNumber);
+  const progress = Object.fromEntries(terms.map((item) => [item.id, { correct: 1, wrong: 0, retention: item.id === "term-7" ? 74 : 80 }]));
+  progress["term-6"].nextReviewAt = "2027-01-01T00:00:00.000Z";
+  const migrated = migrateMasteredReviewSchedules(progress, new Date("2026-09-29T12:00:00.000Z"));
+
+  for (let offset = 0; offset < 6; offset += 1) {
+    assert.equal(migrated[`term-${offset}`].reviewStage, 0);
+    assert.equal(new Date(migrated[`term-${offset}`].nextReviewAt).getUTCDate(), 28 + offset > 30 ? offset - 2 : 28 + offset);
+  }
+  assert.equal(migrated["term-6"].nextReviewAt, "2027-01-01T00:00:00.000Z");
+  assert.equal(migrated["term-7"].nextReviewAt, undefined);
+  assert.match(page, /localStorage\.getItem\(spacedReviewMigrationKey\) !== "done"/);
+  assert.match(page, /localStorage\.setItem\(spacedReviewMigrationKey, "done"\)/);
+  assert.match(page, /const backupKeys = \[[^\n]+spacedReviewMigrationKey/);
+});
+
+test("keeps today's review as an uncapped quiz-first mode", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+
+  assert.match(page, /今日の復習 <span className="navCount">\{scheduledCount\}<\/span>/);
+  assert.match(page, /setFocusFormat\("quiz"\)/);
+  assert.match(page, /setScheduledIds\(buildScheduledReviewQueue/);
+  assert.match(page, /mode === "scheduled"[\s\S]+buildScheduledReviewQueue\(category, next/);
+  assert.match(page, /今日の復習は完了しました/);
+  assert.match(page, /reviewStage\?: number; lastReviewedAt\?: string; nextReviewAt\?: string/);
 });
 
 test("opens the weak-only mode from the same all-category pool used by its count", async () => {
@@ -291,7 +412,7 @@ test("classifies answered terms into weak, review, and mastered ranges", async (
   assert.equal(isUnseen({ id: "term" }, { term: { correct: 0, wrong: 0, attempts: 0, retention: 25 } }), true);
   assert.equal(isUnseen({ id: "term" }, { term: { correct: 0, wrong: 0, retention: 23 } }), false);
   assert.equal(isUnseen({ id: "term" }, { term: { correct: 0, wrong: 0, retention: 35 } }), true);
-  assert.match(page, /attempts: recordAttempts\(progress\[card\.id\]\) \+ 1/);
+  assert.match(page, /attempts: recordAttempts\(previousRecord\) \+ 1/);
 });
 
 test("preserves existing special assignments and keeps added vocabulary regular", async () => {
@@ -310,7 +431,7 @@ test("preserves existing special assignments and keeps added vocabulary regular"
     assert.doesNotMatch(line, /collection: "special"/, `term should be regular: ${id}`);
   }
   assert.match(page, /id: "signal-frequency"[^\n]+周波数と周期は互いに逆数/);
-  assert.match(page, /studyLabel: card\.studyPrompt \?\?/);
+  assert.match(page, /studyLabel: currentCard\.studyPrompt \?\?/);
   assert.match(page, /const collectionStorageKey = "ap-study-collections-v1"/);
   assert.match(page, /function toggleCollection\(item: Term, preserveSession = false\)/);
   assert.match(page, /getCollection\(item, overrides\) === collection/);
@@ -381,7 +502,7 @@ test("paused questions stay out of rounds and choices, with settings in backups"
   assert.match(page, /const backupKeys = \[[^\n]+"ap-understanding-progress-v1"/);
   assert.match(page, /function toggleDisabled\(item: Term, preserveSession = false\)/);
   assert.match(page, /!disabledIds\.includes\(item\.id\)/);
-  assert.match(page, /getChoices\(card, questionDifficulty, disabledIds\)/);
+  assert.match(page, /getChoices\(currentCard, questionDifficulty, disabledIds\)/);
   assert.match(page, /collectionFilter === "disabled"/);
   assert.match(page, /function renderQuestionQuickActions\(item: Term\)/);
   assert.equal((page.match(/\{renderQuestionQuickActions\(card\)\}/g) ?? []).length, 2);

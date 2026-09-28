@@ -39,7 +39,7 @@ h1 { margin: 0; font-size: clamp(29px, 3.7vw, 48px); line-height: 1.13; letter-s
 h1 em { color: var(--red); font-style: normal; position: relative; }
 h1 em::after { content: ""; position: absolute; height: 5px; background: var(--yellow); bottom: -7px; left: 0; right: 0; transform: rotate(-1deg); }
 .heroText { max-width: 590px; line-height: 1.65; font-size: 12px; color: #666a74; margin: 17px 0 0; }
-.stats { min-width: 620px; display: grid; grid-template-columns: repeat(6,1fr); background: var(--ink); color: white; transform: rotate(1deg); z-index: 1; box-shadow: 10px 10px 0 var(--yellow); }
+.stats { min-width: 620px; display: grid; grid-template-columns: repeat(7,1fr); background: var(--ink); color: white; transform: rotate(1deg); z-index: 1; box-shadow: 10px 10px 0 var(--yellow); }
 .stats div { min-height: 88px; padding: 16px 14px; display: flex; flex-direction: column; justify-content: center; border-right: 1px solid rgba(255,255,255,.18); }
 .stats div:last-child { border: 0; }
 .stats strong { font-size: 26px; line-height: 1; }
@@ -202,7 +202,7 @@ footer span { font-weight: 800; } footer p { margin: 0; color: #aeb4c5; }
 
 @media (max-width: 860px) {
   .topbar { height: 72px; }.headerCount { display: none; } nav { gap: 13px; } nav button { font-size: 11px; }
-  .hero { padding-top: 50px; display: block; }.stats { margin-top: 45px; min-width: 0; max-width: 430px; }
+  .hero { padding-top: 50px; display: block; }.stats { margin-top: 45px; min-width: 0; max-width: 430px; grid-template-columns: repeat(4, 1fr); }
   .sectionHead { display: block; }.filters { margin-top: 20px; overflow-x: auto; }.filters button { white-space: nowrap; }
   .studyGrid { grid-template-columns: 1fr; }.priorityPanel { padding: 27px 28px; }.priorityPanel h3 { font-size: 20px; }.meter { margin-top: 24px; }.legend, .encourage { display: none; }
   .flashcard { min-height: 520px; padding: 34px 28px 30px; }.cardCount { top: 78px; right: 28px; }.retentionBox { grid-template-columns: auto 1fr; max-width: none; }
@@ -223,8 +223,8 @@ footer span { font-weight: 800; } footer p { margin: 0; color: #aeb4c5; }
   nav button { flex: 0 0 auto; min-height: 43px; padding: 2px 0 0; font-size: 11px; white-space: nowrap; }
   .hero { min-height: 0; padding: 18px 14px 20px; }.hero::after { font-size: 160px; top: -25px; }
   .eyebrow, .heroText { display: none; }.hero h1 { font-size: 25px; line-height: 1.2; letter-spacing: -.045em; }
-  .stats { width: 100%; max-width: none; margin-top: 16px; grid-template-columns: repeat(3, 1fr); transform: none; box-shadow: 5px 5px 0 var(--yellow); }
-  .stats div { min-height: 58px; padding: 9px 8px; border-bottom: 1px solid rgba(255,255,255,.18); }.stats div:nth-child(3n) { border-right: 0; }.stats div:last-child { grid-column: auto; min-height: 58px; border-bottom: 0; }
+  .stats { width: 100%; max-width: none; margin-top: 16px; grid-template-columns: repeat(4, 1fr); transform: none; box-shadow: 5px 5px 0 var(--yellow); }
+  .stats div { min-height: 58px; padding: 9px 8px; border-bottom: 1px solid rgba(255,255,255,.18); }.stats div:nth-child(4n) { border-right: 0; }.stats div:last-child { grid-column: auto; min-height: 58px; border-bottom: 0; }
   .stats strong { font-size: 20px; }.stats strong small { font-size: 11px; }.stats span { margin-top: 5px; font-size: 8px; line-height: 1.25; }
   .workspace { padding: 34px 12px 60px; }.sectionHead { margin-bottom: 18px; }.sectionHead > div:first-child { gap: 10px; align-items: flex-start; }.sectionNumber { padding-right: 10px; margin-top: 5px; }
   h2 { font-size: 21px; line-height: 1.35; }.filters { margin-top: 15px; padding-bottom: 3px; }.filters button { min-height: 40px; padding: 8px 14px; font-size: 11px; }
