@@ -247,7 +247,7 @@ const terms: Term[] = [
   { id: "probability", term: "確率", category: "テクノロジ", hint: "ある出来事が起こりやすい度合いを表す。", answer: "ある事象が起こる可能性を0から1の範囲などで表した値。", level: 1 },
   { id: "expected-value", term: "期待値", category: "テクノロジ", hint: "各結果と起こりやすさを使って平均を考える。", answer: "起こり得る各値に確率を掛けて合計した、長期的な平均値。", level: 1 },
   { id: "hash-function", term: "ハッシュ関数", category: "テクノロジ", hint: "入力から固定長の値を計算する。", answer: "任意のデータから固定長のハッシュ値を求める関数。検索や改ざん検知に使う。", level: 1 },
-  { id: "hash-collision", term: "衝突（シノニム）", category: "テクノロジ", hint: "異なるキーが同じ格納位置を指してしまう。", answer: "異なるキーから同じハッシュ値が得られること。シノニムともいう。", level: 1 },
+  { id: "hash-collision", term: "衝突（シノニム）", category: "テクノロジ", hint: "異なるキーが同じ格納位置を指してしまう。", answer: "異なるキーから同じハッシュ値が得られ、同じ格納位置へ割り当てられること。", level: 1 },
   { id: "chaining", term: "チェイン法", category: "テクノロジ", hint: "同じ位置になったデータをつないで管理する。", answer: "ハッシュの衝突時に、同じ位置のデータをリストなどでつないで格納する方法。", level: 1, confusion: "オープンアドレス法は別の空き位置を探す" },
   { id: "open-addressing", term: "オープンアドレス法", category: "テクノロジ", hint: "同じ位置が埋まっていたら別の空きを探す。", answer: "ハッシュの衝突時に、一定の規則で別の空き位置を探して格納する方法。", level: 1, confusion: "チェイン法は同じ位置のデータをつないで持つ" },
   { id: "stack", term: "スタック", category: "テクノロジ", hint: "最後に入れたものを最初に取り出す。", answer: "後入れ先出し（LIFO）でデータを扱う構造。", level: 1, confusion: "キューは先入れ先出し" },
@@ -316,7 +316,7 @@ const terms: Term[] = [
   { id: "system-availability-rate", term: "稼働率", category: "テクノロジ", hint: "必要な時間のうち正常に使えた割合。", answer: "システムが正常に稼働していた時間の割合。信頼性と保守性の指標になる。", level: 1 },
   { id: "availability", term: "可用性", category: "セキュリティ", hint: "必要なときに情報やシステムを使える。", answer: "許可された利用者が、必要なときに情報やシステムを利用できる性質。", level: 1 },
   { id: "osi-model", term: "OSI基本参照モデル", category: "ネットワーク", hint: "通信機能を七つの階層に分ける。", answer: "ネットワークの通信機能を7層に分けて整理した参照モデル。", level: 1 },
-  { id: "tcp-ip", term: "TCP/IP", category: "ネットワーク", hint: "インターネット通信の基礎となるプロトコル群。", answer: "TCPやIPなど、インターネットで使われる通信プロトコルの体系。", level: 1 },
+  { id: "tcp-ip", term: "TCP/IP", category: "ネットワーク", hint: "インターネット通信の基礎となるプロトコル群。", answer: "インターネット通信で使う複数のプロトコルを、役割ごとの階層でまとめた体系。", level: 1 },
   { id: "mac-address", term: "MACアドレス", category: "ネットワーク", hint: "同じネットワーク内で機器を識別する物理的な番号。", answer: "ネットワークインタフェースを識別するアドレス。主にデータリンク層で使う。", level: 1, confusion: "IPアドレスはネットワーク上の論理的な位置を表す" },
   { id: "ip-address", term: "IPアドレス", category: "ネットワーク", hint: "ネットワーク上の機器の場所を示す。", answer: "IPネットワークで機器や通信先を識別する論理アドレス。", level: 1, confusion: "MACアドレスは主に同一ネットワーク内で使う" },
   { id: "ipv4", term: "IPv4", category: "ネットワーク", hint: "32ビットのアドレスを使う。", answer: "32ビットのIPアドレスを使うインターネットプロトコル。", level: 1, confusion: "IPv6は128ビットのアドレスを使う" },
@@ -1220,11 +1220,26 @@ function getChoices(card: Term, difficulty: Difficulty, disabledIds: string[] = 
   return shuffle([card, ...picked.map(({ item }) => item)]);
 }
 
+function answerTermVariants(term: string) {
+  const variants = new Set([term]);
+  const parenthetical = term.match(/^(.+?)（([^）]+)）$/);
+  if (parenthetical) {
+    variants.add(parenthetical[1].trim());
+    variants.add(parenthetical[2].trim());
+  }
+  if (term.includes("／")) term.split("／").forEach((part) => variants.add(part.trim()));
+  if (/^[A-Za-z0-9+&-]+\/[A-Za-z0-9+&-]+$/.test(term)) term.split("/").forEach((part) => variants.add(part));
+  return [...variants].filter((variant) => variant.length >= 2).sort((left, right) => right.length - left.length);
+}
+
 function maskAnswerTerm(text: string, card: Term) {
-  const escaped = card.term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const isAsciiTerm = /^[A-Za-z0-9+&/-]+$/.test(card.term);
-  const termPattern = isAsciiTerm ? `(^|[^A-Za-z0-9])${escaped}(?=$|[^A-Za-z0-9])` : escaped;
-  let masked = text.replace(new RegExp(termPattern, "gi"), isAsciiTerm ? "$1この用語" : "この用語");
+  let masked = text;
+  for (const variant of answerTermVariants(card.term)) {
+    const escaped = variant.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const isAsciiTerm = /^[A-Za-z0-9+&/-]+$/.test(variant);
+    const termPattern = isAsciiTerm ? `(^|[^A-Za-z0-9])${escaped}(?=$|[^A-Za-z0-9])` : escaped;
+    masked = masked.replace(new RegExp(termPattern, "gi"), isAsciiTerm ? "$1この用語" : "この用語");
+  }
   const sentences = masked.split("。");
   const formalNamePattern = /^[A-Za-z][A-Za-z0-9+&/\- ]*(?:（[^）]*）)?(?:、[A-Za-z][A-Za-z0-9+&/\- ]*(?:（[^）]*）)?)*$/;
   if (sentences.length > 1 && formalNamePattern.test(sentences[0].trim())) masked = sentences.slice(1).join("。").trim();

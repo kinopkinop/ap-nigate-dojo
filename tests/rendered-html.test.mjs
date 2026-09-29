@@ -124,6 +124,8 @@ test("keeps the understanding-dojo question set structured and scenario based", 
     const followUp = property(element, "followUp");
     assert.equal(mainChoices.length, 4, `${id}: main question must have four choices`);
     assert.ok(Number.isInteger(mainCorrectIndex) && mainCorrectIndex >= 0 && mainCorrectIndex < 4, `${id}: invalid main correctIndex`);
+    const mainPrompt = [textValue(property(element, "situation")), ...textArray(property(element, "conditions")), textValue(property(element, "question"))].join(" ");
+    assert.ok(!mainPrompt.includes(mainChoices[mainCorrectIndex]), `${id}: main prompt exposes the correct answer`);
     assert.ok(followUp && ts.isObjectLiteralExpression(followUp), `${id}: follow-up is missing`);
     const followUpChoices = textArray(property(followUp, "choices"));
     const followUpCorrectIndex = Number(property(followUp, "correctIndex")?.getText(sourceFile));
@@ -517,9 +519,10 @@ test("paused questions stay out of rounds and choices, with settings in backups"
 
 test("does not mask an abbreviation inside its English formal name", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
-  const helperStart = page.indexOf("function maskAnswerTerm");
+  const helperStart = page.indexOf("function answerTermVariants");
   const helperEnd = page.indexOf("function getRetention", helperStart);
   const helperSource = page.slice(helperStart, helperEnd)
+    .replace("function answerTermVariants(term: string)", "function answerTermVariants(term)")
     .replace("function maskAnswerTerm(text: string, card: Term)", "function maskAnswerTerm(text, card)");
   const maskAnswerTerm = Function(`${helperSource}\nreturn maskAnswerTerm;`)();
 
@@ -528,6 +531,9 @@ test("does not mask an abbreviation inside its English formal name", async () =>
     "会計・人事・生産・販売などを統合管理する仕組み。",
   );
   assert.equal(maskAnswerTerm("ERPは企業全体を統合管理する。", { term: "ERP" }), "この用語は企業全体を統合管理する。");
+  assert.doesNotMatch(maskAnswerTerm("TCPやIPなどを使う体系。", { term: "TCP/IP" }), /TCP|IP/);
+  assert.doesNotMatch(maskAnswerTerm("シノニムともいう。", { term: "衝突（シノニム）" }), /シノニム/);
+  assert.doesNotMatch(maskAnswerTerm("認証局が保証する。", { term: "CA（認証局）" }), /認証局/);
 });
 
 test("keeps the revealed answer actions reachable on a phone", async () => {
