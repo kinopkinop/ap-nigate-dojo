@@ -212,7 +212,7 @@ const terms: Term[] = [
   { id: "iot", term: "IoT", category: "ストラテジ", hint: "機器や設備をネットワークにつなぐ。", hardPrompt: "センサを備えた機器をネットワークにつなぎ、情報収集や遠隔制御に使う仕組みは？", answer: "Internet of Things（モノのインターネット）。機器をネットワークにつなぎ、情報収集や遠隔制御に活用する仕組み。", level: 1 },
   { id: "soa", term: "SOA", category: "テクノロジ", hint: "業務機能を独立したサービスとして組み合わせる。", hardPrompt: "業務機能を再利用可能なサービスとして分け、連携させる設計思想は？", answer: "Service-Oriented Architecture（サービス指向アーキテクチャ）。業務機能を独立したサービスとして連携させる設計思想。", level: 1 },
   { id: "mm1-queue", term: "M/M/1待ち行列：モデルと利用率", category: "テクノロジ", hint: "ランダムに到着する客を、一つの窓口で処理するモデル。", studyPrompt: "M/M/1の三つの特徴と、利用率の式を言えますか？", hardPrompt: "到着と処理時間がランダムで、窓口が一つ、利用率をλ÷μで表す待ち行列モデルは？", answer: "到着がランダム、処理時間もランダムで、窓口が一つの待ち行列モデル。利用率は到着率λ÷処理率μで求める。", level: 1, collection: "special" },
-  { id: "mm1-system-time", term: "M/M/1待ち行列：時間計算", category: "テクノロジ", hint: "待ち時間・処理時間・系内時間を式で求める計算問題。", studyPrompt: "M/M/1の時間計算を問題演習として確認しますか？", hardPrompt: "到着率λと処理率μから、平均系内時間や平均待ち時間を求める問題は？", answer: "M/M/1で平均系内時間や平均待ち時間を求める計算問題。公式の理解は別途問題演習で確認する。", level: 1, collection: "special" },
+  { id: "mm1-system-time", term: "M/M/1待ち行列：時間計算", category: "テクノロジ", hint: "待ち時間・処理時間・系内時間を式で求める計算問題。", studyPrompt: "M/M/1の時間計算を問題演習として確認しますか？", hardPrompt: "待ち行列モデルで、到着率λと処理率μから平均系内時間や平均待ち時間を求める計算問題は？", answer: "M/M/1で平均系内時間や平均待ち時間を求める計算問題。公式の理解は別途問題演習で確認する。", level: 1, collection: "special" },
   { id: "linear-search", term: "線形探索", category: "テクノロジ", hint: "並び順に頼らず、先頭から一件ずつ確かめる。", hardPrompt: "未整列のn件を先頭から順に比較し、探す回数が件数に比例する探索法は？", answer: "先頭から順番に一件ずつ比較する探索法。整列は不要だが、最悪の場合n件を調べるため計算量はO(n)。", level: 1, collection: "special" },
   { id: "binary-search", term: "二分探索", category: "テクノロジ", hint: "整列済みの範囲を、比較のたびに半分に絞る。", hardPrompt: "整列済みデータを半分ずつ絞り、O(log n)で探す探索法は？", answer: "整列済みデータの探索範囲を半分ずつ減らす方法。計算量はO(log n)。", level: 1, collection: "special", confusion: "線形探索は先頭から順に調べるためO(n)" },
   { id: "hash-search", term: "ハッシュ探索", category: "テクノロジ", hint: "キーから保存場所の目安を計算して探す。", hardPrompt: "キーから位置を計算する表を使い、衝突が少なければ平均O(1)で探せる方法は？", answer: "キーのハッシュ値から格納先を求めて探す方法。探索は平均O(1)だが、衝突が多いと遅くなり、常にO(1)とは限らない。", level: 1, collection: "special", confusion: "二分探索は整列済みデータを半分ずつ絞り、O(log n)で探す" },
@@ -225,10 +225,10 @@ const terms: Term[] = [
   { id: "logic-nor", term: "NOR", category: "テクノロジ", hint: "二つとも0のときだけ1、それ以外は0。", hardPrompt: "二つの入力がともに0の場合だけ1となる、論理和を反転した演算は？", answer: "OR（論理和）の結果を反転する否定論理和。00→1、01→0、10→0、11→0。", level: 1, collection: "special", confusion: "NANDはANDの反転で、両方1のときだけ0" },
   { id: "roc-curve", term: "ROC曲線", category: "テクノロジ", hint: "検出できる割合と、誤検出する割合の関係を見る。", hardPrompt: "縦軸を真陽性率、横軸を偽陽性率として分類性能を表す曲線は？", answer: "二値分類で、真陽性率と偽陽性率の関係を表す曲線。左上に近いほど性能が良い。", level: 1 },
   { id: "sampling-theorem", term: "標本化定理", category: "テクノロジ", hint: "元の信号の最高周波数に対し、十分な速さで標本化する。", studyPrompt: "最高周波数が3kHzなら、最低何kHzで標本化しますか？", hardPrompt: "標本化周波数は最高周波数の2倍以上必要とする定理は？", answer: "信号を再現するには、最高周波数の2倍以上で標本化する必要があるという定理。", level: 1, collection: "special" },
-  { id: "signal-frequency", term: "周波数と周期", category: "テクノロジ", hint: "1秒当たりの回数と、1回にかかる時間の関係。", studyPrompt: "周波数と周期の関係を言えますか？", hardPrompt: "一方が大きいほど他方が小さくなる、互いに逆数の二つの量は？", answer: "周波数は1秒当たりの繰返し回数、周期は1回にかかる時間。周波数と周期は互いに逆数になる。", level: 1, collection: "special" },
-  { id: "memory-first-fit", term: "First Fit", category: "テクノロジ", hint: "空き領域を先頭から順に調べる。", hardPrompt: "要求サイズが入る空き領域を先頭から探し、最初に見つかった領域へ割り当てる方式は？", answer: "要求サイズが入る、最初に見つかった空き領域へ割り当てる方式。", level: 1, confusion: "Best Fitは入る中で最小、Worst Fitは最大の領域を選ぶ" },
-  { id: "memory-best-fit", term: "Best Fit", category: "テクノロジ", hint: "要求が入る空き領域のうち、余りが最も小さいものを選ぶ。", hardPrompt: "要求サイズが入る空き領域のうち、最も小さい領域へ割り当てる方式は？", answer: "要求サイズが入る空き領域のうち、最も小さい領域へ割り当てる方式。", level: 1, confusion: "First Fitは最初に見つかった領域を選ぶ" },
-  { id: "memory-worst-fit", term: "Worst Fit", category: "テクノロジ", hint: "要求が入る空き領域のうち、最も大きいものを選ぶ。", hardPrompt: "要求サイズが入る空き領域のうち、最も大きい領域へ割り当てる方式は？", answer: "要求サイズが入る空き領域のうち、最も大きい領域へ割り当てる方式。", level: 1, confusion: "Best Fitは入る中で最小の領域を選ぶ" },
+  { id: "signal-frequency", term: "周波数と周期", category: "テクノロジ", hint: "1秒当たりの回数と、1回にかかる時間の関係。", studyPrompt: "周波数と周期の関係を言えますか？", hardPrompt: "信号について、1秒当たりの繰返し回数と1回にかかる時間を表し、互いに逆数となる二つの量は？", answer: "周波数は1秒当たりの繰返し回数、周期は1回にかかる時間。周波数と周期は互いに逆数になる。", level: 1, collection: "special" },
+  { id: "memory-first-fit", term: "First Fit", category: "テクノロジ", hint: "空き領域を先頭から順に調べる。", hardPrompt: "主記憶の可変区画割当てで、要求サイズが入る空き領域を先頭から探し、最初に見つかった領域へ割り当てる方式は？", answer: "要求サイズが入る、最初に見つかった空き領域へ割り当てる方式。", level: 1, confusion: "Best Fitは入る中で最小、Worst Fitは最大の領域を選ぶ" },
+  { id: "memory-best-fit", term: "Best Fit", category: "テクノロジ", hint: "要求が入る空き領域のうち、余りが最も小さいものを選ぶ。", hardPrompt: "主記憶の可変区画割当てで、要求サイズが入る空き領域のうち、最も小さい領域へ割り当てる方式は？", answer: "要求サイズが入る空き領域のうち、最も小さい領域へ割り当てる方式。", level: 1, confusion: "First Fitは最初に見つかった領域を選ぶ" },
+  { id: "memory-worst-fit", term: "Worst Fit", category: "テクノロジ", hint: "要求が入る空き領域のうち、最も大きいものを選ぶ。", hardPrompt: "主記憶の可変区画割当てで、要求サイズが入る空き領域のうち、最も大きい領域へ割り当てる方式は？", answer: "要求サイズが入る空き領域のうち、最も大きい領域へ割り当てる方式。", level: 1, confusion: "Best Fitは入る中で最小の領域を選ぶ" },
   { id: "binary-number", term: "2進数", category: "テクノロジ", hint: "コンピュータが基本的に扱う二つの数字で表す。", answer: "0と1だけで数を表す方法。桁が一つ上がるごとに重みが2倍になる。", level: 1 },
   { id: "hexadecimal-number", term: "16進数", category: "テクノロジ", hint: "0〜9に六つの英字を加えて表す。", answer: "0〜9とA〜Fで数を表す方法。4ビットを1桁で表せる。", level: 1 },
   { id: "complement", term: "補数", category: "テクノロジ", hint: "引き算を足し算として扱うために使う。", answer: "ある数を基準値から引いた値。コンピュータでは負数の表現や減算に使う。", level: 1 },
@@ -1439,11 +1439,10 @@ export default function Home() {
     const studyLabels = ["この用語を説明できますか？", "意味と役割を思い出せますか？", "この用語の要点を言えますか？"];
     const copyVariant = stableNumber(`${currentCard.id}:${activePosition}:${mode}`);
     const useHardPrompt = questionDifficulty === "hard" && Boolean(currentCard.hardPrompt);
-    const useFeatureQuestion = useHardPrompt || (questionDifficulty === "normal" && copyVariant % 2 === 0);
-    const quizSource = useHardPrompt ? currentCard.hardPrompt as string : useFeatureQuestion ? currentCard.hint : currentCard.answer;
+    const quizSource = useHardPrompt ? currentCard.hardPrompt as string : currentCard.answer;
     return {
       studyLabel: currentCard.studyPrompt ?? studyLabels[copyVariant % studyLabels.length],
-      quizLabel: useHardPrompt ? "難問：状況と違いから判断してください" : useFeatureQuestion ? "次の特徴に当てはまる用語は？" : "この説明に当てはまる用語は？",
+      quizLabel: useHardPrompt ? "難問：状況と違いから判断してください" : "この説明に当てはまる用語は？",
       quizText: maskAnswerTerm(quizSource, currentCard),
       difficultyLabel: questionDifficulty === "easy" ? "やさしめ" : useHardPrompt ? "定着チャレンジ" : questionDifficulty === "hard" ? "定義を確認" : "標準",
     };

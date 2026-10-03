@@ -244,9 +244,25 @@ test("shows the situation-style hard label only when a hardPrompt exists", async
   const questionCopyBlock = page.slice(page.indexOf("const questionCopy"), page.indexOf("const currentModeKey"));
 
   assert.match(questionCopyBlock, /const useHardPrompt = questionDifficulty === "hard" && Boolean\(currentCard\.hardPrompt\)/);
+  assert.match(questionCopyBlock, /const quizSource = useHardPrompt \? currentCard\.hardPrompt as string : currentCard\.answer;/);
   assert.match(questionCopyBlock, /quizLabel: useHardPrompt \? "難問：状況と違いから判断してください"/);
   assert.match(questionCopyBlock, /questionDifficulty === "hard" \? "定義を確認"/);
+  assert.doesNotMatch(questionCopyBlock, /currentCard\.hint|useFeatureQuestion/);
   assert.doesNotMatch(questionCopyBlock, /currentCard\.hardPrompt \?\? currentCard\.answer/);
+});
+
+test("keeps hard prompts concrete and identifies their technical context", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const termsBlock = page.slice(page.indexOf("const terms"), page.indexOf("type Progress"));
+  const hardPrompts = [...termsBlock.matchAll(/hardPrompt: "([^"]+)"/g)].map((match) => match[1]);
+
+  assert.ok(hardPrompts.length >= 30);
+  for (const prompt of hardPrompts) assert.doesNotMatch(prompt, /セーブデータ|同じ扉|見た景色|甘い蜜|交通整理された一列/);
+  assert.match(termsBlock, /id: "signal-frequency"[^\n]+hardPrompt: "信号について/);
+  assert.match(termsBlock, /id: "mm1-system-time"[^\n]+hardPrompt: "待ち行列モデルで/);
+  for (const id of ["memory-first-fit", "memory-best-fit", "memory-worst-fit"]) {
+    assert.match(termsBlock, new RegExp(`id: "${id}"[^\\n]+hardPrompt: "主記憶の可変区画割当てで`));
+  }
 });
 
 test("schedules mastered vocabulary with the requested spaced-review intervals", async () => {
